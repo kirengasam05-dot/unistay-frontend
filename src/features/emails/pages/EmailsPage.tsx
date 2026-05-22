@@ -1,0 +1,2 @@
+import { emails } from '../../../data/mockData';
+export default function EmailsPage(){ return <div className="space-y-6"><div className="card"><h1 className="text-3xl font-black">Emails</h1><p className="mt-2 text-neutral-600">Dummy email center for booking updates, application decisions, verification, and certificates.</p></div>{emails.map(e=><div className="card" key={e.id}><p className="text-sm font-bold text-neutral-500">From: {e.from}</p><h2 className="mt-1 text-xl font-black">{e.subject}</h2><p className="mt-2 text-neutral-600">{e.body}</p></div>)}</div> }

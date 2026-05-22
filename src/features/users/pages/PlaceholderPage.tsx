@@ -1,0 +1,1 @@
+export default function PlaceholderPage({title='Page'}:{title?:string}){ return <div className="card"><h1 className="text-2xl font-black">{title}</h1><p className="mt-2 text-neutral-600">This screen is ready for backend connection. Current frontend uses professional dummy data so all navigation remains clickable.</p></div> }

@@ -1,0 +1,21 @@
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-neutral-900;
+}
+
+.btn-black {
+  @apply rounded-full bg-black px-5 py-2 font-bold text-white;
+}
+
+.btn-white {
+  @apply rounded-full border border-neutral-300 bg-white px-5 py-2 font-bold text-black;
+}
+
+.card {
+  @apply rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm;
+}
