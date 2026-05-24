@@ -40,7 +40,6 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
     { label: 'Moderation', to: '/admin/moderation', icon: ShieldCheck },
     { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
-    { label: 'Profile', to: '/profile', icon: UserCog },
   ],
 };
 
@@ -72,11 +71,16 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
         <Link
           to="/"
           onClick={onClose}
-          className="flex flex-1 items-center gap-3 rounded-2xl border border-neutral-200 p-4 transition hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+          className="flex items-center gap-3 rounded-3xl border border-neutral-200 p-4 dark:border-neutral-800"
         >
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-black font-black text-white dark:bg-white dark:text-black">
+            U+
+          </div>
           <div>
             <p className="text-lg font-black text-neutral-900 dark:text-white">UniStay+</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 capitalize">{role.toLowerCase()} workspace</p>
+            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+              {role.toLowerCase()} workspace
+            </p>
           </div>
         </Link>
 
