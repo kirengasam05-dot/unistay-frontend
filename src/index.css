@@ -5,17 +5,17 @@
 @tailwind utilities;
 
 body {
-  @apply bg-white text-neutral-900;
+  @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
 }
 
 .btn-black {
-  @apply rounded-full bg-black px-5 py-2 font-bold text-white;
+  @apply rounded-full bg-black px-5 py-2 font-bold text-white dark:bg-white dark:text-black;
 }
 
 .btn-white {
-  @apply rounded-full border border-neutral-300 bg-white px-5 py-2 font-bold text-black;
+  @apply rounded-full border border-neutral-300 bg-white px-5 py-2 font-bold text-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white;
 }
 
 .card {
-  @apply rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm;
+  @apply rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900;
 }
