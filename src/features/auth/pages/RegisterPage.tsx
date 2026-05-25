@@ -56,7 +56,7 @@ export default function RegisterPage() {
     navigate('/dashboard');
   };
 
-  const inputClass = 'w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-400 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15';
+  const inputClass = 'w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15';
   const labelClass = 'block text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-1.5';
 
   return (
@@ -70,7 +70,7 @@ export default function RegisterPage() {
       {/* Light-mode soft background */}
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 via-white to-neutral-100 dark:hidden" />
 
-      <div className="relative z-10 w-full max-w-xl">
+      <div className="relative z-10 w-full max-w-2xl">
 
         {/* Brand */}
         <Link to="/" className="mb-8 block text-center text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
@@ -80,11 +80,11 @@ export default function RegisterPage() {
         {/* Card */}
         <form
           onSubmit={submit}
-          className="w-full rounded-3xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl"
+          className="w-full rounded-2xl border border-neutral-200 bg-white p-10 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl"
         >
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Create your account</h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            Student and host registration is open to everyone.
+            Sign up as a student, host, or employer. Admin accounts are created by the platform.
           </p>
 
           {error && (
@@ -126,6 +126,7 @@ export default function RegisterPage() {
               >
                 <option value="STUDENT">Student</option>
                 <option value="HOST">Host</option>
+                <option value="EMPLOYER">Employer</option>
               </select>
             </div>
 
@@ -153,7 +154,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-xl bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+            className="mt-6 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
           >
             Create account
           </button>
