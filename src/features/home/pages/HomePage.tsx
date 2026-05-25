@@ -136,8 +136,7 @@ export default function HomePage(){
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <Sparkles className="mx-auto h-10 w-10 text-neutral-900 dark:text-white" />
-        <h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Ready to manage student life smarter?</h2>
+        <h2 className="text-4xl font-black text-neutral-900 dark:text-white">Ready to manage student life smarter?</h2>
         <p className="mx-auto mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">Start as a student or host. Admin will assign employer and admin roles internally for platform safety.</p>
         <div className="mt-8 flex justify-center gap-3"><Link to="/register" className="btn-black">Create account</Link><Link to="/process" className="btn-white">See process</Link></div>
       </section>
