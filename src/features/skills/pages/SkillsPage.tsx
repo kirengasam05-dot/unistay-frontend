@@ -7,15 +7,13 @@ export default function SkillsPage() {
     <div className="dark:bg-neutral-950">
       <section className="page-hero">
         <div className="mx-auto max-w-7xl">
-          <p className="eyebrow">Learning & certification</p>
-          <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Skills, courses & certificates</h1>
+          <h1 className="text-4xl font-black text-white sm:text-5xl">Skills, courses & certificates</h1>
           <p className="mt-3 max-w-xl text-neutral-400">Study courses, take exams and earn certificates that strengthen your job profile.</p>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <p className="eyebrow">Courses</p>
-        <h2 className="mt-1 text-2xl font-black text-neutral-900 dark:text-white">Available learning paths</h2>
+        <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Available learning paths</h2>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((c) => (
@@ -43,8 +41,7 @@ export default function SkillsPage() {
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="eyebrow">Assessments</p>
-            <h2 className="mt-1 text-xl font-black text-neutral-900 dark:text-white">Available exams</h2>
+            <h2 className="text-xl font-black text-neutral-900 dark:text-white">Available exams</h2>
             <div className="mt-5 space-y-3">
               {assignments.map((a) => (
                 <div key={a.id} className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-4 dark:border-neutral-800 dark:bg-neutral-800/50">
@@ -59,8 +56,7 @@ export default function SkillsPage() {
           </div>
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="eyebrow">Achievements</p>
-            <h2 className="mt-1 text-xl font-black text-neutral-900 dark:text-white">Your certificates</h2>
+            <h2 className="text-xl font-black text-neutral-900 dark:text-white">Your certificates</h2>
             <div className="mt-5 space-y-3">
               {certificates.length ? certificates.map((c) => (
                 <div key={c.id} className="flex items-center gap-4 rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-4 dark:border-neutral-800 dark:bg-neutral-800/50">

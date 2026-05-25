@@ -23,8 +23,7 @@ export default function StudentDashboard() {
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/5" />
         <div className="absolute -bottom-6 right-20 h-24 w-24 rounded-full bg-white/5" />
         <div className="relative">
-          <p className="eyebrow text-neutral-400">Student workspace</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">Book housing, apply for jobs,<br className="hidden sm:block" /> learn and earn certificates.</h2>
+          <h2 className="text-2xl font-black leading-tight sm:text-3xl">Book housing, apply for jobs,<br className="hidden sm:block" /> learn and earn certificates.</h2>
           <p className="mt-3 max-w-lg text-sm text-neutral-400">Payment is only released after your host confirms. Applications are matched by skill compatibility.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className="btn-white rounded-xl" to="/student/booking">Start housing booking</Link>

@@ -25,8 +25,7 @@ export default function AdminDashboard() {
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-neutral-200/50 dark:bg-white/5" />
         <div className="absolute right-20 bottom-0 h-24 w-24 rounded-full bg-neutral-200/30 dark:bg-white/[0.03]" />
         <div className="relative">
-          <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Admin workspace</p>
-          <h2 className="mt-2 text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl leading-tight">
+          <h2 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl leading-tight">
             Control users, roles,<br className="hidden sm:block" /> content & moderation.
           </h2>
           <p className="mt-2 max-w-lg text-sm text-neutral-500 dark:text-neutral-400">

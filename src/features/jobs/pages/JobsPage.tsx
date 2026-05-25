@@ -20,8 +20,7 @@ export default function JobsPage() {
     <div className="dark:bg-neutral-950">
       <section className="page-hero">
         <div className="mx-auto max-w-7xl">
-          <p className="eyebrow">Job marketplace</p>
-          <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Student jobs & internships</h1>
+          <h1 className="text-4xl font-black text-white sm:text-5xl">Student jobs & internships</h1>
           <p className="mt-3 max-w-xl text-neutral-400">Find opportunities matched to your skills and certificates.</p>
           <div className="mt-8 grid gap-2 rounded-2xl bg-white p-2 sm:grid-cols-[1fr_180px_auto]">
             <div className="flex items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 text-neutral-900">
