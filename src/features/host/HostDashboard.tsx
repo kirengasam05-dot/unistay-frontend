@@ -7,8 +7,7 @@ export default function HostDashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/5" />
         <div className="relative">
-          <p className="eyebrow text-neutral-400">Host workspace</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">Manage housing, bookings &amp; availability.</h2>
+          <h2 className="text-2xl font-black leading-tight sm:text-3xl">Manage housing, bookings &amp; availability.</h2>
           <p className="mt-3 max-w-lg text-sm text-neutral-400">Students cannot pay until you confirm the booking and room availability.</p>
           <Link className="btn-white mt-6 inline-flex rounded-xl" to="/host/listings">Add or manage housing</Link>
         </div>

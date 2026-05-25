@@ -7,8 +7,7 @@ export default function EmployerDashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/5" />
         <div className="relative">
-          <p className="eyebrow text-neutral-400">Employer workspace</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">Create jobs & review student compatibility.</h2>
+          <h2 className="text-2xl font-black leading-tight sm:text-3xl">Create jobs & review student compatibility.</h2>
           <p className="mt-3 max-w-lg text-sm text-neutral-400">Job creation and application review. Courses, exams and assignments are managed by admin.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className="btn-white rounded-xl" to="/employer/jobs">Create job</Link>

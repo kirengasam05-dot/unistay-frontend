@@ -18,8 +18,7 @@ export default function HomePage(){
         <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_top_left,_white,_transparent_35%),radial-gradient(circle_at_bottom_right,_white,_transparent_28%)]" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div>
-            <Badge className="border-white/20 bg-white/10 text-white">UniStay+ Student ecosystem</Badge>
-            <h1 className="mt-6 max-w-4xl text-5xl font-black leading-tight tracking-tight md:text-7xl">
+            <h1 className="max-w-4xl text-5xl font-black leading-tight tracking-tight md:text-7xl">
               Find housing, jobs and skills that fit your student life.
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-neutral-300">
@@ -61,7 +60,7 @@ export default function HomePage(){
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div><Badge>Explore by category</Badge><h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Start from what you need today</h2></div>
+          <div><h2 className="text-4xl font-black text-neutral-900 dark:text-white">Start from what you need today</h2></div>
           <Link to="/jobs" className="font-bold underline text-neutral-900 dark:text-white">Browse all jobs</Link>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-4">
@@ -78,8 +77,7 @@ export default function HomePage(){
       <section className="border-y border-neutral-200 bg-neutral-50 px-6 py-20 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div>
-            <Badge>Complete student journey</Badge>
-            <h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">One platform from room search to career readiness.</h2>
+            <h2 className="text-4xl font-black text-neutral-900 dark:text-white">One platform from room search to career readiness.</h2>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">UniStay+ connects housing, job matching and skills development so students can manage life, income and employability from one dashboard.</p>
             <div className="mt-6 space-y-3">
               {['Check room availability before payment','Apply to internships using course certificates','Get email results after employer compatibility review'].map(item=>(
@@ -104,7 +102,7 @@ export default function HomePage(){
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div><Badge>Latest opportunities</Badge><h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Jobs and internships built around student skills</h2></div>
+          <div><h2 className="text-4xl font-black text-neutral-900 dark:text-white">Jobs and internships built around student skills</h2></div>
           <Link to="/jobs" className="rounded-2xl bg-black px-5 py-3 font-bold text-white dark:bg-white dark:text-neutral-900">View all jobs</Link>
         </div>
         <div className="mt-8 space-y-4">
@@ -123,7 +121,7 @@ export default function HomePage(){
 
       <section className="bg-neutral-950 px-6 py-20 text-white">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-1"><Badge className="border-white/20 bg-white/10 text-white">Skills path</Badge><h2 className="mt-4 text-4xl font-black">Study. Take exam. Earn certificate.</h2><p className="mt-3 text-neutral-300">Admin publishes courses, videos and exams. Students complete them to unlock certificates and improve profile strength.</p></div>
+          <div className="lg:col-span-1"><h2 className="text-4xl font-black">Study. Take exam. Earn certificate.</h2><p className="mt-3 text-neutral-300">Admin publishes courses, videos and exams. Students complete them to unlock certificates and improve profile strength.</p></div>
           <div className="grid gap-4 md:grid-cols-3 lg:col-span-2">
             {courses.map(c=>(
               <div key={c.id} className="rounded-[2rem] bg-white p-4 text-black">

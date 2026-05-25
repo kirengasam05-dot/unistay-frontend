@@ -6,8 +6,7 @@ export default function HousingPage() {
     <div className="dark:bg-neutral-950">
       <section className="page-hero">
         <div className="mx-auto max-w-7xl">
-          <p className="eyebrow">Student accommodation</p>
-          <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Verified student housing</h1>
+          <h1 className="text-4xl font-black text-white sm:text-5xl">Verified student housing</h1>
           <p className="mt-3 max-w-xl text-neutral-400">Browse verified rooms and apartments. Payment only processes after your host confirms the booking.</p>
         </div>
       </section>

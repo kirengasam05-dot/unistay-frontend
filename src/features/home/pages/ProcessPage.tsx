@@ -14,8 +14,7 @@ export default function ProcessPage() {
     <div className="dark:bg-neutral-950">
       <section className="page-hero text-center">
         <div className="mx-auto max-w-2xl">
-          <p className="eyebrow">How it works</p>
-          <h1 className="mt-4 text-4xl font-black text-white sm:text-5xl">Everything in five simple steps.</h1>
+          <h1 className="text-4xl font-black text-white sm:text-5xl">Everything in five simple steps.</h1>
           <p className="mx-auto mt-4 max-w-xl text-neutral-400">UniStay+ connects students, hosts, employers and admins in one seamless ecosystem.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/register" className="btn-black">Get started</Link>
