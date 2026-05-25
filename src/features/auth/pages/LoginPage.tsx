@@ -44,7 +44,7 @@ export default function LoginPage() {
         {/* Card */}
         <form
           onSubmit={submit}
-          className="w-full rounded-3xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl"
+          className="w-full rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl"
         >
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Welcome back</h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 type="email"
                 required
-                className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-400 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="mt-2 w-full rounded-xl bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+              className="mt-2 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
             >
               Log in
             </button>
