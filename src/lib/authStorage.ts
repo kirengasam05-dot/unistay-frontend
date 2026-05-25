@@ -13,6 +13,8 @@ export type AuthUser = {
   phone?: string;
   location?: string;
   avatar?: string;
+  skillsProfile?: string;
+  bio?: string;
 };
 
 const USER_KEY = "unistay_user";

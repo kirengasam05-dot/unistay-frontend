@@ -1,4 +1,49 @@
+import { MapPin } from 'lucide-react';
 import { housings } from '../../../data/mockData';
-import Badge from '../../../components/ui/Badge';
-import Button from '../../../components/ui/Button';
-export default function HousingPage(){ return <section className="mx-auto max-w-7xl px-6 py-16"><h1 className="text-5xl font-black">Verified student housing</h1><p className="mt-3 text-neutral-600">Search accommodation by location, price and availability.</p><div className="mt-8 grid gap-6 md:grid-cols-3">{housings.map(h=><div className="card p-3" key={h.id}><img className="h-56 w-full rounded-2xl object-cover" src={h.image}/><div className="p-4"><div className="flex gap-2"><Badge>{h.verificationStatus}</Badge><Badge>{h.availability?'Available':'Booked'}</Badge></div><h2 className="mt-3 text-xl font-black">{h.title}</h2><p className="text-sm text-neutral-600">{h.location}</p><p className="mt-3 font-bold">RWF {h.price.toLocaleString()}/month</p><Button className="mt-4 w-full" variant="green">Request Booking</Button></div></div>)}</div></section> }
+
+export default function HousingPage() {
+  return (
+    <div className="dark:bg-neutral-950">
+      <section className="page-hero">
+        <div className="mx-auto max-w-7xl">
+          <p className="eyebrow">Student accommodation</p>
+          <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Verified student housing</h1>
+          <p className="mt-3 max-w-xl text-neutral-400">Browse verified rooms and apartments. Payment only processes after your host confirms the booking.</p>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {housings.map((h) => (
+            <div key={h.id} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="relative overflow-hidden">
+                <img className="h-52 w-full object-cover transition duration-300 group-hover:scale-105" src={h.image} alt={h.title} />
+                <div className="absolute left-3 top-3 flex gap-1.5">
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${h.availability ? 'bg-emerald-500' : 'bg-neutral-500'}`}>
+                    {h.availability ? 'Available' : 'Booked'}
+                  </span>
+                  <span className="rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                    {h.verificationStatus}
+                  </span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h2 className="font-black text-neutral-900 dark:text-white">{h.title}</h2>
+                <div className="mt-1 flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  <MapPin size={13} />{h.location}
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xl font-black text-neutral-900 dark:text-white">RWF {h.price.toLocaleString()}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">per month</p>
+                  </div>
+                  <button className="btn-black rounded-xl px-4 py-2 text-sm">Request booking</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

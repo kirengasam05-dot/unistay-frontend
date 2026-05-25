@@ -13,7 +13,7 @@ const categories = [
 
 export default function HomePage(){
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-neutral-950">
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-950 text-white">
         <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_top_left,_white,_transparent_35%),radial-gradient(circle_at_bottom_right,_white,_transparent_28%)]" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
@@ -61,37 +61,41 @@ export default function HomePage(){
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div><Badge>Explore by category</Badge><h2 className="mt-4 text-4xl font-black">Start from what you need today</h2></div>
-          <Link to="/jobs" className="font-bold underline">Browse all jobs</Link>
+          <div><Badge>Explore by category</Badge><h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Start from what you need today</h2></div>
+          <Link to="/jobs" className="font-bold underline text-neutral-900 dark:text-white">Browse all jobs</Link>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-4">
           {categories.map(({name,count,icon:Icon})=>(
             <Card key={name} className="group hover:-translate-y-1 transition">
-              <Icon className="h-10 w-10" />
-              <h3 className="mt-5 text-lg font-black">{name}</h3>
-              <p className="mt-1 text-sm text-neutral-500">{count} active opportunities</p>
+              <Icon className="h-10 w-10 text-neutral-700 dark:text-neutral-300" />
+              <h3 className="mt-5 text-lg font-black text-neutral-900 dark:text-white">{name}</h3>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{count} active opportunities</p>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="border-y border-neutral-200 bg-neutral-50 px-6 py-20">
+      <section className="border-y border-neutral-200 bg-neutral-50 px-6 py-20 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div>
             <Badge>Complete student journey</Badge>
-            <h2 className="mt-4 text-4xl font-black">One platform from room search to career readiness.</h2>
-            <p className="mt-4 text-neutral-600">UniStay+ connects housing, job matching and skills development so students can manage life, income and employability from one dashboard.</p>
+            <h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">One platform from room search to career readiness.</h2>
+            <p className="mt-4 text-neutral-600 dark:text-neutral-400">UniStay+ connects housing, job matching and skills development so students can manage life, income and employability from one dashboard.</p>
             <div className="mt-6 space-y-3">
               {['Check room availability before payment','Apply to internships using course certificates','Get email results after employer compatibility review'].map(item=>(
-                <div key={item} className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-600"/> {item}</div>
+                <div key={item} className="flex items-center gap-3 font-semibold text-neutral-900 dark:text-neutral-200"><CheckCircle2 className="shrink-0 text-emerald-500"/> {item}</div>
               ))}
             </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {housings.slice(0,2).map(h=>(
-              <div key={h.id} className="rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-neutral-200">
+              <div key={h.id} className="rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-neutral-200 dark:bg-neutral-800 dark:ring-neutral-700">
                 <img className="h-48 w-full rounded-[1.4rem] object-cover" src={h.image}/>
-                <div className="p-4"><h3 className="font-black">{h.title}</h3><p className="text-sm text-neutral-600">{h.location}</p><p className="mt-2 font-bold">RWF {h.price.toLocaleString()}/month</p></div>
+                <div className="p-4">
+                  <h3 className="font-black text-neutral-900 dark:text-white">{h.title}</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">{h.location}</p>
+                  <p className="mt-2 font-bold text-neutral-900 dark:text-white">RWF {h.price.toLocaleString()}/month</p>
+                </div>
               </div>
             ))}
           </div>
@@ -100,18 +104,18 @@ export default function HomePage(){
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div><Badge>Latest opportunities</Badge><h2 className="mt-4 text-4xl font-black">Jobs and internships built around student skills</h2></div>
-          <Link to="/jobs" className="rounded-2xl bg-black px-5 py-3 font-bold text-white">View all jobs</Link>
+          <div><Badge>Latest opportunities</Badge><h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Jobs and internships built around student skills</h2></div>
+          <Link to="/jobs" className="rounded-2xl bg-black px-5 py-3 font-bold text-white dark:bg-white dark:text-neutral-900">View all jobs</Link>
         </div>
         <div className="mt-8 space-y-4">
           {jobs.slice(0,4).map(j=>(
             <Card key={j.id} className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="flex flex-wrap gap-2"><Badge>{j.category}</Badge><Badge>{j.scheduleType}</Badge></div>
-                <h3 className="mt-3 text-2xl font-black">{j.title}</h3>
-                <div className="mt-2 flex flex-wrap gap-4 text-sm text-neutral-600"><span className="flex items-center gap-1"><MapPin size={16}/>{j.location}</span><span className="flex items-center gap-1"><Clock3 size={16}/>{j.deadline}</span><span className="flex items-center gap-1"><Wallet size={16}/>RWF {j.salary.toLocaleString()}</span></div>
+                <h3 className="mt-3 text-2xl font-black text-neutral-900 dark:text-white">{j.title}</h3>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-neutral-600 dark:text-neutral-400"><span className="flex items-center gap-1"><MapPin size={16}/>{j.location}</span><span className="flex items-center gap-1"><Clock3 size={16}/>{j.deadline}</span><span className="flex items-center gap-1"><Wallet size={16}/>RWF {j.salary.toLocaleString()}</span></div>
               </div>
-              <Link to="/jobs" className="rounded-2xl bg-black px-5 py-3 text-center font-bold text-white">Apply Now</Link>
+              <Link to="/jobs" className="rounded-2xl bg-black px-5 py-3 text-center font-bold text-white dark:bg-white dark:text-neutral-900">Apply Now</Link>
             </Card>
           ))}
         </div>
@@ -134,9 +138,9 @@ export default function HomePage(){
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <Sparkles className="mx-auto h-10 w-10" />
-        <h2 className="mt-4 text-4xl font-black">Ready to manage student life smarter?</h2>
-        <p className="mx-auto mt-3 max-w-2xl text-neutral-600">Start as a student or host. Admin will assign employer and admin roles internally for platform safety.</p>
+        <Sparkles className="mx-auto h-10 w-10 text-neutral-900 dark:text-white" />
+        <h2 className="mt-4 text-4xl font-black text-neutral-900 dark:text-white">Ready to manage student life smarter?</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">Start as a student or host. Admin will assign employer and admin roles internally for platform safety.</p>
         <div className="mt-8 flex justify-center gap-3"><Link to="/register" className="btn-black">Create account</Link><Link to="/process" className="btn-white">See process</Link></div>
       </section>
     </div>
