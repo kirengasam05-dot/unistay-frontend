@@ -14,6 +14,7 @@ import SkillsPage from "../features/skills/pages/SkillsPage";
 
 import DashboardPage from "../features/users/pages/DashboardPage";
 import PlaceholderPage from "../features/users/pages/PlaceholderPage";
+import ProfilePage from "../features/users/pages/ProfilePage";
 
 import StudentBookingPage from "../features/student/pages/StudentBookingPage";
 import StudentJobsPage from "../features/student/pages/StudentJobsPage";
@@ -22,6 +23,7 @@ import StudentAssignmentsPage from "../features/student/pages/StudentAssignments
 import StudentCertificatesPage from "../features/student/pages/StudentCertificatesPage";
 
 import HostListingsPage from "../features/host/pages/HostListingsPage";
+import HostAddListingPage from "../features/host/pages/HostAddListingPage";
 import HostBookingsPage from "../features/host/pages/HostBookingsPage";
 
 import EmployerJobsPage from "../features/employer/pages/EmployerJobsPage";
@@ -68,9 +70,10 @@ export default function AppRoutes() {
         />
 
         <Route path="/emails" element={<EmailsPage />} />
-        <Route path="/profile" element={<PlaceholderPage title="Profile" />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         <Route path="/host/listings" element={<HostListingsPage />} />
+        <Route path="/host/listings/new" element={<HostAddListingPage />} />
         <Route path="/host/bookings" element={<HostBookingsPage />} />
         <Route
           path="/host/verification"
