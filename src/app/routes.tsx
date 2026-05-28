@@ -38,11 +38,9 @@ import EmailsPage from "../features/emails/pages/EmailsPage";
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Auth pages: no navbar */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* Public pages: navbar visible */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/housing" element={<HousingPage />} />
@@ -51,52 +49,32 @@ export default function AppRoutes() {
         <Route path="/process" element={<ProcessPage />} />
       </Route>
 
-      {/* Dashboard pages */}
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/emails" element={<EmailsPage />} />
 
         <Route path="/student/booking" element={<StudentBookingPage />} />
         <Route path="/student/jobs" element={<StudentJobsPage />} />
         <Route path="/student/learning" element={<StudentLearningPage />} />
         <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
         <Route path="/student/certificates" element={<StudentCertificatesPage />} />
-        <Route
-          path="/student/recommendations"
-          element={<PlaceholderPage title="Recommendations" />}
-        />
-        <Route
-          path="/student/notifications"
-          element={<PlaceholderPage title="Notifications" />}
-        />
-
-        <Route path="/emails" element={<EmailsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/student/recommendations" element={<PlaceholderPage title="Recommendations" />} />
+        <Route path="/student/notifications" element={<PlaceholderPage title="Notifications" />} />
 
         <Route path="/host/listings" element={<HostListingsPage />} />
         <Route path="/host/listings/new" element={<HostAddListingPage />} />
         <Route path="/host/bookings" element={<HostBookingsPage />} />
-        <Route
-          path="/host/verification"
-          element={<PlaceholderPage title="Host verification" />}
-        />
+        <Route path="/host/verification" element={<PlaceholderPage title="Host verification" />} />
 
         <Route path="/employer/jobs" element={<EmployerJobsPage />} />
-        <Route
-          path="/employer/applications"
-          element={<EmployerApplicationsPage />}
-        />
-        <Route
-          path="/employer/verification"
-          element={<PlaceholderPage title="Employer verification" />}
-        />
+        <Route path="/employer/applications" element={<EmployerApplicationsPage />} />
+        <Route path="/employer/verification" element={<PlaceholderPage title="Employer verification" />} />
 
         <Route path="/admin/users" element={<AdminUsersPage />} />
         <Route path="/admin/learning" element={<AdminLearningPage />} />
         <Route path="/admin/moderation" element={<AdminModerationPage />} />
-        <Route
-          path="/admin/analytics"
-          element={<PlaceholderPage title="Analytics" />}
-        />
+        <Route path="/admin/analytics" element={<PlaceholderPage title="Analytics" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
