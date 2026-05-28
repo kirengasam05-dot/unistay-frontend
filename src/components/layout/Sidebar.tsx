@@ -17,8 +17,8 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   ],
   HOST: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
-    { label: 'My Listings', to: '/host/listings', icon: Building2 },
-    { label: 'Bookings', to: '/host/bookings', icon: CheckCircle2 },
+    { label: 'My Housing Listings', to: '/host/listings', icon: Building2 },
+    { label: 'Bookings & Availability', to: '/host/bookings', icon: CheckCircle2 },
     { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Verification', to: '/host/verification', icon: ShieldCheck },
     { label: 'Profile', to: '/profile', icon: UserCog },
@@ -26,7 +26,7 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   EMPLOYER: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
     { label: 'Create Jobs', to: '/employer/jobs', icon: Briefcase },
-    { label: 'Applications', to: '/employer/applications', icon: Users },
+    { label: 'Review Applications', to: '/employer/applications', icon: Users },
     { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Verification', to: '/employer/verification', icon: ShieldCheck },
     { label: 'Profile', to: '/profile', icon: UserCog },
@@ -52,9 +52,9 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
   const navigate = useNavigate();
   const logout = () => { logoutUser(); navigate('/login'); };
 
-  const content = (
+  const sidebarContent = (
     <div className="flex h-full flex-col p-5">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between">
         <Link
           to="/"
           onClick={onClose}
@@ -65,14 +65,19 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
             <p className="text-xs text-neutral-500 dark:text-neutral-400 capitalize">{role.toLowerCase()} workspace</p>
           </div>
         </Link>
+
+        {/* close button — mobile only */}
         {onClose && (
-          <button onClick={onClose} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 transition hover:bg-neutral-100 dark:border-neutral-800 dark:hover:bg-neutral-800 lg:hidden">
+          <button
+            onClick={onClose}
+            className="ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800 lg:hidden"
+          >
             <X size={18} />
           </button>
         )}
       </div>
 
-      <nav className="mt-6 flex-1 space-y-1 overflow-y-auto">
+      <nav className="mt-7 flex-1 space-y-2 overflow-y-auto">
         {links[role].map((item) => {
           const Icon = item.icon;
           return (
@@ -81,14 +86,14 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
               to={item.to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
                   isActive
-                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
+                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                    : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
                 }`
               }
             >
-              <Icon size={17} />
+              <Icon size={18} />
               {item.label}
             </NavLink>
           );
@@ -97,23 +102,27 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
 
       <button
         onClick={logout}
-        className="mt-4 flex w-full items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-neutral-800 dark:hover:bg-red-950/30"
+        className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-neutral-800 dark:hover:bg-red-950/40"
       >
-        <LogOut size={17} /> Logout
+        <LogOut size={18} />
+        Logout
       </button>
     </div>
   );
 
   return (
     <>
-      {/* desktop */}
-      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 lg:block">
-        {content}
+      {/* desktop sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-neutral-200 bg-white lg:block dark:border-neutral-800 dark:bg-neutral-950">
+        {sidebarContent}
       </aside>
 
-      {/* mobile backdrop */}
+      {/* mobile drawer backdrop */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
       )}
 
       {/* mobile drawer */}
@@ -122,7 +131,7 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {content}
+        {sidebarContent}
       </aside>
     </>
   );
