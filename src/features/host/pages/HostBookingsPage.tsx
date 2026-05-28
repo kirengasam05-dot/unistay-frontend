@@ -1,37 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Clock3, User, CalendarDays } from 'lucide-react';
-
-type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
-
-interface Booking {
-  id: string;
-  student: string;
-  housing: string;
-  dates: string;
-  status: BookingStatus;
-}
-
-const initial: Booking[] = [
-  { id: 'b1', student: 'Aline Uwase', housing: 'Kacyiru Student Residence', dates: '10 Jun – 10 Aug 2025', status: 'PENDING' },
-  { id: 'b2', student: 'Claude Nkurunziza', housing: 'Remera Shared Apartment', dates: '15 Jun – 15 Sep 2025', status: 'PENDING' },
-  { id: 'b3', student: 'Marie Ingabire', housing: 'Nyamirambo Budget Room', dates: '1 Jul – 1 Oct 2025', status: 'PENDING' },
-];
+import { getUser } from '../../../lib/authStorage';
+import {
+  getHostBookings,
+  updateBookingStatus,
+  type Booking,
+  type BookingStatus,
+} from '../../bookings/bookingsStorage';
+import { bookingsApi } from '../../bookings/bookingsApi';
 
 const statusConfig: Record<BookingStatus, { label: string; className: string }> = {
   PENDING:   { label: 'Awaiting confirmation', className: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
   CONFIRMED: { label: 'Confirmed — payment unlocked', className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   CANCELLED: { label: 'Rejected', className: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  PAID:      { label: 'Payment received', className: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
 };
 
 export default function HostBookingsPage() {
-  const [bookings, setBookings] = useState<Booking[]>(initial);
+  const user = getUser();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    setBookings(getHostBookings(user.id));
+  }, [user?.id]);
 
   function update(id: string, status: BookingStatus) {
-    setBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
+    updateBookingStatus(id, status);
+    bookingsApi.update(id, { status }).catch(() => {});
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b));
   }
 
-  const pending   = bookings.filter(b => b.status === 'PENDING');
-  const resolved  = bookings.filter(b => b.status !== 'PENDING');
+  const pending  = bookings.filter(b => b.status === 'PENDING');
+  const resolved = bookings.filter(b => b.status !== 'PENDING');
 
   return (
     <div className="space-y-6">
@@ -61,12 +62,12 @@ export default function HostBookingsPage() {
             <div key={b.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
-                  <h2 className="text-xl font-black text-neutral-900 dark:text-white">{b.housing}</h2>
+                  <h2 className="text-xl font-black text-neutral-900 dark:text-white">{b.housingTitle}</h2>
                   <p className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-                    <User size={13} /> {b.student}
+                    <User size={13} /> {b.studentName}
                   </p>
                   <p className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-                    <CalendarDays size={13} /> {b.dates}
+                    <CalendarDays size={13} /> Requested {new Date(b.createdAt).toLocaleDateString()}
                   </p>
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${statusConfig[b.status].className}`}>
                     <Clock3 size={12} /> {statusConfig[b.status].label}
@@ -100,13 +101,13 @@ export default function HostBookingsPage() {
             <div key={b.id} className="card opacity-80">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-black text-neutral-900 dark:text-white">{b.housing}</h2>
+                  <h2 className="font-black text-neutral-900 dark:text-white">{b.housingTitle}</h2>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-                    <User size={13} /> {b.student} · <CalendarDays size={13} /> {b.dates}
+                    <User size={13} /> {b.studentName} · <CalendarDays size={13} /> {new Date(b.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${statusConfig[b.status].className}`}>
-                  {b.status === 'CONFIRMED' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                  {b.status === 'CONFIRMED' || b.status === 'PAID' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                   {statusConfig[b.status].label}
                 </span>
               </div>
