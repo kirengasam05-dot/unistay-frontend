@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Briefcase, Users, CheckCircle2 } from 'lucide-react';
 import { applications, jobs } from '../../data/mockData';
 
 export default function EmployerDashboard() {
@@ -18,24 +19,32 @@ export default function EmployerDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: 'Published jobs', value: jobs.length, color: 'text-neutral-900 dark:text-white' },
-          { label: 'Pending applications', value: applications.length, color: 'text-violet-600 dark:text-violet-400' },
-          { label: 'Compatibility checks', value: 'Active', color: 'text-emerald-600 dark:text-emerald-400' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{s.label}</p>
-            <p className={`mt-2 text-3xl font-black ${s.color}`}>{s.value}</p>
-          </div>
-        ))}
+          { label: 'Published jobs',       value: jobs.length,         color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30', icon: Briefcase    },
+          { label: 'Pending applications', value: applications.length, color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30',   icon: Users        },
+          { label: 'Compatibility checks', value: 'Active',            color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
+        ].map(s => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="card flex items-center gap-4">
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${s.bg}`}>
+                <Icon size={20} className={s.color} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{s.label}</p>
+                <p className={`mt-0.5 text-2xl font-black ${s.color}`}>{s.value}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-        <h3 className="font-black text-neutral-900 dark:text-white">Application decision flow</h3>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+      <div className="card">
+        <h2 className="text-xl font-black text-neutral-900 dark:text-white">Application decision flow</h2>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {['Receive application', 'Check required skills', 'Accept or reject', 'Send email result'].map((x, i) => (
-            <div key={x} className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+            <div key={x} className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
               <p className="text-2xl font-black text-neutral-900 dark:text-white">0{i + 1}</p>
-              <p className="mt-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{x}</p>
+              <p className="mt-2 font-semibold text-neutral-700 dark:text-neutral-300">{x}</p>
             </div>
           ))}
         </div>

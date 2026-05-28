@@ -8,10 +8,7 @@ export default function HostListingsPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<Listing[]>([]);
 
-  // Read from storage every time the page mounts (catches newly added listings)
-  useEffect(() => {
-    setItems(getListings());
-  }, []);
+  useEffect(() => { setItems(getListings()); }, []);
 
   function toggleAvailability(id: string) {
     const updated = items.map(h => h.id === id ? { ...h, availability: !h.availability } : h);
@@ -35,10 +32,7 @@ export default function HostListingsPage() {
               Manage your housing listings. Keep availability accurate so students can book.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/host/listings/new')}
-            className="btn-black shrink-0 rounded-xl flex items-center gap-2"
-          >
+          <button onClick={() => navigate('/host/listings/new')} className="btn-black shrink-0 rounded-xl flex items-center gap-2">
             <Plus size={15} /> Add listing
           </button>
         </div>
@@ -67,47 +61,27 @@ export default function HostListingsPage() {
                 {h.verificationStatus}
               </span>
             </div>
-
             <div className="p-5">
               <h2 className="font-black text-neutral-900 dark:text-white">{h.title}</h2>
-              <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
-                <MapPin size={13} />{h.location}
-              </p>
-              {h.description && (
-                <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">{h.description}</p>
-              )}
+              <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400"><MapPin size={13} />{h.location}</p>
+              {h.description && <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">{h.description}</p>}
               {h.amenities && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {h.amenities.split(',').map(a => (
-                    <span key={a} className="rounded-lg bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                      {a.trim()}
-                    </span>
+                    <span key={a} className="rounded-lg bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">{a.trim()}</span>
                   ))}
                 </div>
               )}
-              <p className="mt-3 text-2xl font-black text-neutral-900 dark:text-white">
-                RWF {h.price.toLocaleString()}
-              </p>
+              <p className="mt-3 text-2xl font-black text-neutral-900 dark:text-white">RWF {h.price.toLocaleString()}</p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">per month</p>
-
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => toggleAvailability(h.id)}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors ${
-                    h.availability
-                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
-                  }`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors ${h.availability ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400'}`}
                 >
-                  {h.availability
-                    ? <><ToggleRight size={16} /> Mark as booked</>
-                    : <><ToggleLeft size={16} /> Mark as available</>
-                  }
+                  {h.availability ? <><ToggleRight size={16} /> Mark as booked</> : <><ToggleLeft size={16} /> Mark as available</>}
                 </button>
-                <button
-                  onClick={() => remove(h.id)}
-                  className="flex items-center justify-center rounded-xl bg-red-50 px-4 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors"
-                >
+                <button onClick={() => remove(h.id)} className="flex items-center justify-center rounded-xl bg-red-50 px-4 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 transition-colors">
                   <Trash2 size={16} />
                 </button>
               </div>
