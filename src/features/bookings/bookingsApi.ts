@@ -1,22 +1,59 @@
-import api from '../../lib/api';
-import type { BookingStatus } from './bookingsStorage';
+import api from "../../lib/api";
+import type { Booking } from "../../types/api";
+import { extractList, extractOne } from "../../types/api";
 
-export interface CreateBookingDto {
-  studentId: string;
+export type CreateBookingPayload = {
   housingId: string;
-  hostId: string;
-}
-
-export interface UpdateBookingDto {
-  status: BookingStatus;
-}
+  checkIn: string;
+  checkOut: string;
+  totalAmount?: number;
+};
 
 export const bookingsApi = {
-  list: () => api.get('/bookings'),
-  listByStudent: (studentId: string) => api.get(`/bookings?studentId=${studentId}`),
-  listByHost: (hostId: string) => api.get(`/bookings?hostId=${hostId}`),
-  get: (id: string) => api.get(`/bookings/${id}`),
-  create: (data: CreateBookingDto) => api.post('/bookings', data),
-  update: (id: string, data: UpdateBookingDto) => api.put(`/bookings/${id}`, data),
-  remove: (id: string) => api.delete(`/bookings/${id}`),
+  async getMyBookings(): Promise<Booking[]> {
+    const response = await api.get("/bookings/my");
+    return extractList<Booking>(response.data);
+  },
+
+  async getHostBookings(): Promise<Booking[]> {
+    const response = await api.get("/bookings/host");
+    return extractList<Booking>(response.data);
+  },
+
+  async create(data: CreateBookingPayload): Promise<Booking> {
+    const response = await api.post("/bookings", data);
+    return extractOne<Booking>(response.data);
+  },
+
+  async confirm(id: string): Promise<Booking> {
+    const response = await api.patch(`/bookings/${id}/confirm`);
+    return extractOne<Booking>(response.data);
+  },
+
+  async reject(id: string): Promise<Booking> {
+    const response = await api.patch(`/bookings/${id}/reject`);
+    return extractOne<Booking>(response.data);
+  },
+
+  async submitPaymentProof(id: string, data: { paymentRef: string; paymentProof?: string }): Promise<Booking> {
+    const response = await api.patch(`/bookings/${id}/payment-proof`, data);
+    return extractOne<Booking>(response.data);
+  },
+
+  async submitPaymentProofFile(id: string, file: File, paymentRef: string): Promise<Booking> {
+    const formData = new FormData();
+    formData.append("paymentProof", file);
+    formData.append("paymentRef", paymentRef);
+
+    const response = await api.patch(`/bookings/${id}/payment-proof`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return extractOne<Booking>(response.data);
+  },
+
+  async complete(id: string): Promise<Booking> {
+    const response = await api.patch(`/bookings/${id}/complete`);
+    return extractOne<Booking>(response.data);
+  },
 };
