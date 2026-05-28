@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -8,6 +11,7 @@ import type { UserRole } from '../../../lib/authStorage';
 
 interface FormState { fullName: string; email: string; phone: string; location: string; role: UserRole; password: string; }
 const BLANK: FormState = { fullName: '', email: '', phone: '', location: '', role: 'STUDENT', password: '' };
+<<<<<<< HEAD
 
 export default function RegisterPage() {
   const [form, setForm]     = useState<FormState>(BLANK);
@@ -59,19 +63,20 @@ export default function RegisterPage() {
     }
   };
 
-  const inputClass = isDark
-    ? "w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none transition focus:border-white/30 focus:bg-white/15"
-    : "w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-400 focus:bg-white";
-
-  const labelClass = `text-xs font-semibold uppercase tracking-widest ${isDark ? "text-neutral-400" : "text-neutral-500"}`;
+  const inputClass = 'w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15';
+  const labelClass = 'block text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-1.5';
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white px-6 py-16 dark:bg-transparent">
       <div className="absolute inset-0 hidden dark:block bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800" />
       <div className="absolute -left-32 -top-32 hidden h-[600px] w-[600px] rounded-full bg-white opacity-[0.03] blur-3xl dark:block" />
       <div className="absolute -bottom-32 -right-32 hidden h-[500px] w-[500px] rounded-full bg-white opacity-[0.04] blur-3xl dark:block" />
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 via-white to-neutral-100 dark:hidden" />
+<<<<<<< HEAD
 
       <div className="relative z-10 w-full max-w-2xl">
         <Link to="/" className="mb-8 block text-center text-3xl font-black tracking-tight text-neutral-900 dark:text-white">UniStay+</Link>
@@ -84,34 +89,17 @@ export default function RegisterPage() {
             <div>
 =======
     <div className={`relative flex min-h-screen items-center justify-center overflow-hidden py-12 transition-colors duration-300 ${isDark ? "" : "bg-neutral-50"}`}>
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
 
-      {/* light mode background */}
-      {!isDark && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-neutral-100" />
-          <div className="absolute -left-32 -top-32 h-[500px] w-[500px] rounded-full bg-neutral-200 opacity-60 blur-3xl" />
-          <div className="absolute -bottom-32 -right-32 h-[500px] w-[500px] rounded-full bg-neutral-300 opacity-40 blur-3xl" />
-        </>
-      )}
+      <div className="relative z-10 w-full max-w-2xl">
+        <Link to="/" className="mb-8 block text-center text-3xl font-black tracking-tight text-neutral-900 dark:text-white">UniStay+</Link>
 
-      {/* dark mode background */}
-      {isDark && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800" />
-          <div className="absolute -left-32 -top-32 h-[600px] w-[600px] rounded-full bg-white opacity-[0.03] blur-3xl" />
-          <div className="absolute -bottom-32 -right-32 h-[600px] w-[600px] rounded-full bg-white opacity-[0.04] blur-3xl" />
-          <div className="absolute left-1/4 top-1/3 h-64 w-64 rounded-full bg-neutral-600 opacity-20 blur-[80px]" />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-            }}
-          />
-        </>
-      )}
+        <form onSubmit={submit} className="w-full rounded-2xl border border-neutral-200 bg-white p-10 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl">
+          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Create your account</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Sign up as a student, host, or employer.</p>
 
+<<<<<<< HEAD
       {/* theme toggle */}
       <button
         onClick={toggle}
@@ -161,18 +149,29 @@ export default function RegisterPage() {
           <div className="mt-7 space-y-4">
             <div className="space-y-1.5">
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+          <div className="mt-7 grid gap-4 sm:grid-cols-2">
+            <div>
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
               <label className={labelClass}>Full name</label>
-              <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" required className={inputClass} />
+              <input value={form.fullName} onChange={e => set('fullName', e.target.value)} placeholder="Your full name" className={inputClass} />
+              {errors.fullName && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.fullName}</p>}
             </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
             <div>
 =======
 
             <div className="space-y-1.5">
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+            <div>
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
               <label className={labelClass}>Email address</label>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" type="email" required className={inputClass} />
+              <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="you@example.com" className={inputClass} />
+              {errors.email && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
             </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
             <div>
               <label className={labelClass}>Phone number</label>
@@ -207,23 +206,28 @@ export default function RegisterPage() {
                 <label className={labelClass}>Location</label>
                 <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City" className={inputClass} />
               </div>
+=======
+            <div>
+              <label className={labelClass}>Phone number</label>
+              <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+250 7XX XXX XXX" className={inputClass} />
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
             </div>
-
-            <div className="space-y-1.5">
+            <div>
+              <label className={labelClass}>Location</label>
+              <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="City, Country" className={inputClass} />
+            </div>
+            <div>
               <label className={labelClass}>I am a</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as "STUDENT" | "HOST")}
-                className={inputClass}
-              >
-                <option value="STUDENT" className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white">Student</option>
-                <option value="HOST" className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white">Host</option>
+              <select value={form.role} onChange={e => set('role', e.target.value)} className={inputClass}>
+                <option value="STUDENT">Student</option>
+                <option value="HOST">Host</option>
+                <option value="EMPLOYER">Employer</option>
               </select>
             </div>
-
-            <div className="space-y-1.5">
+            <div>
               <label className={labelClass}>Password</label>
               <div className="relative">
+<<<<<<< HEAD
                 <input
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -241,20 +245,15 @@ export default function RegisterPage() {
                 >
                   {showPassword ? "Hide" : "Show"}
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+                <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} placeholder="••••••••" className={`${inputClass} pr-12`} />
+                <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-white">
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
                 </button>
               </div>
+              {errors.password && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password}</p>}
             </div>
-
-            <button
-              type="submit"
-              className={`mt-2 w-full rounded-xl py-3.5 text-sm font-black transition active:scale-[0.98] ${
-                isDark
-                  ? "bg-white text-neutral-900 hover:bg-neutral-100"
-                  : "bg-neutral-900 text-white hover:bg-neutral-700"
-              }`}
-            >
-              Create account
-            </button>
           </div>
 
           <button type="submit" disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
@@ -265,6 +264,7 @@ export default function RegisterPage() {
           <div className="mt-6 border-t border-neutral-200 pt-5 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
             Already have an account?{' '}
             <Link to="/login" className="font-bold text-neutral-900 hover:text-neutral-600 dark:text-white dark:hover:text-neutral-200">Sign in</Link>
+<<<<<<< HEAD
 =======
           <div className={`mt-6 border-t pt-5 text-center text-sm ${isDark ? "border-white/10 text-neutral-400" : "border-neutral-100 text-neutral-500"}`}>
             Already have an account?{" "}
@@ -275,6 +275,8 @@ export default function RegisterPage() {
               Log in
             </Link>
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
           </div>
         </form>
       </div>

@@ -20,6 +20,7 @@ export default function LoginPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
 <<<<<<< HEAD
+<<<<<<< HEAD
     setError('');
     setLoading(true);
     try {
@@ -34,15 +35,17 @@ export default function LoginPage() {
     }
   };
 
-  const isDark = theme === "dark";
-
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-transparent">
       <div className="absolute inset-0 hidden dark:block bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800" />
       <div className="absolute -left-32 -top-32 hidden h-[600px] w-[600px] rounded-full bg-white opacity-[0.03] blur-3xl dark:block" />
       <div className="absolute -bottom-32 -right-32 hidden h-[500px] w-[500px] rounded-full bg-white opacity-[0.04] blur-3xl dark:block" />
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 via-white to-neutral-100 dark:hidden" />
+<<<<<<< HEAD
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center px-6">
         <Link to="/" className="mb-8 text-3xl font-black tracking-tight text-neutral-900 dark:text-white">UniStay+</Link>
@@ -95,33 +98,18 @@ export default function LoginPage() {
       >
         {isDark ? <Sun size={16} /> : <Moon size={16} />}
       </button>
+=======
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center px-6">
-        {/* brand */}
-        <Link
-          to="/"
-          className={`mb-8 text-3xl font-black tracking-tight transition ${isDark ? "text-white" : "text-neutral-900"}`}
-        >
-          UniStay+
-        </Link>
+        <Link to="/" className="mb-8 text-3xl font-black tracking-tight text-neutral-900 dark:text-white">UniStay+</Link>
 
-        {/* card */}
-        <form
-          onSubmit={submit}
-          className={`w-full rounded-3xl p-8 shadow-2xl transition-all ${
-            isDark
-              ? "border border-white/10 bg-white/[0.07] backdrop-blur-2xl"
-              : "border border-neutral-200 bg-white"
-          }`}
-        >
-          <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-neutral-900"}`}>
-            Welcome back
-          </h2>
-          <p className={`mt-1 text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-            Sign in to continue to your dashboard
-          </p>
+        <form onSubmit={submit} className="w-full rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl">
+          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Welcome back</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Sign in to continue to your dashboard</p>
 
           {error && (
+<<<<<<< HEAD
             <div className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${
               isDark
                 ? "border border-red-400/20 bg-red-500/10 text-red-400"
@@ -130,10 +118,14 @@ export default function LoginPage() {
               {error}
             </div>
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+            <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-400">{error}</div>
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
           )}
 
           <div className="mt-7 space-y-4">
             <div className="space-y-1.5">
+<<<<<<< HEAD
 <<<<<<< HEAD
               <label className="text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Email address</label>
               <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" type="email" required
@@ -176,6 +168,7 @@ export default function LoginPage() {
           </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
           <div className="mt-6 border-t border-neutral-200 pt-5 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
             Don't have an account?{' '}
             <Link to="/register" className="font-bold text-neutral-900 hover:text-neutral-600 dark:text-white dark:hover:text-neutral-200">Create account</Link>
@@ -189,6 +182,11 @@ export default function LoginPage() {
               Create account
             </Link>
 >>>>>>> 2c4e1f1 (feat: enhance user experience across multiple pages)
+=======
+          <div className="mt-6 border-t border-neutral-200 pt-5 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-bold text-neutral-900 hover:text-neutral-600 dark:text-white dark:hover:text-neutral-200">Create account</Link>
+>>>>>>> afb76de (feat: enhance host dashboard and booking management)
           </div>
         </form>
       </div>
