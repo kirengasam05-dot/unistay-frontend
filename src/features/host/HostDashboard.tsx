@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Building2, CheckCircle2, XCircle } from 'lucide-react';
 import { housings } from '../../data/mockData';
 
 export default function HostDashboard() {
@@ -15,21 +16,29 @@ export default function HostDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: 'Total listings', value: housings.length, color: 'text-neutral-900 dark:text-white' },
-          { label: 'Available', value: housings.filter((h) => h.availability).length, color: 'text-emerald-600 dark:text-emerald-400' },
-          { label: 'Booked', value: housings.filter((h) => !h.availability).length, color: 'text-red-600 dark:text-red-400' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{s.label}</p>
-            <p className={`mt-2 text-3xl font-black ${s.color}`}>{s.value}</p>
-          </div>
-        ))}
+          { label: 'Total listings', value: housings.length,                              color: 'text-neutral-900 dark:text-white',         bg: 'bg-neutral-100 dark:bg-neutral-800', icon: Building2      },
+          { label: 'Available',      value: housings.filter(h => h.availability).length,  color: 'text-emerald-600 dark:text-emerald-400',   bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
+          { label: 'Booked',         value: housings.filter(h => !h.availability).length, color: 'text-red-600 dark:text-red-400',           bg: 'bg-red-50 dark:bg-red-900/30',       icon: XCircle        },
+        ].map(s => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="card flex items-center gap-4">
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${s.bg}`}>
+                <Icon size={20} className={s.color} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{s.label}</p>
+                <p className={`mt-0.5 text-2xl font-black ${s.color}`}>{s.value}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
-        <h3 className="font-black text-neutral-900 dark:text-white">Listing status</h3>
+      <div className="card">
+        <h2 className="text-xl font-black text-neutral-900 dark:text-white">Listing status</h2>
         <div className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
-          {housings.map((h) => (
+          {housings.map(h => (
             <div key={h.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
               <div>
                 <p className="font-black text-neutral-900 dark:text-white">{h.title}</p>
