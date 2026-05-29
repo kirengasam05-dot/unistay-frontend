@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { saveUser, saveToken } from '../../../lib/authStorage';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
 import type { UserRole } from '../../../lib/authStorage';
 
 interface FormState { fullName: string; email: string; phone: string; location: string; role: UserRole; password: string; }
@@ -10,26 +11,51 @@ const BLANK: FormState = { fullName: '', email: '', phone: '', location: '', rol
 export default function RegisterPage() {
   const [form, setForm]     = useState<FormState>(BLANK);
   const [showPw, setShowPw] = useState(false);
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [loading, setLoading] = useState(false);
   const navigate            = useNavigate();
+  const { register }        = useAuth();
 
   function set(key: keyof FormState, value: string) { setForm(f => ({ ...f, [key]: value })); setErrors(e => ({ ...e, [key]: undefined })); }
 
   function validate() {
-    const e: Partial<FormState> = {};
+    const e: Partial<Record<keyof FormState, string>> = {};
     if (!form.fullName.trim())  e.fullName = 'Name is required';
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
     if (form.password.length < 6) e.password = 'Minimum 6 characters';
     return e;
   }
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    saveUser({ id: crypto.randomUUID(), fullName: form.fullName.trim(), email: form.email.trim(), phone: form.phone.trim(), location: form.location.trim(), role: form.role, password: form.password });
-    saveToken('demo-token');
-    navigate('/dashboard');
+
+    setLoading(true);
+    try {
+      const result = await register({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        phone: form.phone.trim() || undefined,
+        location: form.location.trim() || undefined,
+        role: form.role,
+      });
+
+      if (result.token) {
+        // Backend logged us straight in.
+        toast.success('Account created. Welcome to UniStay+!');
+        navigate('/dashboard', { replace: true });
+      } else {
+        // Registration succeeded but no session was issued — go sign in.
+        toast.success('Account created. Please sign in.');
+        navigate('/login', { replace: true });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not create your account.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = 'w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15';
@@ -88,8 +114,9 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <button type="submit" className="mt-6 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
-            Create account
+          <button type="submit" disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'Creating account…' : 'Create account'}
           </button>
 
           <div className="mt-6 border-t border-neutral-200 pt-5 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
