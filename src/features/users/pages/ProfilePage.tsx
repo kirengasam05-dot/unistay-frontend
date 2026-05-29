@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { Camera, CheckCircle2, Eye, EyeOff, Lock, Mail, MapPin, Phone, Sparkles, User } from 'lucide-react';
-import { getUser, saveUser } from '../../../lib/authStorage';
-import type { AuthUser } from '../../../lib/authStorage';
+import { Camera, CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, MapPin, Phone, Sparkles, User } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
 
 const roleColors: Record<string, string> = {
   STUDENT:  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
@@ -30,41 +30,68 @@ function Field({ label, value, onChange, placeholder, icon: Icon, type = 'text',
 }
 
 export default function ProfilePage() {
-  const stored = getUser();
+  const { user: stored, updateProfile, changePassword } = useAuth();
   const [form, setForm]         = useState<FormState>({ fullName: stored?.fullName ?? '', email: stored?.email ?? '', phone: stored?.phone ?? '', location: stored?.location ?? '', bio: stored?.bio ?? '', skillsProfile: stored?.skillsProfile ?? '' });
   const [pw, setPw]             = useState<PwState>({ current: '', next: '', confirm: '' });
   const [showPw, setShowPw]     = useState(false);
   const [saved, setSaved]       = useState(false);
   const [pwSaved, setPwSaved]   = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [savingPw, setSavingPw] = useState(false);
   const [errors, setErrors]     = useState<Partial<FormState>>({});
   const [pwError, setPwError]   = useState('');
   const timerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function flash(setter: (v: boolean) => void) { setter(true); if (timerRef.current) clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setter(false), 3000); }
 
-  function saveInfo() {
+  async function saveInfo() {
     const e: Partial<FormState> = {};
     if (!form.fullName.trim()) e.fullName = 'Name is required';
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
     if (Object.keys(e).length) { setErrors(e); return; }
     if (!stored) return;
-    saveUser({ ...stored, ...form } as AuthUser);
-    setErrors({}); flash(setSaved);
+    setErrors({});
+    setSavingInfo(true);
+    try {
+      // Email/role are not editable via PUT /auth/me — send only profile fields.
+      await updateProfile({
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim(),
+        location: form.location.trim(),
+        bio: form.bio.trim(),
+        skillsProfile: form.skillsProfile.trim(),
+      });
+      flash(setSaved);
+      toast.success('Profile updated');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update profile');
+    } finally {
+      setSavingInfo(false);
+    }
   }
 
-  function savePassword() {
+  async function savePassword() {
     setPwError('');
     if (!pw.current.trim())    { setPwError('Enter your current password'); return; }
     if (pw.next.length < 6)    { setPwError('New password must be at least 6 characters'); return; }
     if (pw.next !== pw.confirm) { setPwError('Passwords do not match'); return; }
     if (!stored) return;
-    saveUser({ ...stored, password: pw.next });
-    setPw({ current: '', next: '', confirm: '' }); flash(setPwSaved);
+    setSavingPw(true);
+    try {
+      await changePassword({ currentPassword: pw.current, newPassword: pw.next });
+      setPw({ current: '', next: '', confirm: '' });
+      flash(setPwSaved);
+      toast.success('Password updated');
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : 'Could not update password');
+    } finally {
+      setSavingPw(false);
+    }
   }
 
   if (!stored) return <div className="card py-16 text-center"><p className="font-black text-neutral-900 dark:text-white">Not logged in</p></div>;
 
-  const initials = stored.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const initials = (stored.fullName || stored.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const role = stored.role;
 
   return (
@@ -108,7 +135,10 @@ export default function ProfilePage() {
           </div>
         )}
         <div className="mt-6 flex items-center gap-3">
-          <button onClick={saveInfo} className="btn-black rounded-xl">Save changes</button>
+          <button onClick={saveInfo} disabled={savingInfo} className="btn-black rounded-xl inline-flex items-center gap-2 disabled:opacity-60">
+            {savingInfo && <Loader2 size={15} className="animate-spin" />}
+            {savingInfo ? 'Saving…' : 'Save changes'}
+          </button>
           {saved && <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={15} /> Saved successfully</span>}
         </div>
       </div>
@@ -132,7 +162,10 @@ export default function ProfilePage() {
         </div>
         {pwError && <p className="mt-3 text-sm text-red-500">{pwError}</p>}
         <div className="mt-6 flex items-center gap-3">
-          <button onClick={savePassword} className="btn-black rounded-xl">Update password</button>
+          <button onClick={savePassword} disabled={savingPw} className="btn-black rounded-xl inline-flex items-center gap-2 disabled:opacity-60">
+            {savingPw && <Loader2 size={15} className="animate-spin" />}
+            {savingPw ? 'Updating…' : 'Update password'}
+          </button>
           {pwSaved && <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={15} /> Password updated</span>}
         </div>
       </div>

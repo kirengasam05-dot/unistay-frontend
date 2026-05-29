@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, CheckCircle2, Clock3, CreditCard, Loader2, RefreshCcw, ShieldCheck, UploadCloud, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import type { Booking, BookingStatus, PaymentStatus } from "../../../types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -94,6 +95,7 @@ function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: B
 }
 
 export default function StudentBookingPage() {
+  const confirm = useConfirm();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -111,6 +113,12 @@ export default function StudentBookingPage() {
 
   async function submitPayment(booking: Booking, paymentRef: string, file?: File | null) {
     if (!paymentRef.trim()) return toast.error("Enter payment reference");
+    const ok = await confirm({
+      title: "Submit payment proof?",
+      description: `Your payment reference${file ? " and proof file" : ""} will be sent to the host for verification. Make sure the details are correct.`,
+      confirmText: "Submit proof",
+    });
+    if (!ok) return;
     try {
       if (file) await bookingsApi.submitPaymentProofFile(booking.id, file, paymentRef);
       else await bookingsApi.submitPaymentProof(booking.id, { paymentRef, paymentProof: paymentRef });

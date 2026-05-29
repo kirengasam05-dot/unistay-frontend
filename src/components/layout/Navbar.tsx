@@ -1,23 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, LogOut, Menu, Moon, Sun, User } from "lucide-react";
-import { getUser, logoutUser } from "../../lib/authStorage";
+import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../ui/ConfirmDialog";
 import { useTheme } from "../../lib/themeContext";
 
 const NAV_LINKS = ["Housing", "Jobs", "Skills", "Process"] as const;
 
 export default function Navbar() {
-  const user = getUser();
+  const { user, logout: signOut } = useAuth();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const { theme, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const logout = () => {
-    logoutUser();
+  const logout = async () => {
     setMenuOpen(false);
+    const ok = await confirm({
+      title: "Log out?",
+      description: "You'll need to sign in again to access your dashboard.",
+      confirmText: "Log out",
+    });
+    if (!ok) return;
+    signOut();
     navigate("/login");
-    window.location.reload();
   };
 
   useEffect(() => {
@@ -74,7 +81,7 @@ export default function Navbar() {
               {menuOpen
                 ? <Menu size={18} />
                 : user
-                  ? <span className="text-sm font-bold">{user.fullName.charAt(0).toUpperCase()}</span>
+                  ? <span className="text-sm font-bold">{(user.fullName || user.email || "?").charAt(0).toUpperCase()}</span>
                   : <User size={18} />
               }
             </button>
@@ -107,10 +114,10 @@ export default function Navbar() {
                   <>
                     <div className="flex items-center gap-3 bg-neutral-50 px-5 py-4 dark:bg-neutral-800">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
-                        {user.fullName.charAt(0).toUpperCase()}
+                        {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate font-bold text-neutral-900 dark:text-white">{user.fullName}</p>
+                        <p className="truncate font-bold text-neutral-900 dark:text-white">{user.fullName || user.email}</p>
                         <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{user.email}</p>
                         <span className="mt-1 inline-block rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-semibold uppercase text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
                           {user.role}

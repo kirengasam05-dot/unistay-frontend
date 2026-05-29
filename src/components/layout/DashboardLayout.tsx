@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
-import { getUser } from '../../lib/authStorage';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardLayout() {
-  const user = getUser();
+  const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-neutral-50 dark:bg-neutral-950">
+        <Loader2 className="animate-spin text-neutral-400" />
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -15,6 +23,7 @@ export default function DashboardLayout() {
       <Sidebar role={user.role} mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="min-w-0 flex-1 p-4 md:p-8">
+       <div className="mx-auto w-full max-w-7xl">
         {/* dashboard header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-soft dark:border-neutral-800 dark:bg-neutral-900 sm:p-5">
           <div className="flex items-center gap-3">
@@ -31,7 +40,7 @@ export default function DashboardLayout() {
                 Logged in as {user.role}
               </p>
               <h1 className="text-lg font-black text-neutral-900 dark:text-white sm:text-2xl">
-                {user.fullName}
+                {user.fullName || user.email}
               </h1>
             </div>
           </div>
@@ -39,6 +48,7 @@ export default function DashboardLayout() {
         </div>
 
         <Outlet />
+       </div>
       </main>
     </div>
   );
