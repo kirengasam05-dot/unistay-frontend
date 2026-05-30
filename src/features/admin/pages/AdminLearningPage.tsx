@@ -7,10 +7,10 @@ import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
 export default function AdminLearningPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [title, setTitle]     = useState('');
-  const [saving, setSaving]   = useState(false);
+  const [courses, setCourses]   = useState<Course[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [title, setTitle]       = useState('');
+  const [saving, setSaving]     = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [deletingId, setDeletingId]     = useState<string | null>(null);
 
@@ -30,13 +30,13 @@ export default function AdminLearningPage() {
       setTitle('');
       toast.success('Course created');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to create course');
+      toast.error(err?.message || 'Failed to create course');
     } finally {
       setSaving(false);
     }
   }
 
-  async function togglePublish(id: string, current: boolean | undefined) {
+  async function togglePublish(id: string) {
     setPublishingId(id);
     try {
       const updated = await coursesApi.publish(id);
@@ -65,7 +65,7 @@ export default function AdminLearningPage() {
   return (
     <div className="space-y-6">
       <div className="card">
-        <h1 className="text-3xl font-black">Course, Video, Exam & Assignment Builder</h1>
+        <h1 className="text-3xl font-black">Course, Video, Exam &amp; Assignment Builder</h1>
         <p className="mt-2 text-neutral-600 dark:text-neutral-400">Admin controls learning content: create courses, upload video/PDF/article materials, set assignments, exams, and passing scores.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
           <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Course title" />
@@ -94,21 +94,14 @@ export default function AdminLearningPage() {
                 <button className="rounded-2xl bg-black px-4 py-2 font-bold text-white">Upload video</button>
                 <button className="rounded-2xl bg-black px-4 py-2 font-bold text-white">Set exam</button>
                 <button className="rounded-2xl bg-black px-4 py-2 font-bold text-white">Add assignment</button>
-                <button
-                  disabled={publishingId === c.id}
-                  onClick={() => togglePublish(c.id, c.isPublished)}
-                  className={`flex items-center gap-2 rounded-2xl px-4 py-2 font-bold text-white disabled:opacity-60 ${c.isPublished ? 'bg-green-600' : 'bg-neutral-700'}`}
-                >
+                <button disabled={publishingId === c.id} onClick={() => togglePublish(c.id)}
+                  className={`flex items-center gap-2 rounded-2xl px-4 py-2 font-bold text-white disabled:opacity-60 ${c.isPublished ? 'bg-green-600' : 'bg-neutral-700'}`}>
                   {publishingId === c.id && <Loader2 size={14} className="animate-spin" />}
                   {c.isPublished ? 'Published' : 'Publish'}
                 </button>
-                <button
-                  disabled={deletingId === c.id}
-                  onClick={() => remove(c.id)}
-                  className="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2 font-bold text-white disabled:opacity-60"
-                >
-                  {deletingId === c.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                  Delete
+                <button disabled={deletingId === c.id} onClick={() => remove(c.id)}
+                  className="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2 font-bold text-white disabled:opacity-60">
+                  {deletingId === c.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Delete
                 </button>
               </div>
             </div>

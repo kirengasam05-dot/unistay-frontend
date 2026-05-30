@@ -22,11 +22,12 @@ export type Assignment = {
 
 export const skillsApi = {
   async getCertificates(): Promise<Certificate[]> {
-    const response = await api.get('/skills/certificates');
-    return extractList<Certificate>(response.data);
+    const res = await api.get('/skills/certificates');
+    return extractList<Certificate>(res.data);
   },
+
   async getAssignments(): Promise<Assignment[]> {
-    const response = await api.get('/skills/assignments');
-    return extractList<Assignment>(response.data);
+    const res = await api.get('/skills/assignments');
+    return extractList<Assignment>(res.data);
   },
 };

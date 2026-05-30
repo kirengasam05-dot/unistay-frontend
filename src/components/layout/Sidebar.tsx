@@ -1,12 +1,14 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpen, Briefcase, Building2, CheckCircle2, GraduationCap, Home, Inbox, LogOut, ShieldCheck, UserCog, Users, X } from 'lucide-react';
-import { logoutUser } from '../../lib/authStorage';
+import { useAuth } from '../../context/AuthContext';
+import { useConfirm } from '../ui/ConfirmDialog';
 import type { Role } from '../../types';
 
 const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   STUDENT: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
-    { label: 'Book Housing', to: '/student/booking', icon: Building2 },
+    { label: 'Find Housing', to: '/student/housing', icon: Building2 },
+    { label: 'My Bookings', to: '/student/booking', icon: CheckCircle2 },
     { label: 'Search Jobs', to: '/student/jobs', icon: Briefcase },
     { label: 'Courses & Skills', to: '/student/learning', icon: BookOpen },
     { label: 'Assignments & Exams', to: '/student/assignments', icon: GraduationCap },
@@ -50,7 +52,19 @@ interface SidebarProps {
 
 export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarProps) {
   const navigate = useNavigate();
-  const logout = () => { logoutUser(); navigate('/login'); };
+  const { logout: signOut } = useAuth();
+  const confirm = useConfirm();
+  const logout = async () => {
+    onClose?.();
+    const ok = await confirm({
+      title: 'Log out?',
+      description: "You'll need to sign in again to access your dashboard.",
+      confirmText: 'Log out',
+    });
+    if (!ok) return;
+    signOut();
+    navigate('/login');
+  };
 
   const sidebarContent = (
     <div className="flex h-full flex-col p-5">

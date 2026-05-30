@@ -1,36 +1,33 @@
 import api from '../../lib/api';
+import type { User, UserRole } from '../../types/api';
 import { extractList, extractOne } from '../../types/api';
 
-export type ApiUser = {
-  id: string;
-  fullName: string;
-  email: string;
-  role: string;
-  phone?: string;
-  location?: string;
-};
-
-export type CreateUserPayload = {
-  fullName: string;
-  email: string;
-  role: string;
-  password?: string;
-};
-
+/**
+ * Users API (admin) — mirrors the UniStay+ backend
+ *   GET    /users              — list (admin only)
+ *   GET    /users/:id
+ *   DELETE /users/:id
+ *   PATCH  /users/:id/role     — { role }
+ *   PATCH  /users/:id/active   — toggle active
+ */
 export const usersApi = {
-  async getAll(): Promise<ApiUser[]> {
-    const response = await api.get('/users');
-    return extractList<ApiUser>(response.data);
+  async list(): Promise<User[]> {
+    const res = await api.get('/users');
+    return extractList<User>(res.data);
   },
-  async create(data: CreateUserPayload): Promise<ApiUser> {
-    const response = await api.post('/users', data);
-    return extractOne<ApiUser>(response.data);
-  },
-  async updateRole(id: string, role: string): Promise<ApiUser> {
-    const response = await api.patch('/users/' + id + '/role', { role });
-    return extractOne<ApiUser>(response.data);
+  async get(id: string): Promise<User> {
+    const res = await api.get(`/users/${id}`);
+    return extractOne<User>(res.data);
   },
   async remove(id: string): Promise<void> {
-    await api.delete('/users/' + id);
+    await api.delete(`/users/${id}`);
+  },
+  async setRole(id: string, role: UserRole): Promise<User> {
+    const res = await api.patch(`/users/${id}/role`, { role });
+    return extractOne<User>(res.data);
+  },
+  async toggleActive(id: string): Promise<User> {
+    const res = await api.patch(`/users/${id}/active`);
+    return extractOne<User>(res.data);
   },
 };

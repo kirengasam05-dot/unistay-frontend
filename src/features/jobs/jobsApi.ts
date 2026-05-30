@@ -14,6 +14,7 @@ export type Job = {
   requiredCourseIds?: string[];
   requirements?: string[];
   employerId?: string;
+  description?: string;
 };
 
 export type CreateJobPayload = {
@@ -25,21 +26,25 @@ export type CreateJobPayload = {
   deadline?: string;
   requiredSkills?: string[];
   requiredCourseIds?: string[];
+  description?: string;
 };
 
 export const jobsApi = {
   async getAll(): Promise<Job[]> {
-    const response = await api.get('/jobs');
-    return extractList<Job>(response.data);
+    const res = await api.get('/jobs');
+    return extractList<Job>(res.data);
   },
+
   async getMine(): Promise<Job[]> {
-    const response = await api.get('/jobs/mine');
-    return extractList<Job>(response.data);
+    const res = await api.get('/jobs/mine');
+    return extractList<Job>(res.data);
   },
+
   async create(data: CreateJobPayload): Promise<Job> {
-    const response = await api.post('/jobs', data);
-    return extractOne<Job>(response.data);
+    const res = await api.post('/jobs', data);
+    return extractOne<Job>(res.data);
   },
+
   async remove(id: string): Promise<void> {
     await api.delete('/jobs/' + id);
   },

@@ -14,24 +14,30 @@ export type Application = {
 };
 
 export const applicationsApi = {
+  /** Employer — all applications for their posted jobs. */
+  async getAll(): Promise<Application[]> {
+    const res = await api.get('/applications');
+    return extractList<Application>(res.data);
+  },
+
+  /** Student — only their own submitted applications. */
   async getMine(): Promise<Application[]> {
-    const response = await api.get('/applications/my');
-    return extractList<Application>(response.data);
+    const res = await api.get('/applications/my');
+    return extractList<Application>(res.data);
   },
-  async getForEmployer(): Promise<Application[]> {
-    const response = await api.get('/applications');
-    return extractList<Application>(response.data);
-  },
+
   async apply(jobId: string): Promise<Application> {
-    const response = await api.post('/applications', { jobId });
-    return extractOne<Application>(response.data);
+    const res = await api.post('/applications', { jobId });
+    return extractOne<Application>(res.data);
   },
+
   async accept(id: string): Promise<Application> {
-    const response = await api.patch('/applications/' + id + '/accept');
-    return extractOne<Application>(response.data);
+    const res = await api.patch('/applications/' + id + '/accept');
+    return extractOne<Application>(res.data);
   },
+
   async reject(id: string): Promise<Application> {
-    const response = await api.patch('/applications/' + id + '/reject');
-    return extractOne<Application>(response.data);
+    const res = await api.patch('/applications/' + id + '/reject');
+    return extractOne<Application>(res.data);
   },
 };
