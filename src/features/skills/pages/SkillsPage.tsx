@@ -17,22 +17,17 @@ export default function SkillsPage() {
       coursesApi.getAll().catch(() => [] as Course[]),
       skillsApi.getCertificates().catch(() => [] as Certificate[]),
       skillsApi.getAssignments().catch(() => [] as Assignment[]),
-    ]).then(([c, certs, assign]) => {
-      setCourses(c);
-      setCertificates(certs);
-      setAssignments(assign);
-    }).finally(() => setLoading(false));
+    ]).then(([c, certs, assign]) => { setCourses(c); setCertificates(certs); setAssignments(assign); })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="dark:bg-neutral-950">
       <section className="border-b border-neutral-200 bg-neutral-950 px-4 py-16 text-white dark:border-neutral-800 sm:px-6">
         <div className="mx-auto max-w-7xl">
-          <p className="eyebrow text-neutral-400">Learning & certification</p>
-          <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">Skills, courses & certificates</h1>
-          <p className="mt-4 max-w-xl text-base text-neutral-400">
-            Study employer-uploaded courses, complete exams, and earn certificates that strengthen your job profile score.
-          </p>
+          <p className="eyebrow text-neutral-400">Learning &amp; certification</p>
+          <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">Skills, courses &amp; certificates</h1>
+          <p className="mt-4 max-w-xl text-base text-neutral-400">Study employer-uploaded courses, complete exams, and earn certificates that strengthen your job profile score.</p>
         </div>
       </section>
 
@@ -88,15 +83,13 @@ export default function SkillsPage() {
                 <p className="eyebrow">Assessments</p>
                 <h2 className="mt-1 text-xl font-black text-neutral-900 dark:text-white">Available exams</h2>
                 <div className="mt-5 space-y-3">
-                  {assignments.length === 0 && (
-                    <p className="py-4 text-center text-sm text-neutral-500 dark:text-neutral-400">No exams available yet.</p>
-                  )}
+                  {assignments.length === 0 && <p className="py-4 text-center text-sm text-neutral-500 dark:text-neutral-400">No exams available yet.</p>}
                   {assignments.map(a => (
                     <div key={a.id} className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-4 dark:border-neutral-800 dark:bg-neutral-800/50">
                       <div>
                         <p className="font-bold text-neutral-900 dark:text-white">{a.title}</p>
                         <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-                          {a.questionCount} questions · Pass {a.passingScore}%
+                          {a.questionCount !== undefined ? `${a.questionCount} questions` : ''}{a.passingScore !== undefined ? ` · Pass ${a.passingScore}%` : ''}
                         </p>
                       </div>
                       <button className="btn-black rounded-lg px-3 py-1.5 text-xs">Take exam</button>
@@ -109,9 +102,7 @@ export default function SkillsPage() {
                 <p className="eyebrow">Achievements</p>
                 <h2 className="mt-1 text-xl font-black text-neutral-900 dark:text-white">Your certificates</h2>
                 <div className="mt-5 space-y-3">
-                  {certificates.length === 0 && (
-                    <p className="py-4 text-center text-sm text-neutral-500 dark:text-neutral-400">Complete a course to earn your first certificate.</p>
-                  )}
+                  {certificates.length === 0 && <p className="py-4 text-center text-sm text-neutral-500 dark:text-neutral-400">Complete a course to earn your first certificate.</p>}
                   {certificates.map(c => (
                     <div key={c.id} className="flex items-center gap-4 rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-4 dark:border-neutral-800 dark:bg-neutral-800/50">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">

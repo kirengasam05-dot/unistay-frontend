@@ -67,7 +67,6 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/emails" element={<EmailsPage />} />
-<<<<<<< HEAD
 
         <Route element={<ProtectedRoute role="STUDENT" />}>
           <Route path="/student/housing" element={<StudentHousingPage />} />
@@ -100,45 +99,6 @@ export default function AppRoutes() {
           <Route path="/admin/moderation" element={<AdminModerationPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>
-=======
-
-        <Route element={<ProtectedRoute role="STUDENT" />}>
-          <Route path="/student/booking" element={<StudentBookingPage />} />
-          <Route path="/student/jobs" element={<StudentJobsPage />} />
-          <Route path="/student/learning" element={<StudentLearningPage />} />
-          <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
-          <Route path="/student/certificates" element={<StudentCertificatesPage />} />
-          <Route path="/student/recommendations" element={<PlaceholderPage title="Recommendations" />} />
-          <Route path="/student/notifications" element={<PlaceholderPage title="Notifications" />} />
-        </Route>
-
-        <Route element={<ProtectedRoute role="HOST" />}>
-          <Route path="/host/listings" element={<HostListingsPage />} />
-          <Route path="/host/listings/new" element={<HostAddListingPage />} />
-          <Route path="/host/bookings" element={<HostBookingsPage />} />
-          <Route path="/host/verification" element={<PlaceholderPage title="Host verification" />} />
-        </Route>
-
-        <Route element={<ProtectedRoute role="EMPLOYER" />}>
-          <Route path="/employer/jobs" element={<EmployerJobsPage />} />
-          <Route path="/employer/applications" element={<EmployerApplicationsPage />} />
-          <Route path="/employer/verification" element={<PlaceholderPage title="Employer verification" />} />
-        </Route>
-
-<<<<<<< HEAD
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/admin/learning" element={<AdminLearningPage />} />
-        <Route path="/admin/moderation" element={<AdminModerationPage />} />
-        <Route path="/admin/analytics" element={<PlaceholderPage title="Analytics" />} />
->>>>>>> afb76de (feat: enhance host dashboard and booking management)
-=======
-        <Route element={<ProtectedRoute role="ADMIN" />}>
-          <Route path="/admin/users" element={<AdminUsersPage />} />
-          <Route path="/admin/learning" element={<AdminLearningPage />} />
-          <Route path="/admin/moderation" element={<AdminModerationPage />} />
-          <Route path="/admin/analytics" element={<PlaceholderPage title="Analytics" />} />
-        </Route>
->>>>>>> 8757ee0 (feat(bookings): wire booking flow to shared storage and real API)
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
