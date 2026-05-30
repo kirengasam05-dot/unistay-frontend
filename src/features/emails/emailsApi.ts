@@ -1,9 +1,19 @@
 import api from '../../lib/api';
+import { extractList } from '../../types/api';
+
+export type Email = {
+  id: string;
+  subject: string;
+  from?: string;
+  body?: string;
+  content?: string;
+  createdAt?: string;
+  read?: boolean;
+};
 
 export const emailsApi = {
-  list: () => api.get('/emails'),
-  get: (id: string) => api.get('/emails/' + id),
-  create: (data: unknown) => api.post('/emails', data),
-  update: (id: string, data: unknown) => api.put('/emails/' + id, data),
-  remove: (id: string) => api.delete('/emails/' + id),
+  async getMine(): Promise<Email[]> {
+    const res = await api.get('/emails/my');
+    return extractList<Email>(res.data);
+  },
 };
