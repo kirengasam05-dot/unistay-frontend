@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Briefcase, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
-import { courses, jobs } from '../../data/mockData';
 import { housingApi } from '../housing/housingApi';
 import { bookingsApi } from '../bookings/bookingsApi';
+import { jobsApi } from '../jobs/jobsApi';
+import { coursesApi } from '../courses/coursesApi';
+import type { Course } from '../courses/coursesApi';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string; icon: any; color: string }) {
   return (
@@ -23,18 +25,29 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
 
 export default function StudentDashboard() {
   const [availableHousing, setAvailableHousing] = useState<number | null>(null);
-  const [myBookings, setMyBookings] = useState<number | null>(null);
+  const [myBookings, setMyBookings]             = useState<number | null>(null);
+  const [jobCount, setJobCount]                 = useState<number | null>(null);
+  const [courses, setCourses]                   = useState<Course[]>([]);
 
   useEffect(() => {
     housingApi.getAll()
-      .then((list) => setAvailableHousing(list.filter((h) => h.availability && h.verificationStatus === 'VERIFIED').length))
+      .then(list => setAvailableHousing(list.filter(h => h.availability && h.verificationStatus === 'VERIFIED').length))
       .catch(() => setAvailableHousing(0));
     bookingsApi.getMyBookings()
-      .then((b) => setMyBookings(b.length))
+      .then(b => setMyBookings(b.length))
       .catch(() => setMyBookings(0));
+    jobsApi.getAll()
+      .then(j => setJobCount(j.length))
+      .catch(() => setJobCount(0));
+    coursesApi.getAll()
+      .then(setCourses)
+      .catch(() => setCourses([]));
   }, []);
 
   const show = (v: number | null) => (v === null ? '…' : String(v));
+  const avgProgress = courses.length > 0
+    ? Math.round(courses.reduce((s, c) => s + (c.progress ?? 0), 0) / courses.length)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -47,9 +60,7 @@ export default function StudentDashboard() {
           <p className="mt-3 max-w-lg text-sm text-neutral-400">Payment is only released after your host confirms. Applications are matched by skill compatibility.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className="btn-white rounded-xl" to="/student/housing">Find housing</Link>
-            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/student/booking">
-              Track my bookings
-            </Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/student/booking">Track my bookings</Link>
           </div>
         </div>
       </div>
@@ -57,17 +68,15 @@ export default function StudentDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Available housing" value={show(availableHousing)} icon={Building2} color="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" />
         <StatCard label="My bookings" value={show(myBookings)} icon={CheckCircle2} color="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" />
-        <StatCard label="Matched jobs" value={String(jobs.length)} icon={Briefcase} color="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" />
-        <StatCard label="Course progress" value="80%" icon={BookOpen} color="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" />
+        <StatCard label="Available jobs" value={show(jobCount)} icon={Briefcase} color="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" />
+        <StatCard label="Course progress" value={avgProgress !== null ? `${avgProgress}%` : '…'} icon={BookOpen} color="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-card dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-neutral-900 dark:text-white">Booking process</h3>
-            <Link to="/student/housing" className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
-              Browse housing <ArrowRight size={14} />
-            </Link>
+            <Link to="/student/housing" className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Browse housing <ArrowRight size={14} /></Link>
           </div>
           <div className="mt-5 space-y-3">
             {['Choose verified housing', 'Send booking request', 'Wait for host confirmation', 'Pay only after confirmed', 'Move in safely'].map((s, i) => (
