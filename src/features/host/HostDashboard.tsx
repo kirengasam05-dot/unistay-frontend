@@ -1,8 +1,16 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, CheckCircle2, XCircle } from 'lucide-react';
-import { housings } from '../../data/mockData';
+import { housingApi } from '../housing/housingApi';
+import type { Housing } from '../../types/api';
 
 export default function HostDashboard() {
+  const [housings, setHousings] = useState<Housing[]>([]);
+
+  useEffect(() => {
+    housingApi.getMine().then(setHousings).catch(() => setHousings([]));
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
@@ -37,19 +45,23 @@ export default function HostDashboard() {
 
       <div className="card">
         <h2 className="text-xl font-black text-neutral-900 dark:text-white">Listing status</h2>
-        <div className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
-          {housings.map(h => (
-            <div key={h.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-              <div>
-                <p className="font-black text-neutral-900 dark:text-white">{h.title}</p>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">{h.location} · RWF {h.price.toLocaleString()}</p>
+        {housings.length === 0 ? (
+          <p className="mt-4 text-sm text-neutral-500">No listings yet. <Link to="/host/listings/new" className="font-bold underline">Add your first listing.</Link></p>
+        ) : (
+          <div className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+            {housings.map(h => (
+              <div key={h.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+                <div>
+                  <p className="font-black text-neutral-900 dark:text-white">{h.title}</p>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">{h.location} · RWF {h.price.toLocaleString()}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${h.availability ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  {h.availability ? 'AVAILABLE' : 'BOOKED'}
+                </span>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${h.availability ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                {h.availability ? 'AVAILABLE' : 'BOOKED'}
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

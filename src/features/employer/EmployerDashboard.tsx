@@ -1,8 +1,20 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, Users, CheckCircle2 } from 'lucide-react';
-import { applications, jobs } from '../../data/mockData';
+import { jobsApi } from '../jobs/jobsApi';
+import { applicationsApi } from '../applications/applicationsApi';
 
 export default function EmployerDashboard() {
+  const [jobCount, setJobCount]           = useState(0);
+  const [pendingCount, setPendingCount]   = useState(0);
+
+  useEffect(() => {
+    jobsApi.getMine().then(j => setJobCount(j.length)).catch(() => setJobCount(0));
+    applicationsApi.getForEmployer()
+      .then(apps => setPendingCount(apps.filter(a => a.status === 'PENDING').length))
+      .catch(() => setPendingCount(0));
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
@@ -19,9 +31,9 @@ export default function EmployerDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: 'Published jobs',       value: jobs.length,         color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30', icon: Briefcase    },
-          { label: 'Pending applications', value: applications.length, color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30',   icon: Users        },
-          { label: 'Compatibility checks', value: 'Active',            color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
+          { label: 'Published jobs',       value: String(jobCount),     color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30', icon: Briefcase },
+          { label: 'Pending applications', value: String(pendingCount), color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30',   icon: Users },
+          { label: 'Compatibility checks', value: 'Active',             color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
         ].map(s => {
           const Icon = s.icon;
           return (
