@@ -4,7 +4,6 @@ import { BookOpen, ShieldCheck, Users, Award } from 'lucide-react';
 import { housingApi } from '../housing/housingApi';
 import { usersApi } from '../users/usersApi';
 import { coursesApi } from '../courses/coursesApi';
-import { extractList } from '../../types/api';
 
 const actions = [
   { label: 'Users & Roles',  desc: 'Create users and assign roles',        to: '/admin/users',      color: 'border-blue-200 dark:border-blue-800/60',     icon: Users      },
@@ -25,8 +24,8 @@ export default function AdminDashboard() {
     usersApi.list()
       .then((list) => setCounts((c) => ({ ...c, users: String(list.length) })))
       .catch(() => setCounts((c) => ({ ...c, users: '—' })));
-    coursesApi.list()
-      .then((res) => setCounts((c) => ({ ...c, courses: String(extractList(res.data).length) })))
+    coursesApi.getAll()
+      .then((list) => setCounts((c) => ({ ...c, courses: String(list.length) })))
       .catch(() => setCounts((c) => ({ ...c, courses: '0' })));
   }, []);
 

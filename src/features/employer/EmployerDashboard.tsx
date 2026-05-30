@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Users, CheckCircle2 } from 'lucide-react';
+import { Briefcase, CheckCircle2, Users } from 'lucide-react';
 import { jobsApi } from '../jobs/jobsApi';
-import { applications } from '../../data/mockData';
-import { extractList } from '../../types/api';
+import { applicationsApi } from '../applications/applicationsApi';
 
 export default function EmployerDashboard() {
-  const [jobCount, setJobCount] = useState<number | null>(null);
+  const [jobCount, setJobCount]         = useState<number | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   useEffect(() => {
-    jobsApi.list()
-      .then((res) => setJobCount(extractList(res.data).length))
-      .catch(() => setJobCount(0));
+    jobsApi.getMine().then(j => setJobCount(j.length)).catch(() => setJobCount(0));
+    applicationsApi.getAll()
+      .then(apps => setPendingCount(apps.filter(a => a.status === 'PENDING').length))
+      .catch(() => setPendingCount(0));
   }, []);
 
+  const show = (v: number | null) => (v === null ? '…' : String(v));
+
   const stats = [
-    { label: 'Published jobs', value: jobCount === null ? '…' : String(jobCount), color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30', icon: Briefcase },
-    { label: 'Pending applications', value: String(applications.length), color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30', icon: Users },
-    { label: 'Compatibility checks', value: 'Active', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
+    { label: 'Published jobs',       value: show(jobCount),     color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30', icon: Briefcase },
+    { label: 'Pending applications', value: show(pendingCount), color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30',   icon: Users },
+    { label: 'Compatibility checks', value: 'Active',           color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
   ];
 
   return (
@@ -35,7 +38,7 @@ export default function EmployerDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {stats.map((s) => {
+        {stats.map(s => {
           const Icon = s.icon;
           return (
             <div key={s.label} className="card flex items-center gap-4">
