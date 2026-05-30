@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Users, CheckCircle2 } from 'lucide-react';
+import { Briefcase, CheckCircle2, Users } from 'lucide-react';
 import { jobsApi } from '../jobs/jobsApi';
 import { applications } from '../../data/mockData';
 import { extractList } from '../../types/api';

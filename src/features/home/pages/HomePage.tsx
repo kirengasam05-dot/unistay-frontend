@@ -9,9 +9,9 @@ import Badge from '../../../components/ui/Badge';
 
 const staticCategories = [
   { name: 'Software Development', icon: Briefcase },
-  { name: 'Marketing', icon: Users },
+  { name: 'Marketing',            icon: Users },
   { name: 'Sales & Communication', icon: GraduationCap },
-  { name: 'Administration', icon: ShieldCheck },
+  { name: 'Administration',       icon: ShieldCheck },
 ];
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -74,7 +74,6 @@ export default function HomePage() {
                 Search <ArrowRight size={18} />
               </button>
             </div>
-
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[[isLive ? `${liveHousing.length}+` : '120+', 'Verified rooms'], ['500+', 'Student opportunities'], ['80+', 'Skill certificates']].map(([value, label]) => (
                 <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-5">
@@ -84,7 +83,6 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-
           <div className="rounded-[2.3rem] border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur">
             <img className="h-[430px] w-full rounded-[1.8rem] object-cover" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80" alt="Students" />
             <div className="mt-4 grid grid-cols-3 gap-3 text-center text-black">
@@ -106,9 +104,7 @@ export default function HomePage() {
             <Card key={name} className="group hover:-translate-y-1 transition">
               <Icon className="h-10 w-10 text-neutral-700 dark:text-neutral-300" />
               <h3 className="mt-5 text-lg font-black text-neutral-900 dark:text-white">{name}</h3>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                {jobs.filter(j => j.category === name).length} active opportunities
-              </p>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{jobs.filter(j => j.category === name).length} active opportunities</p>
             </Card>
           ))}
         </div>

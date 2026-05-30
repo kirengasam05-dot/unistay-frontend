@@ -10,13 +10,13 @@ import { coursesApi } from '../../courses/coursesApi';
 import type { Housing } from '../../../types/api';
 
 export default function AdminDashboardPage() {
-  const [userCount, setUserCount]       = useState<number | null>(null);
-  const [housings, setHousings]         = useState<Housing[]>([]);
-  const [jobCount, setJobCount]         = useState<number | null>(null);
-  const [courseCount, setCourseCount]   = useState<number | null>(null);
+  const [userCount, setUserCount]     = useState<number | null>(null);
+  const [housings, setHousings]       = useState<Housing[]>([]);
+  const [jobCount, setJobCount]       = useState<number | null>(null);
+  const [courseCount, setCourseCount] = useState<number | null>(null);
 
   useEffect(() => {
-    usersApi.getAll().then(u => setUserCount(u.length)).catch(() => setUserCount(0));
+    usersApi.list().then(u => setUserCount(u.length)).catch(() => setUserCount(0));
     housingApi.getAll().then(setHousings).catch(() => setHousings([]));
     jobsApi.getAll().then(j => setJobCount(j.length)).catch(() => setJobCount(0));
     coursesApi.getAll().then(c => setCourseCount(c.length)).catch(() => setCourseCount(0));
@@ -38,9 +38,9 @@ export default function AdminDashboardPage() {
           <h2 className="text-2xl font-black">Quick links</h2>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Manage all platform areas from one place.</p>
           <div className="mt-4 grid gap-3">
-            <a href="/admin/users" className="input text-center font-bold hover:bg-neutral-50">Manage Users & Roles</a>
-            <a href="/admin/learning" className="input text-center font-bold hover:bg-neutral-50">Manage Courses & Exams</a>
-            <a href="/admin/moderation" className="input text-center font-bold hover:bg-neutral-50">Housing Moderation</a>
+            <a href="/admin/users" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Manage Users &amp; Roles</a>
+            <a href="/admin/learning" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Manage Courses &amp; Exams</a>
+            <a href="/admin/moderation" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Housing Moderation</a>
           </div>
         </Card>
 
@@ -57,8 +57,8 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="flex gap-2">
                   <Badge>{h.verificationStatus}</Badge>
-                  <Button variant="green" onClick={() => housingApi.verify(h.id).then(() => setHousings(prev => prev.map(x => x.id === h.id ? { ...x, verificationStatus: 'VERIFIED' } : x)))}>Verify</Button>
-                  <Button variant="red" onClick={() => housingApi.reject(h.id).then(() => setHousings(prev => prev.map(x => x.id === h.id ? { ...x, verificationStatus: 'REJECTED' } : x)))}>Reject</Button>
+                  <Button variant="green" onClick={() => housingApi.setVerification(h.id, 'VERIFIED').then(() => setHousings(prev => prev.map(x => x.id === h.id ? { ...x, verificationStatus: 'VERIFIED' as const } : x)))}>Verify</Button>
+                  <Button variant="red" onClick={() => housingApi.setVerification(h.id, 'REJECTED').then(() => setHousings(prev => prev.map(x => x.id === h.id ? { ...x, verificationStatus: 'REJECTED' as const } : x)))}>Reject</Button>
                 </div>
               </div>
             ))
