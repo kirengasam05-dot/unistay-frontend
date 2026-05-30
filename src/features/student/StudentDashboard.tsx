@@ -76,9 +76,7 @@ export default function StudentDashboard() {
           <div className="mt-5 space-y-3">
             {['Choose verified housing', 'Send booking request', 'Wait for host confirmation', 'Pay only after confirmed', 'Move in safely'].map((s, i) => (
               <div key={s} className="flex items-center gap-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-neutral-900">
-                  {i + 1}
-                </span>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-neutral-900">{i + 1}</span>
                 <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">{s}</p>
               </div>
             ))}
@@ -93,14 +91,17 @@ export default function StudentDashboard() {
             </Link>
           </div>
           <div className="mt-5 space-y-4">
-            {courses.slice(0, 3).map((c) => (
+            {courses.length === 0 && (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">No courses available yet.</p>
+            )}
+            {courses.slice(0, 3).map(c => (
               <div key={c.id} className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-black text-neutral-900 dark:text-white">{c.title}</p>
-                  <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">{c.progress}%</span>
+                  <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">{c.progress ?? 0}%</span>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700">
-                  <div className="h-1.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${c.progress}%` }} />
+                  <div className="h-1.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${c.progress ?? 0}%` }} />
                 </div>
               </div>
             ))}

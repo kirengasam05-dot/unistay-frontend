@@ -85,6 +85,10 @@ export default function RegisterPage() {
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Create your account</h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Sign up as a student, host, or employer.</p>
 
+          {apiError && (
+            <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-400">{apiError}</div>
+          )}
+
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <div>
 =======
