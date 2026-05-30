@@ -7,11 +7,11 @@ import type { Housing } from '../../../types/api';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 
-const categories = [
-  { name: 'Software Development', count: 18, icon: Briefcase },
-  { name: 'Marketing', count: 12, icon: Users },
-  { name: 'Sales & Communication', count: 21, icon: GraduationCap },
-  { name: 'Administration', count: 9, icon: ShieldCheck },
+const staticCategories = [
+  { name: 'Software Development', icon: Briefcase },
+  { name: 'Marketing', icon: Users },
+  { name: 'Sales & Communication', icon: GraduationCap },
+  { name: 'Administration', icon: ShieldCheck },
 ];
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -106,7 +106,9 @@ export default function HomePage() {
             <Card key={name} className="group hover:-translate-y-1 transition">
               <Icon className="h-10 w-10 text-neutral-700 dark:text-neutral-300" />
               <h3 className="mt-5 text-lg font-black text-neutral-900 dark:text-white">{name}</h3>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{count} active opportunities</p>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                {jobs.filter(j => j.category === name).length} active opportunities
+              </p>
             </Card>
           ))}
         </div>
@@ -179,8 +181,8 @@ export default function HomePage() {
               );
             })}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -214,13 +216,16 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-6 py-20 text-center">
         <h2 className="text-4xl font-black text-neutral-900 dark:text-white">Ready to manage student life smarter?</h2>
         <p className="mx-auto mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">Start as a student or host. Admin will assign employer and admin roles internally for platform safety.</p>
-        <div className="mt-8 flex justify-center gap-3"><Link to="/register" className="btn-black">Create account</Link><Link to="/process" className="btn-white">See process</Link></div>
+        <div className="mt-8 flex justify-center gap-3">
+          <Link to="/register" className="btn-black">Create account</Link>
+          <Link to="/process" className="btn-white">See process</Link>
+        </div>
       </section>
     </div>
   );
