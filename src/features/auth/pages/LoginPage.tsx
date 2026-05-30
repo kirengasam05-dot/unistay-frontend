@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { users } from '../../../data/mockData';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { authApi } from '../authApi';
 import { saveUser, saveToken } from '../../../lib/authStorage';
 
 export default function LoginPage() {
@@ -9,13 +9,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
   const navigate                = useNavigate();
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
 <<<<<<< HEAD
 <<<<<<< HEAD
     setError('');
+<<<<<<< Updated upstream
     const user = users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim() && u.password === password);
     if (!user) { setError('Invalid email or password.'); return; }
 =======
@@ -38,6 +40,19 @@ export default function LoginPage() {
     saveUser(user);
     saveToken('demo-token');
     navigate('/dashboard');
+=======
+    setLoading(true);
+    try {
+      const { token, user } = await authApi.login({ email: email.trim(), password });
+      saveUser(user);
+      saveToken(token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Invalid email or password.');
+    } finally {
+      setLoading(false);
+    }
+>>>>>>> Stashed changes
   };
 
   return (
@@ -164,6 +179,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+<<<<<<< Updated upstream
             <button type="submit" className="mt-2 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
 =======
               <label className={`text-xs font-semibold uppercase tracking-widest ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
@@ -200,6 +216,11 @@ export default function LoginPage() {
             <button type="submit" className="mt-2 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
 >>>>>>> afb76de (feat: enhance host dashboard and booking management)
               Log in
+=======
+            <button type="submit" disabled={loading} className="mt-2 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 flex items-center justify-center gap-2">
+              {loading && <Loader2 size={16} className="animate-spin" />}
+              {loading ? 'Signing in…' : 'Log in'}
+>>>>>>> Stashed changes
             </button>
           </div>
 

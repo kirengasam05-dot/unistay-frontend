@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CloudUpload, ImageOff, Plus, X } from 'lucide-react';
-import { addListing } from '../../../lib/listingsStorage';
+import { ArrowLeft, CloudUpload, ImageOff, Loader2, Plus, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { housingApi } from '../../housing/housingApi';
 
 interface FormState { title: string; location: string; price: string; description: string; amenities: string; }
 const BLANK: FormState = { title: '', location: '', price: '', description: '', amenities: '' };
@@ -10,9 +11,10 @@ export default function HostAddListingPage() {
   const navigate = useNavigate();
   const [form, setForm]         = useState<FormState>(BLANK);
   const [errors, setErrors]     = useState<Partial<FormState & { image: string }>>({});
-  const [imageFile, setImageFile] = useState<string | null>(null);
-  const [imageName, setImageName] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [saving, setSaving]     = useState(false);
   const inputRef                = useRef<HTMLInputElement>(null);
 
   function set(key: keyof FormState, value: string) {
@@ -22,9 +24,9 @@ export default function HostAddListingPage() {
 
   function readFile(file: File) {
     if (!file.type.startsWith('image/')) { setErrors(e => ({ ...e, image: 'Only image files are accepted.' })); return; }
-    setImageName(file.name);
+    setImageFile(file);
     const reader = new FileReader();
-    reader.onload = () => { setImageFile(reader.result as string); setErrors(e => ({ ...e, image: undefined })); };
+    reader.onload = () => { setImagePreview(reader.result as string); setErrors(e => ({ ...e, image: undefined })); };
     reader.readAsDataURL(file);
   }
 
@@ -42,18 +44,30 @@ export default function HostAddListingPage() {
     return e;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    addListing({
-      id: crypto.randomUUID(),
-      title: form.title.trim(), location: form.location.trim(), price: Number(form.price),
-      availability: true, verificationStatus: 'PENDING', hostId: 'u-host',
-      image: imageFile ?? 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80',
-      description: form.description.trim() || undefined,
-      amenities: form.amenities.trim() || undefined,
-    });
-    navigate('/host/listings');
+    setSaving(true);
+    try {
+      const payload = {
+        title: form.title.trim(),
+        location: form.location.trim(),
+        price: Number(form.price),
+        description: form.description.trim() || undefined,
+        amenities: form.amenities.trim() ? form.amenities.split(',').map(a => a.trim()).filter(Boolean) : undefined,
+      };
+      if (imageFile) {
+        await housingApi.createWithImages(payload, [imageFile]);
+      } else {
+        await housingApi.create(payload);
+      }
+      toast.success('Listing created — pending admin verification');
+      navigate('/host/listings');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to create listing');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -73,13 +87,13 @@ export default function HostAddListingPage() {
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="card">
           <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Property photo</label>
-          {imageFile ? (
+          {imagePreview ? (
             <div className="relative overflow-hidden rounded-2xl">
-              <img src={imageFile} alt="Preview" className="h-64 w-full object-cover" />
-              <button onClick={() => { setImageFile(null); setImageName(''); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80">
+              <img src={imagePreview} alt="Preview" className="h-64 w-full object-cover" />
+              <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80">
                 <X size={14} />
               </button>
-              <div className="absolute bottom-3 left-3 rounded-lg bg-black/50 px-3 py-1 text-xs text-white backdrop-blur-sm">{imageName}</div>
+              <div className="absolute bottom-3 left-3 rounded-lg bg-black/50 px-3 py-1 text-xs text-white backdrop-blur-sm">{imageFile?.name}</div>
             </div>
           ) : (
             <div
@@ -105,7 +119,7 @@ export default function HostAddListingPage() {
 
         <div className="card space-y-4">
           <h2 className="font-black text-neutral-900 dark:text-white">Property details</h2>
-          {([['title','Title *','e.g. Kacyiru Student Residence'],['location','Location *','e.g. Kacyiru, Kigali'],['amenities','Amenities','e.g. WiFi, Hot water, Security']] as const).map(([key, label, placeholder]) => (
+          {([['title', 'Title *', 'e.g. Kacyiru Student Residence'], ['location', 'Location *', 'e.g. Kacyiru, Kigali'], ['amenities', 'Amenities', 'e.g. WiFi, Hot water, Security']] as const).map(([key, label, placeholder]) => (
             <div key={key}>
               <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{label}</label>
               <input value={form[key as keyof FormState]} onChange={e => set(key as keyof FormState, e.target.value)} placeholder={placeholder} className="input" />
@@ -125,7 +139,10 @@ export default function HostAddListingPage() {
 
         <div className="flex items-center justify-between gap-4 pb-6">
           <button onClick={() => navigate('/host/listings')} className="btn-white rounded-xl">Cancel</button>
-          <button onClick={handleSubmit} className="btn-black rounded-xl flex items-center gap-2"><Plus size={15} /> Create listing</button>
+          <button onClick={handleSubmit} disabled={saving} className="btn-black rounded-xl flex items-center gap-2 disabled:opacity-60">
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+            {saving ? 'Creating…' : 'Create listing'}
+          </button>
         </div>
       </div>
     </div>

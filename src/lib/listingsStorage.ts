@@ -1,5 +1,3 @@
-import { housings } from '../data/mockData';
-
 export type Listing = {
   id: string;
   title: string;
@@ -20,7 +18,7 @@ export function getListings(): Listing[] {
     const raw = localStorage.getItem(KEY);
     if (raw) return JSON.parse(raw) as Listing[];
   } catch { /* ignore */ }
-  return housings as Listing[];
+  return [];
 }
 
 export function saveListings(items: Listing[]) {

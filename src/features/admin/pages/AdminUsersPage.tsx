@@ -1,27 +1,38 @@
-import { useState } from 'react';
-import { Plus, Search, Trash2, UserCircle2, X } from 'lucide-react';
-import { users as initial } from '../../../data/mockData';
-import type { Role } from '../../../types';
+import { useEffect, useState } from 'react';
+import { Loader2, Plus, Search, Trash2, UserCircle2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { usersApi } from '../../users/usersApi';
+import type { ApiUser } from '../../users/usersApi';
 
-type User = typeof initial[number];
+type Role = 'STUDENT' | 'HOST' | 'EMPLOYER' | 'ADMIN';
 const ROLES: Role[] = ['STUDENT', 'HOST', 'EMPLOYER', 'ADMIN'];
 
 const roleMeta: Record<Role, { label: string; badge: string; avatar: string }> = {
-  STUDENT:  { label: 'Student',  badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',     avatar: 'bg-blue-600'   },
+  STUDENT:  { label: 'Student',  badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',       avatar: 'bg-blue-600'   },
   HOST:     { label: 'Host',     badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400', avatar: 'bg-emerald-600' },
   EMPLOYER: { label: 'Employer', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400', avatar: 'bg-violet-600' },
-  ADMIN:    { label: 'Admin',    badge: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400',     avatar: 'bg-rose-600'   },
+  ADMIN:    { label: 'Admin',    badge: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400',       avatar: 'bg-rose-600'   },
 };
 
 const BLANK = { fullName: '', email: '', role: 'STUDENT' as Role };
 
 export default function AdminUsersPage() {
-  const [users, setUsers]       = useState<User[]>(initial);
+  const [users, setUsers]       = useState<ApiUser[]>([]);
+  const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [filter, setFilter]     = useState<Role | 'ALL'>('ALL');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm]         = useState(BLANK);
   const [errors, setErrors]     = useState<Partial<typeof BLANK>>({});
+  const [saving, setSaving]     = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    usersApi.getAll()
+      .then(setUsers)
+      .catch(() => toast.error('Failed to load users'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const visible = users.filter(u => {
     const matchRole   = filter === 'ALL' || u.role === filter;
@@ -36,12 +47,43 @@ export default function AdminUsersPage() {
     return e;
   }
 
-  function createUser() {
+  async function createUser() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    const newUser: User = { id: crypto.randomUUID(), fullName: form.fullName.trim(), email: form.email.trim(), phone: '', password: 'password123', role: form.role, location: 'Kigali', skillsProfile: '' };
-    setUsers([newUser, ...users]);
-    setForm(BLANK); setErrors({}); setShowForm(false);
+    setSaving(true);
+    try {
+      const newUser = await usersApi.create({ fullName: form.fullName.trim(), email: form.email.trim(), role: form.role, password: 'password123' });
+      setUsers(prev => [newUser, ...prev]);
+      setForm(BLANK); setErrors({}); setShowForm(false);
+      toast.success('User created');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to create user');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function changeRole(id: string, role: string) {
+    try {
+      const updated = await usersApi.updateRole(id, role);
+      setUsers(prev => prev.map(u => u.id === id ? updated : u));
+      toast.success('Role updated');
+    } catch {
+      toast.error('Failed to update role');
+    }
+  }
+
+  async function removeUser(id: string) {
+    setDeletingId(id);
+    try {
+      await usersApi.remove(id);
+      setUsers(prev => prev.filter(u => u.id !== id));
+      toast.success('User removed');
+    } catch {
+      toast.error('Failed to remove user');
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -78,7 +120,9 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="mt-4 flex justify-end">
-              <button onClick={createUser} className="btn-black rounded-xl flex items-center gap-2"><Plus size={15} /> Create user</button>
+              <button onClick={createUser} disabled={saving} className="btn-black rounded-xl flex items-center gap-2">
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={15} />} Create user
+              </button>
             </div>
           </div>
         )}
@@ -106,39 +150,43 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      <div className="space-y-3">
-        {visible.length === 0 && (
-          <div className="card py-12 text-center">
-            <UserCircle2 size={40} className="mx-auto text-neutral-300 dark:text-neutral-700" />
-            <p className="mt-4 font-black text-neutral-900 dark:text-white">No users found</p>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Try adjusting your search or filter.</p>
-          </div>
-        )}
-        {visible.map(u => {
-          const initials = u.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-          const meta = roleMeta[u.role];
-          return (
-            <div key={u.id} className="card !p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${meta.avatar}`}>{initials}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-neutral-900 dark:text-white truncate">{u.fullName}</p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">{u.email}</p>
-                </div>
-                <span className={`hidden shrink-0 rounded-full px-3 py-1 text-xs font-bold sm:inline-block ${meta.badge}`}>{meta.label}</span>
-                <select value={u.role} onChange={e => setUsers(users.map(x => x.id === u.id ? { ...x, role: e.target.value as Role } : x))}
-                  className="shrink-0 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 outline-none transition hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                  {ROLES.map(r => <option key={r} value={r}>{roleMeta[r].label}</option>)}
-                </select>
-                <button onClick={() => setUsers(users.filter(x => x.id !== u.id))}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors">
-                  <Trash2 size={15} />
-                </button>
-              </div>
+      {loading ? (
+        <div className="card grid place-items-center py-16"><Loader2 className="animate-spin text-neutral-400" size={32} /></div>
+      ) : (
+        <div className="space-y-3">
+          {visible.length === 0 && (
+            <div className="card py-12 text-center">
+              <UserCircle2 size={40} className="mx-auto text-neutral-300 dark:text-neutral-700" />
+              <p className="mt-4 font-black text-neutral-900 dark:text-white">No users found</p>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Try adjusting your search or filter.</p>
             </div>
-          );
-        })}
-      </div>
+          )}
+          {visible.map(u => {
+            const initials = u.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            const meta = roleMeta[u.role as Role] || roleMeta.STUDENT;
+            return (
+              <div key={u.id} className="card !p-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${meta.avatar}`}>{initials}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-neutral-900 dark:text-white truncate">{u.fullName}</p>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">{u.email}</p>
+                  </div>
+                  <span className={`hidden shrink-0 rounded-full px-3 py-1 text-xs font-bold sm:inline-block ${meta.badge}`}>{meta.label}</span>
+                  <select value={u.role} onChange={e => changeRole(u.id, e.target.value)}
+                    className="shrink-0 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 outline-none transition hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                    {ROLES.map(r => <option key={r} value={r}>{roleMeta[r].label}</option>)}
+                  </select>
+                  <button onClick={() => removeUser(u.id)} disabled={deletingId === u.id}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-40 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors">
+                    {deletingId === u.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
       <p className="text-xs text-neutral-400 dark:text-neutral-600 text-center pb-2">{users.length} total users · {visible.length} shown</p>
     </div>
   );

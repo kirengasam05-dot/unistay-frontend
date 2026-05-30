@@ -4,7 +4,8 @@
 >>>>>>> afb76de (feat: enhance host dashboard and booking management)
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { authApi } from '../authApi';
 import { saveUser, saveToken } from '../../../lib/authStorage';
 import type { UserRole } from '../../../lib/authStorage';
 
@@ -16,6 +17,8 @@ export default function RegisterPage() {
   const [form, setForm]     = useState<FormState>(BLANK);
   const [showPw, setShowPw] = useState(false);
   const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [apiError, setApiError] = useState('');
+  const [loading, setLoading]   = useState(false);
   const navigate            = useNavigate();
 
   function set(key: keyof FormState, value: string) { setForm(f => ({ ...f, [key]: value })); setErrors(e => ({ ...e, [key]: undefined })); }
@@ -28,10 +31,11 @@ export default function RegisterPage() {
     return e;
   }
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+<<<<<<< Updated upstream
     saveUser({ id: crypto.randomUUID(), fullName: form.fullName.trim(), email: form.email.trim(), phone: form.phone.trim(), location: form.location.trim(), role: form.role, password: form.password });
     saveToken('demo-token');
     navigate('/dashboard');
@@ -88,6 +92,27 @@ export default function RegisterPage() {
     saveToken('demo-token');
     navigate('/dashboard');
 >>>>>>> afb76de (feat: enhance host dashboard and booking management)
+=======
+    setApiError('');
+    setLoading(true);
+    try {
+      const { token, user } = await authApi.register({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || undefined,
+        location: form.location.trim() || undefined,
+        role: form.role,
+        password: form.password,
+      });
+      saveUser(user);
+      saveToken(token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setApiError(err?.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+>>>>>>> Stashed changes
   };
 
   const inputClass = 'w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15';
@@ -111,6 +136,10 @@ export default function RegisterPage() {
         <form onSubmit={submit} className="w-full rounded-2xl border border-neutral-200 bg-white p-10 shadow-xl dark:border-white/10 dark:bg-white/[0.07] dark:shadow-2xl dark:backdrop-blur-2xl">
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Create your account</h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Sign up as a student, host, or employer.</p>
+
+          {apiError && (
+            <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-400">{apiError}</div>
+          )}
 
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <div>
@@ -283,12 +312,18 @@ export default function RegisterPage() {
             </div>
           </div>
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> afb76de (feat: enhance host dashboard and booking management)
           <button type="submit" className="mt-6 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
             Create account
+=======
+          <button type="submit" disabled={loading} className="mt-6 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 flex items-center justify-center gap-2">
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'Creating account…' : 'Create account'}
+>>>>>>> Stashed changes
           </button>
 
           <div className="mt-6 border-t border-neutral-200 pt-5 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
