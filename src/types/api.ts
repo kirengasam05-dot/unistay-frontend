@@ -2,11 +2,18 @@ export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
 export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "REJECTED" | "COMPLETED";
 export type PaymentStatus = "UNPAID" | "PENDING_VERIFICATION" | "PAID" | "REFUNDED";
 
+export type UserRole = "STUDENT" | "HOST" | "EMPLOYER" | "ADMIN";
+
 export type User = {
   id: string;
   fullName: string;
   email: string;
-  role?: "STUDENT" | "HOST" | "EMPLOYER" | "ADMIN";
+  role?: UserRole;
+  phone?: string | null;
+  location?: string | null;
+  active?: boolean;
+  isActive?: boolean;
+  createdAt?: string;
 };
 
 export type Housing = {
