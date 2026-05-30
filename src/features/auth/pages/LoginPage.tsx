@@ -1,24 +1,36 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { users } from '../../../data/mockData';
-import { saveUser, saveToken } from '../../../lib/authStorage';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
   const navigate                = useNavigate();
+  const location                = useLocation();
+  const { login }               = useAuth();
 
-  const submit = (e: FormEvent) => {
+  // Send the user back to wherever a ProtectedRoute bounced them from.
+  const from = (location.state as { from?: string } | null)?.from || '/dashboard';
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    const user = users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim() && u.password === password);
-    if (!user) { setError('Invalid email or password.'); return; }
-    saveUser(user);
-    saveToken('demo-token');
-    navigate('/dashboard');
+    setLoading(true);
+    try {
+      const user = await login({ email: email.trim(), password });
+      toast.success(`Welcome back${user.fullName ? `, ${user.fullName.split(' ')[0]}` : ''}!`);
+      navigate(from, { replace: true });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,7 +58,10 @@ export default function LoginPage() {
                 className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Password</label>
+                <Link to="/forgot-password" className="text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">Forgot password?</Link>
+              </div>
               <div className="relative">
                 <input value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" type={showPw ? 'text' : 'password'} required
                   className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 pr-12 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder-neutral-500 dark:focus:border-white/30 dark:focus:bg-white/15" />
@@ -55,8 +70,9 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <button type="submit" className="mt-2 w-full rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
-              Log in
+            <button type="submit" disabled={loading} className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 py-3.5 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
+              {loading && <Loader2 size={16} className="animate-spin" />}
+              {loading ? 'Signing in…' : 'Log in'}
             </button>
           </div>
 
