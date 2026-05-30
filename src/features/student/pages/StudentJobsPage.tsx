@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Wallet, Clock3, Loader2 } from 'lucide-react';
+import { Clock3, Loader2, MapPin, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi } from '../../jobs/jobsApi';
 import { applicationsApi } from '../../applications/applicationsApi';
@@ -13,16 +13,12 @@ export default function StudentJobsPage() {
   const [search, setSearch]     = useState('');
 
   useEffect(() => {
-    jobsApi.getAll()
-      .then(setJobs)
-      .catch(() => toast.error('Failed to load jobs'))
-      .finally(() => setLoading(false));
+    jobsApi.getAll().then(setJobs).catch(() => toast.error('Failed to load jobs')).finally(() => setLoading(false));
   }, []);
 
   const filtered = jobs.filter(j =>
     (j.title + j.location + j.scheduleType + (j.requiredSkills ?? []).join(' '))
-      .toLowerCase()
-      .includes(search.toLowerCase())
+      .toLowerCase().includes(search.toLowerCase())
   );
 
   async function apply(jobId: string) {
@@ -32,7 +28,7 @@ export default function StudentJobsPage() {
       setApplied(prev => new Set(prev).add(jobId));
       toast.success('Application submitted! The employer will review compatibility.');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to submit application.');
+      toast.error(err?.message || 'Failed to submit application.');
     } finally {
       setApplying(null);
     }
@@ -42,15 +38,8 @@ export default function StudentJobsPage() {
     <div className="space-y-6">
       <div className="card">
         <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">Search Jobs</h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Apply to jobs that match your skills. The employer will review compatibility and send you the result by email.
-        </p>
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="input mt-5"
-          placeholder="Search by title, location, schedule or skill…"
-        />
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">Apply to jobs that match your skills. The employer will review compatibility and send you the result by email.</p>
+        <input value={search} onChange={e => setSearch(e.target.value)} className="input mt-5" placeholder="Search by title, location, schedule or skill…" />
       </div>
 
       {loading ? (
@@ -76,17 +65,10 @@ export default function StudentJobsPage() {
                     </div>
                   )}
                 </div>
-
                 {applied.has(j.id) ? (
-                  <span className="shrink-0 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                    Applied — email pending
-                  </span>
+                  <span className="shrink-0 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Applied — email pending</span>
                 ) : (
-                  <button
-                    disabled={applying === j.id}
-                    onClick={() => apply(j.id)}
-                    className="btn-black shrink-0 rounded-xl disabled:opacity-60 flex items-center gap-2"
-                  >
+                  <button disabled={applying === j.id} onClick={() => apply(j.id)} className="btn-black shrink-0 rounded-xl disabled:opacity-60 flex items-center gap-2">
                     {applying === j.id && <Loader2 size={14} className="animate-spin" />}
                     Apply now
                   </button>
@@ -94,7 +76,6 @@ export default function StudentJobsPage() {
               </div>
             </div>
           ))}
-
           {filtered.length === 0 && (
             <div className="card py-10 text-center">
               <p className="font-black text-neutral-900 dark:text-white">No jobs match your search</p>

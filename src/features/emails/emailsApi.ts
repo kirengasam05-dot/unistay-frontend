@@ -13,7 +13,7 @@ export type Email = {
 
 export const emailsApi = {
   async getMine(): Promise<Email[]> {
-    const response = await api.get('/emails/my');
-    return extractList<Email>(response.data);
+    const res = await api.get('/emails/my');
+    return extractList<Email>(res.data);
   },
 };

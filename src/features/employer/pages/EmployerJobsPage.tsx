@@ -9,15 +9,13 @@ import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 
-const BLANK: CreateJobPayload = { title: '', category: 'Software Development', location: 'Kigali / Hybrid', salary: 100000, scheduleType: 'INTERNSHIP', requiredSkills: [], requiredCourseIds: [] };
-
 export default function EmployerJobsPage() {
   const [jobs, setJobs]       = useState<Job[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [form, setForm]       = useState({ title: '', category: 'Software Development', location: 'Kigali / Hybrid', salary: '100000', scheduleType: 'INTERNSHIP', courseId: '', skills: '' });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ title: '', category: 'Software Development', location: 'Kigali / Hybrid', salary: '100000', scheduleType: 'INTERNSHIP', courseId: '', skills: '' });
 
   useEffect(() => {
     Promise.all([
@@ -45,14 +43,14 @@ export default function EmployerJobsPage() {
       setForm({ title: '', category: 'Software Development', location: 'Kigali / Hybrid', salary: '100000', scheduleType: 'INTERNSHIP', courseId: '', skills: '' });
       toast.success('Job created successfully');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to create job');
+      toast.error(err?.message || 'Failed to create job');
     } finally {
       setSaving(false);
     }
   }
 
   async function remove(id: string) {
-    setDeleting(id);
+    setDeletingId(id);
     try {
       await jobsApi.remove(id);
       setJobs(prev => prev.filter(j => j.id !== id));
@@ -60,7 +58,7 @@ export default function EmployerJobsPage() {
     } catch {
       toast.error('Failed to delete job');
     } finally {
-      setDeleting(null);
+      setDeletingId(null);
     }
   }
 
@@ -74,7 +72,7 @@ export default function EmployerJobsPage() {
           <Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Job title e.g. Frontend Internship" />
           <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="Location" />
           <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-            <option>Software Development</option><option>Marketing</option><option>Sales & Communication</option><option>Administration</option>
+            <option>Software Development</option><option>Marketing</option><option>Sales &amp; Communication</option><option>Administration</option>
           </select>
           <select className="input" value={form.scheduleType} onChange={e => setForm({ ...form, scheduleType: e.target.value })}>
             <option value="INTERNSHIP">Internship</option><option value="PART_TIME">Part time</option><option value="FULL_TIME">Full time</option>
@@ -85,9 +83,7 @@ export default function EmployerJobsPage() {
             {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
           <Input value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="Required skills, comma separated" />
-          <Button onClick={add} disabled={saving}>
-            {saving ? 'Creating…' : 'Create job'}
-          </Button>
+          <Button onClick={add} disabled={saving}>{saving ? 'Creating…' : 'Create job'}</Button>
         </div>
       </div>
 
@@ -103,24 +99,14 @@ export default function EmployerJobsPage() {
           <div className="card" key={j.id}>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="flex flex-wrap gap-2">
-                  {j.category && <Badge>{j.category}</Badge>}
-                  <Badge>{j.scheduleType}</Badge>
-                </div>
+                <div className="flex flex-wrap gap-2">{j.category && <Badge>{j.category}</Badge>}<Badge>{j.scheduleType}</Badge></div>
                 <h2 className="mt-3 text-xl font-black">{j.title}</h2>
                 <p className="text-sm text-neutral-500">{j.location}{j.salary ? ` · RWF ${j.salary.toLocaleString()}` : ''}</p>
-                {j.requiredSkills && j.requiredSkills.length > 0 && (
-                  <p className="mt-2 text-sm"><b>Skills:</b> {j.requiredSkills.join(', ')}</p>
-                )}
+                {j.requiredSkills && j.requiredSkills.length > 0 && <p className="mt-2 text-sm"><b>Skills:</b> {j.requiredSkills.join(', ')}</p>}
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400"><b>Rule:</b> If the applicant does not match these requirements, reject and send email feedback.</p>
               </div>
-              <button
-                disabled={deleting === j.id}
-                onClick={() => remove(j.id)}
-                className="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2 font-bold text-white disabled:bg-neutral-400"
-              >
-                {deleting === j.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                Delete
+              <button disabled={deletingId === j.id} onClick={() => remove(j.id)} className="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2 font-bold text-white disabled:opacity-60">
+                {deletingId === j.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Delete
               </button>
             </div>
           </div>
