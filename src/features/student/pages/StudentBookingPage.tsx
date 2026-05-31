@@ -120,8 +120,8 @@ export default function StudentBookingPage() {
     });
     if (!ok) return;
     try {
-      if (file) await bookingsApi.submitPaymentProofFile(booking.id, file, paymentRef);
-      else await bookingsApi.submitPaymentProof(booking.id, { paymentRef, paymentProof: paymentRef });
+      // Backend expects a URL string for paymentProof; use the reference as the value.
+      await bookingsApi.submitPaymentProof(booking.id, paymentRef);
       toast.success("Payment proof submitted for verification");
       await loadBookings();
     } catch (error) { toast.error(error instanceof Error ? error.message : "Could not submit payment proof"); }

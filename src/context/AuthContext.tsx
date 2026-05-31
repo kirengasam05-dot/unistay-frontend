@@ -94,14 +94,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
+    // Step 1: create the account
     const result = await authApi.register(payload);
-    if (result.token) {
-      saveToken(result.token);
-      setToken(result.token);
-      saveUser(result.user);
-      setUser(result.user);
+
+    // Step 2: backend doesn't issue a token on register, so auto-login immediately
+    // so the user lands on the dashboard without a manual sign-in step.
+    const loginResult = await authApi.login({ email: payload.email, password: payload.password });
+
+    if (loginResult.token) {
+      saveToken(loginResult.token);
+      setToken(loginResult.token);
     }
-    return result;
+
+    // Step 3: fetch full profile (login response only has id/email/role)
+    let profile = loginResult.user;
+    try {
+      profile = await authApi.me();
+    } catch {
+      /* tolerate a cold-start failure — use the minimal user from login */
+    }
+    saveUser(profile);
+    setUser(profile);
+
+    return { ...result, token: loginResult.token };
   }, []);
 
   const logout = useCallback(() => {
