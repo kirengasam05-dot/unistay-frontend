@@ -49,7 +49,7 @@ export const housingApi = {
   },
 
   async getMyListings(): Promise<Housing[]> {
-    const res = await api.get("/listings/host/my-listings");
+    const res = await api.get("/listings/me/listings");
     return extractList<Housing>(res.data);
   },
 

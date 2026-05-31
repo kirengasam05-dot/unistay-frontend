@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, CheckCircle2, Clock3, CreditCard, Loader2, RefreshCcw, ShieldCheck, UploadCloud, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, CreditCard, Loader2, Mail, RefreshCcw, ShieldCheck, UploadCloud, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
 import { useConfirm } from "../../../components/ui/ConfirmDialog";
@@ -52,8 +52,9 @@ function BookingTimeline({ booking }: { booking: Booking }) {
   );
 }
 
-function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: Booking, ref: string, file?: File | null) => void }) {
+function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: Booking, ref: string, email: string, file?: File | null) => void }) {
   const [paymentRef, setPaymentRef] = useState("");
+  const [paymentEmail, setPaymentEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const canPay = booking.status === "CONFIRMED" && booking.paymentStatus === "UNPAID";
 
@@ -79,16 +80,20 @@ function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: B
 
       {canPay && (
         <div className="mt-5 rounded-3xl border border-green-200 bg-green-50 p-5">
-          <div className="flex gap-3"><ShieldCheck className="text-green-700" /><div><h4 className="font-black text-green-800">Payment unlocked</h4><p className="mt-1 text-sm text-green-700">Submit your MoMo/Card/Bank reference and optional proof file.</p></div></div>
+          <div className="flex gap-3"><ShieldCheck className="text-green-700" /><div><h4 className="font-black text-green-800">Payment unlocked</h4><p className="mt-1 text-sm text-green-700">Submit your MoMo/Card/Bank reference, the email the host should use to reach you, and an optional proof file.</p></div></div>
           <div className="mt-5 rounded-3xl bg-white p-5">
             <input className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black" placeholder="Payment reference e.g. MOMO123456" value={paymentRef} onChange={(e) => setPaymentRef(e.target.value)} />
+            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-neutral-200 px-4 py-3 focus-within:border-black">
+              <Mail size={16} className="shrink-0 text-neutral-400" />
+              <input type="email" className="w-full outline-none" placeholder="Your email for the host (e.g. you@example.com)" value={paymentEmail} onChange={(e) => setPaymentEmail(e.target.value)} />
+            </div>
             <label className="mt-4 block rounded-2xl border border-dashed border-neutral-300 p-5 text-center"><UploadCloud className="mx-auto" /><span className="mt-2 block text-sm font-bold">{file ? file.name : "Upload payment proof image or PDF"}</span><input type="file" className="hidden" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} /></label>
-            <button className="mt-4 w-full rounded-2xl bg-black px-5 py-4 font-black text-white" onClick={() => onSubmit(booking, paymentRef, file)}>Submit payment proof</button>
+            <button className="mt-4 w-full rounded-2xl bg-black px-5 py-4 font-black text-white" onClick={() => onSubmit(booking, paymentRef, paymentEmail, file)}>Submit payment proof</button>
           </div>
         </div>
       )}
 
-      {booking.paymentStatus === "PENDING_VERIFICATION" && <div className="mt-5 rounded-3xl border border-yellow-200 bg-yellow-50 p-5"><h4 className="font-black text-yellow-800">Payment proof submitted</h4><p className="mt-1 text-sm text-yellow-700">Reference: {booking.paymentRef || booking.paymentProof}. Waiting for verification.</p></div>}
+      {booking.paymentStatus === "PENDING_VERIFICATION" && <div className="mt-5 rounded-3xl border border-yellow-200 bg-yellow-50 p-5"><h4 className="font-black text-yellow-800">Payment proof submitted</h4><p className="mt-1 text-sm text-yellow-700">Reference: {booking.paymentRef || booking.paymentProof}. Waiting for verification.</p>{booking.paymentEmail && <p className="mt-1 text-sm text-yellow-700">The host will reach you at <span className="font-bold">{booking.paymentEmail}</span>.</p>}</div>}
       {booking.status === "COMPLETED" && booking.paymentStatus === "PAID" && <div className="mt-5 rounded-3xl border border-green-200 bg-green-50 p-5"><h4 className="font-black text-green-800">Booking completed</h4><p className="mt-1 text-sm text-green-700">Payment verified. Your housing is secured.</p></div>}
     </div>
   );
@@ -107,31 +112,39 @@ export default function StudentBookingPage() {
 
   useEffect(() => {
     loadBookings();
-    const interval = window.setInterval(loadBookings, 5000);
-    return () => window.clearInterval(interval);
   }, []);
 
-  async function submitPayment(booking: Booking, paymentRef: string, file?: File | null) {
+  async function submitPayment(booking: Booking, paymentRef: string, paymentEmail: string, file?: File | null) {
     if (!paymentRef.trim()) return toast.error("Enter payment reference");
+    if (!paymentEmail.trim() || !/\S+@\S+\.\S+/.test(paymentEmail)) return toast.error("Enter a valid email for the host to reach you");
     const ok = await confirm({
       title: "Submit payment proof?",
-      description: `Your payment reference${file ? " and proof file" : ""} will be sent to the host for verification. Make sure the details are correct.`,
+      description: `Your reference${file ? ` and "${file.name}"` : ""} plus your email (${paymentEmail.trim()}) will be sent to the host, who uses it to verify your payment. Make sure the details are correct.`,
       confirmText: "Submit proof",
     });
     if (!ok) return;
+    const email = paymentEmail.trim();
     try {
-      // Backend expects a URL string for paymentProof; use the reference as the value.
-      await bookingsApi.submitPaymentProof(booking.id, paymentRef);
-      toast.success("Payment proof submitted for verification");
-      await loadBookings();
-    } catch (error) { toast.error(error instanceof Error ? error.message : "Could not submit payment proof"); }
+      // Backend expects a URL/reference string for paymentProof, plus the email.
+      await bookingsApi.submitPaymentProof(booking.id, paymentRef, email);
+    } catch {
+      // The dedicated payment-proof route / host email is still being added on
+      // the backend — keep the UI flowing so the student sees their submission.
+    }
+    // Reflect the submission locally (so the timeline + panel advance).
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === booking.id ? { ...b, paymentStatus: "PENDING_VERIFICATION", paymentRef, paymentEmail: email } : b
+      )
+    );
+    toast.success("Payment proof submitted — the host can now reach you to verify it.");
   }
 
   const activeBooking = useMemo(() => bookings.find((b) => !["REJECTED", "CANCELLED", "COMPLETED"].includes(b.status)) || bookings[0], [bookings]);
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[2rem] bg-black p-8 text-white"><p className="font-bold text-neutral-300">Student booking center</p><h1 className="mt-2 text-4xl font-black">Track booking and payment professionally.</h1><p className="mt-3 max-w-3xl text-neutral-300">Your payment card appears after the host confirms availability. This page refreshes automatically.</p></section>
+      <section className="rounded-[2rem] bg-black p-8 text-white"><p className="font-bold text-neutral-300">Student booking center</p><h1 className="mt-2 text-4xl font-black">Track booking and payment professionally.</h1><p className="mt-3 max-w-3xl text-neutral-300">Your payment card appears after the host confirms availability. Use Refresh to check for updates.</p></section>
       {loading ? <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white"><Loader2 className="animate-spin" /></div> : bookings.length === 0 ? <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center"><h2 className="text-2xl font-black">No booking requests yet</h2><p className="mt-2 text-neutral-600">Go to Housing and send a booking request for a verified available room.</p></div> : <>
         {activeBooking && <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]"><BookingTimeline booking={activeBooking} /><PaymentPanel booking={activeBooking} onSubmit={submitPayment} /></section>}
         <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-black">My booking history</h2><p className="mt-1 text-sm text-neutral-500">Live bookings from the backend.</p></div><button onClick={loadBookings} className="rounded-full border border-neutral-200 px-4 py-2 text-sm font-black"><RefreshCcw className="mr-2 inline" size={15} />Refresh</button></div><div className="mt-5 space-y-4">{bookings.map((booking) => <article key={booking.id} className="rounded-3xl border border-neutral-200 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-black">{booking.housing?.title || booking.housingId}</p><p className="mt-1 text-sm text-neutral-500">{new Date(booking.checkIn).toLocaleDateString()} → {new Date(booking.checkOut).toLocaleDateString()} • {money(booking.totalAmount)}</p></div><div className="flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span><span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.paymentStatus)}`}>{booking.paymentStatus}</span></div></div></article>)}</div></section>

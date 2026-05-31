@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, CreditCard, Home, Loader2, RefreshCcw, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Clock3, CreditCard, Home, Loader2, Mail, RefreshCcw, ShieldCheck, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
-import { housingApi } from "../../housing/housingApi";
 import type { Booking } from "../../../types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -20,13 +19,7 @@ export default function HostBookingsPage() {
   async function loadBookings() {
     try {
       setLoading(true);
-      // Get all host's listings, then aggregate bookings across all of them
-      const listings = await housingApi.getMyListings();
-      if (listings.length === 0) { setItems([]); return; }
-      const results = await Promise.all(
-        listings.map(l => bookingsApi.getByListing(l.id).catch(() => [] as Booking[]))
-      );
-      setItems(results.flat());
+      setItems(await bookingsApi.getHostBookings());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load bookings");
     } finally {
@@ -36,8 +29,6 @@ export default function HostBookingsPage() {
 
   useEffect(() => {
     loadBookings();
-    const interval = window.setInterval(loadBookings, 8000);
-    return () => window.clearInterval(interval);
   }, []);
 
   const stats = useMemo(() => ({
@@ -165,6 +156,14 @@ export default function HostBookingsPage() {
                     <p className="mt-1 text-sm text-yellow-700">
                       Reference: {booking.paymentRef || booking.paymentProof || "No reference provided"}
                     </p>
+                    {booking.paymentEmail && (
+                      <p className="mt-1 text-sm text-yellow-700">
+                        Student email:{" "}
+                        <a href={`mailto:${booking.paymentEmail}`} className="inline-flex items-center gap-1 font-bold text-yellow-900 underline">
+                          <Mail size={13} /> {booking.paymentEmail}
+                        </a>
+                      </p>
+                    )}
                   </div>
                 )}
               </article>

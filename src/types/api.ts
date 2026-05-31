@@ -40,9 +40,12 @@ export type Booking = {
   paymentStatus: PaymentStatus;
   paymentProof?: string | null;
   paymentRef?: string | null;
+  paymentEmail?: string | null;
   totalAmount?: number | null;
   checkIn: string;
   checkOut: string;
+  createdAt?: string;
+  updatedAt?: string;
   user?: User;
   housing?: Housing;
 };
