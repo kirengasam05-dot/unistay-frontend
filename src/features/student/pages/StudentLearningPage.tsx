@@ -34,11 +34,9 @@ export default function StudentLearningPage() {
               <div className="p-5">
                 {c.category && <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">{c.category}</span>}
                 <h2 className="mt-3 text-lg font-black text-neutral-900 dark:text-white">{c.title}</h2>
-                {(c.materials || c.exam) && (
+                {c.materials && c.materials.length > 0 && (
                   <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    {c.materials ? `${c.materials} materials` : ''}
-                    {c.materials && c.exam ? ' · ' : ''}
-                    {c.exam ? `Final exam: ${c.exam}` : ''}
+                    {c.materials.length} material{c.materials.length !== 1 ? 's' : ''}
                   </p>
                 )}
                 {c.progress !== undefined && (

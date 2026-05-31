@@ -10,7 +10,7 @@
   }
 
   body {
-    @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+    @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -27,7 +27,7 @@
     @apply btn bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200;
   }
   .btn-white {
-    @apply btn border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800;
+    @apply btn border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700;
   }
   .btn-green {
     @apply btn bg-emerald-600 text-white hover:bg-emerald-700;
@@ -36,22 +36,38 @@
     @apply btn bg-red-600 text-white hover:bg-red-700;
   }
   .card {
-     @apply rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900;
+    @apply rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900;
   }
   .input {
-    @apply w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-neutral-500;
+    @apply w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition
+           placeholder:text-neutral-400
+           focus:border-neutral-500
+           dark:border-neutral-700 dark:bg-neutral-800 dark:text-white
+           dark:placeholder:text-neutral-500 dark:focus:border-neutral-500;
   }
   .badge {
     @apply inline-flex rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600 dark:border-neutral-700 dark:text-neutral-400;
   }
-
-  /* page section wrapper */
   .section {
     @apply mx-auto max-w-7xl px-4 py-16 sm:px-6;
   }
-
-  /* page hero label */
   .eyebrow {
     @apply text-xs font-bold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400;
+  }
+
+  /* Auth page wrapper — flat, no gradients */
+  .auth-page {
+    @apply flex min-h-screen items-center justify-center bg-neutral-50 px-6 py-16 dark:bg-neutral-950;
+  }
+  /* Auth card — consistent in both modes */
+  .auth-card {
+    @apply w-full rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-neutral-800 dark:bg-neutral-900;
+  }
+  /* Auth input — matches .input but with explicit sizing for auth forms */
+  .auth-input {
+    @apply w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900
+           placeholder:text-neutral-400 outline-none transition focus:border-neutral-500
+           dark:border-neutral-700 dark:bg-neutral-800 dark:text-white
+           dark:placeholder:text-neutral-500 dark:focus:border-neutral-500;
   }
 }
