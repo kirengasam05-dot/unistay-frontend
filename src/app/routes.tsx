@@ -42,6 +42,7 @@ import AdminUsersPage from "../features/admin/pages/AdminUsersPage";
 import AdminLearningPage from "../features/admin/pages/AdminLearningPage";
 import AdminModerationPage from "../features/admin/pages/AdminModerationPage";
 import AdminAnalyticsPage from "../features/admin/pages/AdminAnalyticsPage";
+import AdminSkillsPage from "../features/admin/pages/AdminSkillsPage";
 
 import EmailsPage from "../features/emails/pages/EmailsPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -98,6 +99,7 @@ export default function AppRoutes() {
           <Route path="/admin/learning" element={<AdminLearningPage />} />
           <Route path="/admin/moderation" element={<AdminModerationPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/admin/skills" element={<AdminSkillsPage />} />
         </Route>
       </Route>
 
