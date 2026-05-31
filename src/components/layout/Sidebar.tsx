@@ -37,6 +37,7 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
     { label: 'Dashboard', to: '/dashboard', icon: Home },
     { label: 'Users & Roles', to: '/admin/users', icon: Users },
     { label: 'Course Builder', to: '/admin/learning', icon: BookOpen },
+    { label: 'Skills', to: '/admin/skills', icon: GraduationCap },
     { label: 'Moderation', to: '/admin/moderation', icon: ShieldCheck },
     { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
