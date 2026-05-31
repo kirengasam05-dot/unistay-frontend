@@ -12,22 +12,16 @@ const firstImage = (h: Housing) =>
 export default function HousingPage() {
   const [searchParams] = useSearchParams();
   const initialQuery = [searchParams.get("q"), searchParams.get("loc")].filter(Boolean).join(" ");
-  const [items, setItems] = useState<Housing[]>([]);
+  const [items, setItems]   = useState<Housing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState(initialQuery);
+  const [query, setQuery]   = useState(initialQuery);
 
-  async function loadHousing() {
-    try {
-      setLoading(true);
-      setItems(await housingApi.getAll());
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load housing");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { loadHousing(); }, []);
+  useEffect(() => {
+    housingApi.getAll()
+      .then(setItems)
+      .catch(err => toast.error(err instanceof Error ? err.message : "Failed to load housing"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     const value = query.toLowerCase().trim();
@@ -38,28 +32,47 @@ export default function HousingPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
+      {/* hero */}
       <section className="rounded-[2rem] bg-black p-8 text-white">
         <p className="text-sm font-black uppercase tracking-[0.35em] text-neutral-400">Verified housing</p>
         <h1 className="mt-4 text-4xl font-black md:text-5xl">Find safe student housing and pay only after host confirmation.</h1>
         <p className="mt-4 max-w-2xl text-neutral-300">Live backend listings, host confirmation, and secure payment proof tracking.</p>
       </section>
 
-      <section className="rounded-[2rem] border border-neutral-200 bg-white p-5 shadow-sm">
+      {/* search */}
+      <section className="rounded-[2rem] border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-          <input className="w-full rounded-2xl border border-neutral-200 bg-white py-3 pl-11 pr-4 outline-none focus:border-black"
-            placeholder="Search by location or title" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input
+            className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-3 pl-11 pr-4 text-sm text-neutral-900 outline-none transition
+                       placeholder:text-neutral-400 focus:border-neutral-500
+                       dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-neutral-500"
+            placeholder="Search by location or title"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
       </section>
 
+      {/* states */}
       {loading ? (
-        <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white">
-          <Loader2 className="animate-spin" />
+        <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+          <Loader2 className="animate-spin text-neutral-400" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <h2 className="text-2xl font-black">No listings found</h2>
-          <p className="mt-2 text-neutral-600">Try a different search, or check back soon for new verified rooms.</p>
+        <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
+            <Search size={24} className="text-neutral-400 dark:text-neutral-500" />
+          </div>
+          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">No listings found</h2>
+          <p className="mt-2 text-neutral-500 dark:text-neutral-400">
+            {query ? `No results for "${query}". Try a different search.` : "Check back soon for new verified rooms."}
+          </p>
+          {query && (
+            <button onClick={() => setQuery("")} className="mt-5 rounded-xl border border-neutral-200 px-5 py-2.5 text-sm font-bold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
+              Clear search
+            </button>
+          )}
         </div>
       ) : (
         <section className="grid gap-6 lg:grid-cols-3">
@@ -68,7 +81,11 @@ export default function HousingPage() {
             const canBook = isVerified && housing.availability;
 
             return (
-              <Link key={housing.id} to={`/housing/${housing.id}`} className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Link
+                key={housing.id}
+                to={`/housing/${housing.id}`}
+                className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+              >
                 <div className="relative">
                   <img src={firstImage(housing)} alt={housing.title} className="h-56 w-full object-cover" />
                   <div className="absolute left-4 top-4 flex gap-2">
@@ -82,15 +99,32 @@ export default function HousingPage() {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-xl font-black">{housing.title}</h3>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500"><MapPin size={15} />{housing.location}</p>
-                  <p className="mt-4 line-clamp-2 min-h-12 text-sm leading-6 text-neutral-600">{housing.description || "Verified student accommodation."}</p>
+                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">{housing.title}</h3>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    <MapPin size={15} />{housing.location}
+                  </p>
+                  <p className="mt-4 line-clamp-2 min-h-12 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                    {housing.description || "Verified student accommodation."}
+                  </p>
                   <div className="mt-6 flex items-center justify-between gap-3">
-                    <div><p className="text-xs font-bold text-neutral-500">Monthly price</p><p className="text-2xl font-black">{money(housing.price)}</p></div>
-                    <span className="rounded-2xl bg-black px-5 py-3 text-sm font-black text-white transition group-hover:bg-neutral-800">View details</span>
+                    <div>
+                      <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400">Monthly price</p>
+                      <p className="text-2xl font-black text-neutral-900 dark:text-white">{money(housing.price)}</p>
+                    </div>
+                    <span className="rounded-2xl bg-black px-5 py-3 text-sm font-black text-white transition group-hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:group-hover:bg-neutral-100">
+                      View details
+                    </span>
                   </div>
-                  {canBook && <p className="mt-4 flex items-center gap-2 text-xs font-bold text-green-700"><CheckCircle2 size={15} />Payment appears after host confirmation</p>}
-                  {!isVerified && <p className="mt-4 flex items-center gap-2 text-xs font-bold text-neutral-500"><ShieldCheck size={15} />Waiting for verification</p>}
+                  {canBook && (
+                    <p className="mt-4 flex items-center gap-2 text-xs font-bold text-green-700 dark:text-green-400">
+                      <CheckCircle2 size={15} />Payment appears after host confirmation
+                    </p>
+                  )}
+                  {!isVerified && (
+                    <p className="mt-4 flex items-center gap-2 text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                      <ShieldCheck size={15} />Waiting for verification
+                    </p>
+                  )}
                 </div>
               </Link>
             );
