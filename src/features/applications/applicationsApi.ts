@@ -14,30 +14,36 @@ export type Application = {
 };
 
 export const applicationsApi = {
-  /** Employer — all applications for their posted jobs. */
-  async getAll(): Promise<Application[]> {
-    const res = await api.get('/applications');
-    return extractList<Application>(res.data);
-  },
-
-  /** Student — only their own submitted applications. */
+  /** Student — their own submitted applications. GET /applications/my */
   async getMine(): Promise<Application[]> {
     const res = await api.get('/applications/my');
     return extractList<Application>(res.data);
   },
 
+  /**
+   * Employer — applications for a specific job. GET /applications/jobs/:jobId
+   * No bulk "all applications" endpoint exists server-side yet.
+   */
+  async getForJob(jobId: string): Promise<Application[]> {
+    const res = await api.get(`/applications/jobs/${jobId}`);
+    return extractList<Application>(res.data);
+  },
+
+  /** Student apply — POST /applications/jobs/:jobId (jobId in URL, no body needed) */
   async apply(jobId: string): Promise<Application> {
-    const res = await api.post('/applications', { jobId });
+    const res = await api.post(`/applications/jobs/${jobId}`);
     return extractOne<Application>(res.data);
   },
 
+  /** Employer accept — PUT /applications/:id/status { status: 'ACCEPTED' } */
   async accept(id: string): Promise<Application> {
-    const res = await api.patch('/applications/' + id + '/accept');
+    const res = await api.put(`/applications/${id}/status`, { status: 'ACCEPTED' });
     return extractOne<Application>(res.data);
   },
 
+  /** Employer reject — PUT /applications/:id/status { status: 'REJECTED' } */
   async reject(id: string): Promise<Application> {
-    const res = await api.patch('/applications/' + id + '/reject');
+    const res = await api.put(`/applications/${id}/status`, { status: 'REJECTED' });
     return extractOne<Application>(res.data);
   },
 };
