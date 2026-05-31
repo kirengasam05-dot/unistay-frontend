@@ -15,8 +15,10 @@ export default function HostDashboard() {
       .then(setListings)
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
-    bookingsApi.getHostBookings()
-      .then((b) => setPendingBookings(b.filter((x) => x.status === 'PENDING').length))
+    // Load bookings by aggregating across all host's listings
+    housingApi.getMyListings()
+      .then(ls => Promise.all(ls.map(l => bookingsApi.getByListing(l.id).catch(() => []))))
+      .then(all => setPendingBookings(all.flat().filter((b: { status: string }) => b.status === 'PENDING').length))
       .catch(() => setPendingBookings(0));
   }, []);
 
