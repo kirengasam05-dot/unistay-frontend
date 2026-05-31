@@ -22,10 +22,12 @@ export default function AdminLearningPage() {
   }, []);
 
   async function add() {
-    if (!title.trim()) return;
+    const trimmed = title.trim();
+    if (!trimmed) return toast.error('Enter a course title');
+    if (trimmed.length < 3) return toast.error('Title must be at least 3 characters');
     setSaving(true);
     try {
-      const newCourse = await coursesApi.create({ title: title.trim(), category: 'Digital Skills' });
+      const newCourse = await coursesApi.create({ title: trimmed, category: 'Digital Skills' });
       setCourses(prev => [newCourse, ...prev]);
       setTitle('');
       toast.success('Course created');
@@ -68,7 +70,7 @@ export default function AdminLearningPage() {
         <h1 className="text-3xl font-black">Course, Video, Exam &amp; Assignment Builder</h1>
         <p className="mt-2 text-neutral-600 dark:text-neutral-400">Admin controls learning content: create courses, upload video/PDF/article materials, set assignments, exams, and passing scores.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
-          <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Course title" />
+          <Input value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="Course title (min 3 characters)" />
           <Button onClick={add} disabled={saving}>{saving ? 'Creating…' : 'Create course'}</Button>
         </div>
       </div>
