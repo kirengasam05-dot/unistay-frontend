@@ -9,10 +9,15 @@ export default function EmployerDashboard() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   useEffect(() => {
-    jobsApi.getMine().then(j => setJobCount(j.length)).catch(() => setJobCount(0));
-    applicationsApi.getAll()
-      .then(apps => setPendingCount(apps.filter(a => a.status === 'PENDING').length))
-      .catch(() => setPendingCount(0));
+    // Load jobs, then sum pending applications across all of them
+    jobsApi.getMine().then(async jobs => {
+      setJobCount(jobs.length);
+      if (jobs.length === 0) { setPendingCount(0); return; }
+      const counts = await Promise.all(
+        jobs.map(j => applicationsApi.getForJob(j.id).then(apps => apps.filter(a => a.status === 'PENDING').length).catch(() => 0))
+      );
+      setPendingCount(counts.reduce((a, b) => a + b, 0));
+    }).catch(() => { setJobCount(0); setPendingCount(0); });
   }, []);
 
   const show = (v: number | null) => (v === null ? '…' : String(v));

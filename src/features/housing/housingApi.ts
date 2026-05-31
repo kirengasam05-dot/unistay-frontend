@@ -7,7 +7,7 @@ import { extractList, extractOne } from "../../types/api";
  * (see https://cdn-unistay.onrender.com/api-docs)
  *   GET    /listings                 (public)            — all listings
  *   GET    /listings/:id             (public)            — single listing
- *   GET    /listings/me/listings     (host)              — my listings
+ *   GET    /listings/host/my-listings (host)              — my listings
  *   POST   /listings                 (host, multipart)   — create
  *   PUT    /listings/:id             (host)              — update (supports partial)
  *   DELETE /listings/:id             (host)              — delete
@@ -49,7 +49,7 @@ export const housingApi = {
   },
 
   async getMyListings(): Promise<Housing[]> {
-    const res = await api.get("/listings/me/listings");
+    const res = await api.get("/listings/host/my-listings");
     return extractList<Housing>(res.data);
   },
 

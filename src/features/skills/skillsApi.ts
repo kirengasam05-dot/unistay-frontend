@@ -21,13 +21,17 @@ export type Assignment = {
 };
 
 export const skillsApi = {
+  /**
+   * No /skills/certificates endpoint exists in the backend yet.
+   * Returns empty array until the backend adds certificate tracking.
+   */
   async getCertificates(): Promise<Certificate[]> {
-    const res = await api.get('/skills/certificates');
-    return extractList<Certificate>(res.data);
+    return [];
   },
 
+  /** GET /assignments — backend stores assignments separately from skills */
   async getAssignments(): Promise<Assignment[]> {
-    const res = await api.get('/skills/assignments');
+    const res = await api.get('/assignments');
     return extractList<Assignment>(res.data);
   },
 };

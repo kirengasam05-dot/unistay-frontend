@@ -30,21 +30,28 @@ export type CreateJobPayload = {
 };
 
 export const jobsApi = {
+  /** GET /jobs — all jobs (public) */
   async getAll(): Promise<Job[]> {
     const res = await api.get('/jobs');
     return extractList<Job>(res.data);
   },
 
+  /**
+   * GET /jobs — backend has no employer-scoped endpoint yet,
+   * so this returns all jobs (caller can filter by employerId client-side).
+   */
   async getMine(): Promise<Job[]> {
-    const res = await api.get('/jobs/mine');
+    const res = await api.get('/jobs');
     return extractList<Job>(res.data);
   },
 
+  /** POST /jobs — employer creates a job */
   async create(data: CreateJobPayload): Promise<Job> {
     const res = await api.post('/jobs', data);
     return extractOne<Job>(res.data);
   },
 
+  /** DELETE /jobs/:id */
   async remove(id: string): Promise<void> {
     await api.delete('/jobs/' + id);
   },
