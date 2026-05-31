@@ -38,8 +38,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="card relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800/60" />
+      <div className="card">
+        <div />
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-neutral-200/50 dark:bg-white/5" />
         <div className="relative">
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl leading-tight">
