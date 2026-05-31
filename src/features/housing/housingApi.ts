@@ -96,15 +96,24 @@ export const housingApi = {
     return extractOne<Housing>(res.data);
   },
 
-  async addImages(id: string, files: File[]): Promise<Housing> {
-    const fd = new FormData();
-    files.forEach((file) => fd.append("images", file));
-    const res = await api.post(`/listings/${id}/images`, fd);
-    return extractOne<Housing>(res.data);
+  /**
+   * Add image URLs to a listing. The backend stores images as an array of
+   * URL strings (no file upload on PUT /listings/:id), so we fetch the current
+   * images, append the new URLs, and PATCH the listing.
+   */
+  async addImages(id: string, imageUrls: string[]): Promise<Housing> {
+    const current = await housingApi.getOne(id);
+    const merged = [...(current.images ?? []), ...imageUrls];
+    return housingApi.update(id, { images: merged } as any);
   },
 
+  /**
+   * Remove a single image URL from a listing by fetching current images,
+   * filtering out the target URL, then updating via PUT /listings/:id.
+   */
   async removeImage(id: string, imageUrl: string): Promise<Housing> {
-    const res = await api.delete(`/listings/${id}/images`, { params: { imageUrl } });
-    return extractOne<Housing>(res.data);
+    const current = await housingApi.getOne(id);
+    const filtered = (current.images ?? []).filter((u) => u !== imageUrl);
+    return housingApi.update(id, { images: filtered } as any);
   },
 };

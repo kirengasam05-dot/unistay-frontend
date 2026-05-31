@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ImagePlus, Loader2, Save, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -12,12 +12,12 @@ export default function HostEditListingPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirm();
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages]     = useState<string[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
   const [form, setForm] = useState<FormState>({ title: "", location: "", price: "", bedrooms: "", description: "", amenities: "" });
 
   useEffect(() => {
@@ -43,7 +43,6 @@ export default function HostEditListingPage() {
   }, [id, navigate]);
 
   function set(key: keyof FormState, value: string) { setForm((f) => ({ ...f, [key]: value })); }
-
   function syncImages(h: Housing) { setImages(h.images || []); }
 
   async function save() {
@@ -70,24 +69,27 @@ export default function HostEditListingPage() {
     }
   }
 
-  async function uploadImages(files: FileList) {
+  async function addImage() {
+    const url = imageUrl.trim();
+    if (!url) return toast.error("Paste an image URL first");
+    if (!/^https?:\/\//i.test(url)) return toast.error("URL must start with http:// or https://");
     setUploading(true);
     try {
-      const updated = await housingApi.addImages(id, Array.from(files));
+      const updated = await housingApi.addImages(id, [url]);
       syncImages(updated);
-      toast.success("Images added");
+      setImageUrl("");
+      toast.success("Image added");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not upload images");
+      toast.error(err instanceof Error ? err.message : "Could not add image");
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
   async function removeImage(url: string) {
     const ok = await confirm({
       title: "Remove this image?",
-      description: "The image will be deleted from this listing.",
+      description: "The image will be removed from this listing.",
       confirmText: "Remove image",
       variant: "destructive",
     });
@@ -140,8 +142,8 @@ export default function HostEditListingPage() {
         {/* images */}
         <div className="card">
           <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Photos</label>
-          {images.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3">
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
               {images.map((url) => (
                 <div key={url} className="relative overflow-hidden rounded-xl">
                   <img src={url} alt="Listing" className="h-28 w-full object-cover" />
@@ -151,13 +153,21 @@ export default function HostEditListingPage() {
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-neutral-500">No photos yet.</p>
           )}
-          <button onClick={() => fileRef.current?.click()} disabled={uploading} className="btn-white mt-4 inline-flex items-center gap-2 rounded-xl disabled:opacity-60">
-            {uploading ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />} {uploading ? "Uploading…" : "Add photos"}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files?.length && uploadImages(e.target.files)} />
+          <div className="flex gap-2">
+            <input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addImage()}
+              placeholder="Paste image URL (https://...)"
+              className="input flex-1"
+            />
+            <button onClick={addImage} disabled={uploading} className="btn-black rounded-xl inline-flex items-center gap-2 shrink-0 disabled:opacity-60">
+              {uploading ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+              {uploading ? "Adding…" : "Add"}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-neutral-400">Paste a Cloudinary, Unsplash, or any public image URL and press Enter or click Add.</p>
         </div>
 
         {/* details */}
@@ -192,7 +202,8 @@ export default function HostEditListingPage() {
           <div className="flex gap-2">
             <button onClick={() => navigate("/host/listings")} className="btn-white rounded-xl">Cancel</button>
             <button onClick={save} disabled={saving} className="btn-black rounded-xl inline-flex items-center gap-2 disabled:opacity-60">
-              {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} {saving ? "Saving…" : "Save changes"}
+              {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+              {saving ? "Saving…" : "Save changes"}
             </button>
           </div>
         </div>
