@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, CreditCard, Eye, EyeOff, Loader2, Lock, RefreshCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Clock3, CreditCard, Eye, EyeOff, Loader2, Lock, MapPin, RefreshCcw, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
 import { useConfirm } from "../../../components/ui/ConfirmDialog";
@@ -187,19 +187,16 @@ function PaymentPanel({ booking, onSubmit }: {
         </div>
       )}
 
-      {/* Submitted */}
-      {booking.paymentStatus === "PENDING_VERIFICATION" && (
-        <div className="mt-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800/40 dark:bg-yellow-900/20">
-          <h4 className="font-black text-yellow-800 dark:text-yellow-400">Payment submitted</h4>
-          <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-500">Waiting for the host to verify. You'll be notified once confirmed.</p>
-        </div>
-      )}
-
-      {/* Completed */}
+      {/* Completed — payment auto-confirms the booking */}
       {booking.status === "COMPLETED" && booking.paymentStatus === "PAID" && (
-        <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 p-4 dark:border-green-800/40 dark:bg-green-900/20">
-          <h4 className="font-black text-green-800 dark:text-green-400">Booking completed</h4>
-          <p className="mt-1 text-sm text-green-700 dark:text-green-500">Payment verified. Your housing is secured.</p>
+        <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 p-5 dark:border-green-800/40 dark:bg-green-900/20">
+          <div className="flex gap-3">
+            <CheckCircle2 className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" size={20} />
+            <div>
+              <h4 className="font-black text-green-800 dark:text-green-400">Booking confirmed — You're all set!</h4>
+              <p className="mt-1 text-sm text-green-700 dark:text-green-500">Your payment was received and the booking is confirmed. The host has been notified.</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -238,17 +235,17 @@ function BookingTimeline({ booking }: { booking: Booking }) {
     ],
     [
       "Payment",
-      booking.paymentStatus === "PENDING_VERIFICATION" || booking.paymentStatus === "PAID",
+      booking.paymentStatus === "PAID",
       booking.status === "CONFIRMED" && (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null),
       (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null)
         ? "Payment is unlocked — enter your card details below."
-        : "Payment submitted, awaiting verification.",
+        : "Payment completed.",
     ],
     [
       "Booking confirmed",
       booking.status === "COMPLETED" && booking.paymentStatus === "PAID",
-      booking.paymentStatus === "PENDING_VERIFICATION",
-      booking.paymentStatus === "PAID" ? "Payment verified. Move in!" : "Waiting for host to verify your payment.",
+      false,
+      booking.status === "COMPLETED" ? "All done — your housing is secured. Move in!" : "Complete payment to confirm your booking.",
     ],
   ];
 
@@ -281,23 +278,42 @@ function BookingTimeline({ booking }: { booking: Booking }) {
 
 export default function StudentBookingPage() {
   const confirm = useConfirm();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [bookings, setBookings]         = useState<Booking[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing]     = useState(false);
 
-  async function loadBookings() {
+  /** Silent fetch — never shows the full-page spinner; used by the interval. */
+  async function fetchBookings() {
     try {
-      setLoading(true);
-      setBookings(await bookingsApi.getMyBookings());
+      const data = await bookingsApi.getMyBookings();
+      setBookings(data);
+    } catch {
+      // Swallow polling errors — don't toast on every tick
+    }
+  }
+
+  /** First load + manual refresh button */
+  async function refresh() {
+    setRefreshing(true);
+    try {
+      const data = await bookingsApi.getMyBookings();
+      setBookings(data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load bookings");
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   }
 
   useEffect(() => {
-    loadBookings();
-    const interval = window.setInterval(loadBookings, 8000);
+    // Initial load — shows spinner only this once
+    bookingsApi.getMyBookings()
+      .then(setBookings)
+      .catch(() => toast.error("Failed to load bookings"))
+      .finally(() => setInitialLoading(false));
+
+    // Background poll — silent, never resets loading state → no page jump
+    const interval = window.setInterval(fetchBookings, 10000);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -310,79 +326,109 @@ export default function StudentBookingPage() {
     if (!ok) return;
     try {
       await bookingsApi.submitPaymentProof(booking.id, txRef);
-      toast.success("Payment submitted! The host will verify shortly.");
-      await loadBookings();
+      toast.success("Payment successful! Your booking is now confirmed.");
+      await fetchBookings(); // silent update after submit — no spinner
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not submit payment");
     }
   }
 
   const activeBooking = useMemo(
-    () => bookings.find(b => !["REJECTED", "CANCELLED", "COMPLETED"].includes(b.status)) ?? bookings[0],
+    () => bookings.find(b => !["CANCELLED", "COMPLETED"].includes(b.status)) ?? bookings[0],
     [bookings]
   );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-[2rem] bg-black p-8 text-white">
-        <p className="text-sm font-bold text-neutral-400">Student booking center</p>
-        <h1 className="mt-2 text-4xl font-black">Track booking and payment.</h1>
-        <p className="mt-3 max-w-3xl text-neutral-300">Your payment form appears after the host confirms availability. This page refreshes automatically.</p>
-      </section>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">My Bookings</h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Track your housing requests and submit payment after host confirmation.</p>
+        </div>
+        <button
+          onClick={refresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        >
+          <RefreshCcw size={15} className={refreshing ? "animate-spin" : ""} />
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
 
-      {loading ? (
-        <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      {initialLoading ? (
+        <div className="grid min-h-60 place-items-center rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           <Loader2 className="animate-spin text-neutral-400" />
         </div>
       ) : bookings.length === 0 ? (
-        <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="rounded-2xl border border-dashed border-neutral-200 bg-white p-16 text-center dark:border-neutral-800 dark:bg-neutral-900">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
             <CreditCard size={24} className="text-neutral-400" />
           </div>
-          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">No booking requests yet</h2>
-          <p className="mt-2 text-neutral-500 dark:text-neutral-400">Browse housing and send a booking request for a verified available room.</p>
+          <h2 className="text-xl font-black text-neutral-900 dark:text-white">No bookings yet</h2>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Browse housing and send a booking request to get started.</p>
         </div>
       ) : (
         <>
+          {/* Active booking — timeline + payment side by side */}
           {activeBooking && (
-            <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
               <BookingTimeline booking={activeBooking} />
               <PaymentPanel booking={activeBooking} onSubmit={submitPayment} />
-            </section>
+            </div>
           )}
 
-          <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-black text-neutral-900 dark:text-white">All bookings</h2>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Your full booking history.</p>
+          {/* Booking history — all bookings with image and full details */}
+          {bookings.length > 0 && (
+            <div className="card">
+              <h2 className="text-lg font-black text-neutral-900 dark:text-white">All bookings</h2>
+              <div className="mt-4 space-y-4">
+                {bookings.map(booking => {
+                  const img = booking.housing?.images?.[0] ?? booking.housing?.image ?? "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=400&q=70";
+                  const showPayBadge = booking.paymentStatus === "PAID";
+                  return (
+                    <article key={booking.id} className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+                      <div className="flex flex-wrap">
+                        <img src={img} alt={booking.housing?.title} className="h-36 w-full object-cover sm:h-auto sm:w-36 sm:shrink-0" />
+                        <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+                          <div>
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <p className="font-black text-neutral-900 dark:text-white">{booking.housing?.title || booking.housingId}</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span>
+                                {showPayBadge && (
+                                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-black text-green-700 dark:bg-green-900/30 dark:text-green-400">PAID</span>
+                                )}
+                              </div>
+                            </div>
+                            {booking.housing?.location && (
+                              <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                                <MapPin size={11} />{booking.housing.location}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                              <p className="font-bold text-neutral-400">Check-in</p>
+                              <p className="font-semibold text-neutral-900 dark:text-white">{new Date(booking.checkIn).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-neutral-400">Check-out</p>
+                              <p className="font-semibold text-neutral-900 dark:text-white">{new Date(booking.checkOut).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-neutral-400">Total</p>
+                              <p className="font-black text-neutral-900 dark:text-white">{money(booking.totalAmount)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
-              <button onClick={loadBookings} className="rounded-full border border-neutral-200 px-4 py-2 text-sm font-black text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
-                <RefreshCcw className="mr-2 inline" size={15} />Refresh
-              </button>
             </div>
-            <div className="mt-5 space-y-3">
-              {bookings.map(booking => (
-                <article key={booking.id} className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-black text-neutral-900 dark:text-white">{booking.housing?.title || booking.housingId}</p>
-                      <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
-                        {new Date(booking.checkIn).toLocaleDateString()} → {new Date(booking.checkOut).toLocaleDateString()}
-                        {booking.totalAmount ? ` • ${money(booking.totalAmount)}` : ""}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span>
-                      {booking.paymentStatus && (
-                        <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.paymentStatus)}`}>{booking.paymentStatus}</span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+          )}
         </>
       )}
     </div>
