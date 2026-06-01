@@ -220,6 +220,12 @@ function BookingTimeline({ booking }: { booking: Booking }) {
     );
   }
 
+  const isCompleted  = booking.status === "COMPLETED";
+  const isConfirmed  = booking.status === "CONFIRMED" || isCompleted;
+  const isPending    = booking.status === "PENDING";
+  const paymentMade  = isCompleted || booking.paymentStatus === "PAID";
+  const awaitingPay  = isConfirmed && !isCompleted && (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null);
+
   const steps: [string, boolean, boolean, string][] = [
     [
       "Request sent",
@@ -229,23 +235,27 @@ function BookingTimeline({ booking }: { booking: Booking }) {
     ],
     [
       "Host confirmation",
-      booking.status === "CONFIRMED" || booking.status === "COMPLETED",
-      booking.status === "PENDING",
-      booking.status === "PENDING" ? "Waiting for host confirmation." : "The host confirmed room availability.",
+      isConfirmed,
+      isPending,
+      isPending ? "Waiting for host confirmation." : "The host confirmed room availability.",
     ],
     [
       "Payment",
-      booking.paymentStatus === "PAID",
-      booking.status === "CONFIRMED" && (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null),
-      (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null)
-        ? "Payment is unlocked — enter your card details below."
-        : "Payment completed.",
+      paymentMade,
+      awaitingPay,
+      awaitingPay
+        ? "Payment is unlocked — enter your card details on the right."
+        : paymentMade
+          ? "Payment received and confirmed."
+          : "Payment will be unlocked once the host confirms.",
     ],
     [
       "Booking confirmed",
-      booking.status === "COMPLETED" && booking.paymentStatus === "PAID",
-      false,
-      booking.status === "COMPLETED" ? "All done — your housing is secured. Move in!" : "Complete payment to confirm your booking.",
+      isCompleted,
+      paymentMade && !isCompleted,
+      isCompleted
+        ? "All done — your housing is secured. Move in!"
+        : "Your booking will be confirmed once payment is processed.",
     ],
   ];
 
@@ -253,14 +263,16 @@ function BookingTimeline({ booking }: { booking: Booking }) {
     <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Booking progress</h2>
       <div className="mt-6 space-y-5">
-        {steps.map(([title, done, active, description], index) => (
+        {steps.map(([title, done, active, description], index) => {
+          const nextDone = index < steps.length - 1 && steps[index + 1][1];
+          return (
           <div key={title} className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className={`grid h-11 w-11 place-items-center rounded-2xl ${done ? "bg-green-600 text-white" : active ? "bg-black text-white dark:bg-white dark:text-neutral-900" : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800"}`}>
+              <div className={`grid h-11 w-11 place-items-center rounded-2xl transition-colors ${done ? "bg-green-600 text-white" : active ? "bg-black text-white dark:bg-white dark:text-neutral-900" : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800"}`}>
                 {done ? <CheckCircle2 size={20} /> : active ? <Clock3 size={20} /> : <span className="text-sm font-black">{index + 1}</span>}
               </div>
               {index !== steps.length - 1 && (
-                <div className={`mt-2 h-10 w-[2px] ${done ? "bg-green-500" : "bg-neutral-200 dark:bg-neutral-700"}`} />
+                <div className={`mt-2 h-10 w-[2px] transition-colors ${done && nextDone ? "bg-green-500" : done ? "bg-green-300" : "bg-neutral-200 dark:bg-neutral-700"}`} />
               )}
             </div>
             <div className="pt-1.5">
@@ -268,7 +280,8 @@ function BookingTimeline({ booking }: { booking: Booking }) {
               <p className="mt-1 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{description}</p>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
