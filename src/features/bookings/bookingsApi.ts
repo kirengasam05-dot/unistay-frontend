@@ -72,9 +72,9 @@ export const bookingsApi = {
     return extractOne<Booking>(res.data);
   },
 
-  /** PATCH /bookings/:id/reject — host rejects the request */
-  async reject(id: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/reject`);
+  /** PATCH /bookings/:id/reject — host rejects with a mandatory reason */
+  async reject(id: string, reason: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/reject`, { reason });
     return extractOne<Booking>(res.data);
   },
 
