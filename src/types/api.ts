@@ -37,12 +37,15 @@ export type Booking = {
   userId: string;
   housingId: string;
   status: BookingStatus;
-  paymentStatus: PaymentStatus;
+  /** Defaults to UNPAID on the backend — may be null for legacy records */
+  paymentStatus: PaymentStatus | null;
+  /** Not stored in DB — kept for display compatibility only */
   paymentProof?: string | null;
   paymentRef?: string | null;
   totalAmount?: number | null;
   checkIn: string;
   checkOut: string;
+  createdAt?: string;
   user?: User;
   housing?: Housing;
 };
