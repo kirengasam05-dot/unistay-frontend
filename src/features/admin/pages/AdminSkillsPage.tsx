@@ -3,7 +3,7 @@ import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { skillsApi } from '../../skills/skillsApi';
 import type { Skill, CreateSkillPayload, SkillLevel } from '../../skills/skillsApi';
-import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { useConfirm } from '../../../shared/components/ui/ConfirmDialog';
 
 const LEVELS: SkillLevel[] = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 

@@ -1,6 +1,6 @@
-import api from '../../lib/api';
-import type { User, UserRole } from '../../types/api';
-import { extractList, extractOne } from '../../types/api';
+import api from '../../shared/lib/api';
+import type { User, UserRole } from '../../shared/types/api';
+import { extractList, extractOne } from '../../shared/types/api';
 
 /**
  * Users API (admin) — mirrors the UniStay+ backend

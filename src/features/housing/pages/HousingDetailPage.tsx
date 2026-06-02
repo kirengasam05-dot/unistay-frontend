@@ -4,9 +4,9 @@ import { ArrowLeft, BedDouble, CalendarDays, CheckCircle2, Loader2, MapPin, Shie
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
 import { bookingsApi } from "../../bookings/bookingsApi";
-import { useAuth } from "../../../context/AuthContext";
-import { useConfirm } from "../../../components/ui/ConfirmDialog";
-import type { Housing } from "../../../types/api";
+import { useAuth } from "../../../features/auth/context/AuthContext";
+import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
+import type { Housing } from "../../../shared/types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80";
@@ -52,11 +52,11 @@ export default function HousingDetailPage() {
     if (!housing) return;
     if (!isAuthenticated) {
       toast.error("Please sign in to book.");
-      navigate("/login", { state: { from: `/housing/${id}` } });
+      navigate("/login", { state: { from: `/hostels/${id}` } });
       return;
     }
     if (user?.role !== "STUDENT") {
-      toast.error("Only students can book housing.");
+      toast.error("Only students can book a hostel.");
       return;
     }
     if (new Date(checkOut) <= new Date(checkIn)) {
@@ -94,14 +94,14 @@ export default function HousingDetailPage() {
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <h1 className="text-2xl font-black text-neutral-900 dark:text-white">Listing not found</h1>
         <p className="mt-2 text-neutral-500">It may have been removed or is no longer available.</p>
-        <Link to="/housing" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-black px-5 py-3 font-black text-white dark:bg-white dark:text-black"><ArrowLeft size={16} /> Back to housing</Link>
+        <Link to="/hostels" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-black px-5 py-3 font-black text-white dark:bg-white dark:text-black"><ArrowLeft size={16} /> Back to hostels</Link>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
-      <Link to="/housing" className="inline-flex items-center gap-2 text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white"><ArrowLeft size={16} /> Back to housing</Link>
+      <Link to="/hostels" className="inline-flex items-center gap-2 text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white"><ArrowLeft size={16} /> Back to hostels</Link>
 
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
         {/* Gallery + details */}
