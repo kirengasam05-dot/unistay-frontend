@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock3, Loader2, PlayCircle, Search } from 'lucide-react';
+import { CheckCircle2, Clock3, Loader2, PlayCircle, Search } from 'lucide-react';
 import { useCoursesQuery } from '../../courses/hooks/useCoursesQueries';
 import LearningLayout from '../components/LearningLayout';
+import { useLearningProfileQuery } from '../hooks/useLearningProfileQuery';
 
 export default function StudentLearningPage() {
   const [search, setSearch] = useState('');
   const { data: courses = [], isPending: loading } = useCoursesQuery();
+  const { data: learningProfile } = useLearningProfileQuery();
 
   const visibleCourses = courses.filter((course) =>
     `${course.title} ${course.category || ''}`.toLowerCase().includes(search.toLowerCase())
@@ -35,13 +37,14 @@ export default function StudentLearningPage() {
                 <div className="relative h-40 bg-gradient-to-br from-violet-700 to-slate-950">
                   {course.thumbnail && <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />}
                   <PlayCircle className="absolute bottom-3 right-3 text-white drop-shadow" size={34} />
+                  {(learningProfile?.enrollments.find((enrollment) => enrollment.course.id === course.id)?.progress || 0) >= 100 && <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-xs font-black text-white"><CheckCircle2 size={14} /> Completed</span>}
                 </div>
                 <div className="p-5">
                   {course.category && <span className="text-xs font-black uppercase tracking-wide text-violet-600 dark:text-violet-300">{course.category}</span>}
                   <h2 className="mt-2 text-lg font-black text-neutral-900 dark:text-white">{course.title}</h2>
                   <p className="mt-2 line-clamp-2 text-sm leading-6 text-neutral-500">{course.description || 'Build practical skills with guided lessons and a final assessment.'}</p>
                   <p className="mt-3 flex items-center gap-1 text-xs font-bold text-neutral-500"><Clock3 size={13} /> Self-paced course</p>
-                  <Link to={`/student/learning/${course.id}`} className="btn-black mt-5 block w-full rounded-xl text-center">View course</Link>
+                  <Link to={`/student/learning/${course.id}`} className="btn-black mt-5 block w-full rounded-xl text-center">{(learningProfile?.enrollments.find((enrollment) => enrollment.course.id === course.id)?.progress || 0) >= 100 ? 'View completed course' : 'View course'}</Link>
                 </div>
               </article>
             ))}
