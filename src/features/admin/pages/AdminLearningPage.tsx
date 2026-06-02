@@ -5,7 +5,7 @@ import { coursesApi } from '../../courses/coursesApi';
 import { skillsApi } from '../../skills/skillsApi';
 import type { Course, CreateCoursePayload } from '../../courses/coursesApi';
 import type { Skill } from '../../skills/skillsApi';
-import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { useConfirm } from '../../../shared/components/ui/ConfirmDialog';
 
 const CATEGORIES = ['Digital Skills', 'Communication', 'Finance', 'Marketing', 'Software Development', 'Administration', 'Other'];
 
@@ -81,6 +81,18 @@ export default function AdminLearningPage() {
       toast.error('Failed to update publish status');
     } finally {
       setPublishingId(null);
+    }
+  }
+
+  async function toggleCourseSkill(course: Course, skillId: string) {
+    const current = course.skills?.map(({ skill }) => skill.id) ?? [];
+    const skillIds = current.includes(skillId) ? current.filter(id => id !== skillId) : [...current, skillId];
+    try {
+      const updated = await coursesApi.update(course.id, { skillIds });
+      setCourses(prev => prev.map(item => item.id === course.id ? updated : item));
+      toast.success('Course skills updated');
+    } catch {
+      toast.error('Failed to update course skills');
     }
   }
 
@@ -277,6 +289,17 @@ export default function AdminLearningPage() {
                     {c.skills && c.skills.length > 0 && <span>{c.skills.length} skill{c.skills.length !== 1 ? 's' : ''}</span>}
                     {c.assignments && c.assignments.length > 0 && <span>{c.assignments.length} assignment{c.assignments.length !== 1 ? 's' : ''}</span>}
                   </div>
+                  {skills.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-black uppercase tracking-wide text-neutral-400">Awarded skills</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {skills.map(skill => {
+                          const selected = c.skills?.some(item => item.skill.id === skill.id);
+                          return <button key={skill.id} onClick={() => toggleCourseSkill(c, skill.id)} className={`rounded-full px-3 py-1 text-xs font-bold transition ${selected ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300' : 'border border-neutral-200 text-neutral-500 hover:border-neutral-400 dark:border-neutral-700'}`}>{selected ? 'Remove ' : 'Add '}{skill.name}</button>;
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2 shrink-0">

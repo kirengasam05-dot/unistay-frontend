@@ -1,186 +1,81 @@
-import { useState, useRef } from 'react';
-import { Camera, CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, MapPin, Phone, Sparkles, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Award, Briefcase, Download, Eye, Loader2, Lock, MapPin, Phone, Save, Sparkles, User } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../auth/context/AuthContext';
+import { applicationsApi } from '../../applications/applicationsApi';
+import type { Application } from '../../applications/applicationsApi';
+import CertificatePreview, { downloadCertificatePdf, type CertificateData } from '../../student/components/CertificatePreview';
+import { useLearningProfileQuery } from '../../student/hooks/useLearningProfileQuery';
 
-const roleColors: Record<string, string> = {
-  STUDENT:  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  HOST:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-  EMPLOYER: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',
-  ADMIN:    'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400',
-};
-const avatarBg: Record<string, string> = {
-  STUDENT: 'bg-blue-600', HOST: 'bg-emerald-600', EMPLOYER: 'bg-violet-600', ADMIN: 'bg-rose-600',
-};
-
-interface FormState { fullName: string; email: string; phone: string; location: string; bio: string; skillsProfile: string; }
-interface PwState   { current: string; next: string; confirm: string; }
-
-function Field({ label, value, onChange, placeholder, icon: Icon, type = 'text', error }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; icon: React.ElementType; type?: string; error?: string; }) {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{label}</label>
-      <div className="relative">
-        <Icon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-        <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="input pl-10" />
-      </div>
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-    </div>
-  );
-}
+type Section = 'profile' | 'password' | 'certificates' | 'jobs' | 'skills';
 
 export default function ProfilePage() {
-  const { user: stored, updateProfile, changePassword } = useAuth();
-  const [form, setForm]         = useState<FormState>({ fullName: stored?.fullName ?? '', email: stored?.email ?? '', phone: stored?.phone ?? '', location: stored?.location ?? '', bio: stored?.bio ?? '', skillsProfile: stored?.skillsProfile ?? '' });
-  const [pw, setPw]             = useState<PwState>({ current: '', next: '', confirm: '' });
-  const [showPw, setShowPw]     = useState(false);
-  const [saved, setSaved]       = useState(false);
-  const [pwSaved, setPwSaved]   = useState(false);
-  const [savingInfo, setSavingInfo] = useState(false);
-  const [savingPw, setSavingPw] = useState(false);
-  const [errors, setErrors]     = useState<Partial<FormState>>({});
-  const [pwError, setPwError]   = useState('');
-  const timerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { user, updateProfile, changePassword } = useAuth();
+  const [section, setSection] = useState<Section>('profile');
+  const [form, setForm] = useState({ fullName: user?.fullName || '', phone: user?.phone || '', location: user?.location || '' });
+  const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [certificatePreview, setCertificatePreview] = useState<CertificateData | null>(null);
+  const { data: learning } = useLearningProfileQuery(user?.role === 'STUDENT');
 
-  function flash(setter: (v: boolean) => void) { setter(true); if (timerRef.current) clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setter(false), 3000); }
+  useEffect(() => {
+    if (user?.role !== 'STUDENT') return;
+    applicationsApi.getMine().then(setApplications).catch(() => setApplications([]));
+  }, [user?.role]);
 
-  async function saveInfo() {
-    const e: Partial<FormState> = {};
-    if (!form.fullName.trim()) e.fullName = 'Name is required';
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
-    if (Object.keys(e).length) { setErrors(e); return; }
-    if (!stored) return;
-    setErrors({});
-    setSavingInfo(true);
+  if (!user) return null;
+  const student = user.role === 'STUDENT';
+  const links = [
+    ['profile', 'Update profile', User],
+    ['password', 'Change password', Lock],
+    ...(student ? [['certificates', 'Certificates', Award], ['jobs', 'Job history', Briefcase], ['skills', 'Earned skills', Sparkles]] : []),
+  ] as [Section, string, typeof User][];
+
+  async function saveProfile() {
+    if (!form.fullName.trim()) return toast.error('Name is required');
+    setSaving(true);
     try {
-      // Email/role are not editable via PUT /auth/me — send only profile fields.
-      await updateProfile({
-        fullName: form.fullName.trim(),
-        phone: form.phone.trim(),
-        location: form.location.trim(),
-        bio: form.bio.trim(),
-        skillsProfile: form.skillsProfile.trim(),
-      });
-      flash(setSaved);
+      await updateProfile(form);
       toast.success('Profile updated');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not update profile');
     } finally {
-      setSavingInfo(false);
+      setSaving(false);
     }
   }
 
   async function savePassword() {
-    setPwError('');
-    if (!pw.current.trim())    { setPwError('Enter your current password'); return; }
-    if (pw.next.length < 6)    { setPwError('New password must be at least 6 characters'); return; }
-    if (pw.next !== pw.confirm) { setPwError('Passwords do not match'); return; }
-    if (!stored) return;
-    setSavingPw(true);
+    if (!password.current || password.next.length < 6 || password.next !== password.confirm) return toast.error('Check your current password and ensure the new passwords match.');
+    setSaving(true);
     try {
-      await changePassword({ currentPassword: pw.current, newPassword: pw.next });
-      setPw({ current: '', next: '', confirm: '' });
-      flash(setPwSaved);
+      await changePassword({ currentPassword: password.current, newPassword: password.next });
+      setPassword({ current: '', next: '', confirm: '' });
       toast.success('Password updated');
     } catch (err) {
-      setPwError(err instanceof Error ? err.message : 'Could not update password');
+      toast.error(err instanceof Error ? err.message : 'Could not update password');
     } finally {
-      setSavingPw(false);
+      setSaving(false);
     }
   }
 
-  if (!stored) return <div className="card py-16 text-center"><p className="font-black text-neutral-900 dark:text-white">Not logged in</p></div>;
-
-  const initials = (stored.fullName || stored.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const role = stored.role;
-
   return (
-    <div className="space-y-6">
-      <div className="card">
-        <div className="flex flex-wrap items-center gap-5">
-          <div className="relative shrink-0">
-            <div className={`flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-black text-white ${avatarBg[role] ?? 'bg-neutral-700'}`}>{initials}</div>
-            <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-neutral-900 text-white hover:bg-neutral-700 dark:border-neutral-900 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 transition">
-              <Camera size={13} />
-            </button>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl truncate">{stored.fullName}</h1>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{stored.email}</p>
-            <span className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${roleColors[role] ?? ''}`}>{role.charAt(0) + role.slice(1).toLowerCase()}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2 className="text-lg font-black text-neutral-900 dark:text-white">Personal Information</h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Update your name, contact details and location.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <Field label="Full name *"     value={form.fullName} onChange={v => setForm({ ...form, fullName: v })}  placeholder="Your full name"    icon={User}   error={errors.fullName} />
-          <Field label="Email address *" value={form.email}    onChange={v => setForm({ ...form, email: v })}     placeholder="you@example.com"   icon={Mail}   error={errors.email} />
-          <Field label="Phone number"    value={form.phone}    onChange={v => setForm({ ...form, phone: v })}     placeholder="+250 7XX XXX XXX" icon={Phone} />
-          <Field label="Location"        value={form.location} onChange={v => setForm({ ...form, location: v })}  placeholder="City, Country"     icon={MapPin} />
-        </div>
-        <div className="mt-4">
-          <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Short bio</label>
-          <textarea value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} rows={3} placeholder="Tell us a bit about yourself…" className="input resize-none" />
-        </div>
-        {(role === 'STUDENT' || role === 'EMPLOYER') && (
-          <div className="mt-4">
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{role === 'STUDENT' ? 'Skills profile' : 'Industry / expertise'}</label>
-            <div className="relative">
-              <Sparkles size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input value={form.skillsProfile} onChange={e => setForm({ ...form, skillsProfile: e.target.value })} placeholder={role === 'STUDENT' ? 'e.g. React, Communication' : 'e.g. Fintech, Software Development'} className="input pl-10" />
-            </div>
-          </div>
-        )}
-        <div className="mt-6 flex items-center gap-3">
-          <button onClick={saveInfo} disabled={savingInfo} className="btn-black rounded-xl inline-flex items-center gap-2 disabled:opacity-60">
-            {savingInfo && <Loader2 size={15} className="animate-spin" />}
-            {savingInfo ? 'Saving…' : 'Save changes'}
-          </button>
-          {saved && <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={15} /> Saved successfully</span>}
-        </div>
-      </div>
-
-      <div className="card">
-        <h2 className="text-lg font-black text-neutral-900 dark:text-white">Change Password</h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Choose a strong password of at least 6 characters.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {(['current', 'next', 'confirm'] as const).map(key => (
-            <div key={key}>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{key === 'current' ? 'Current password' : key === 'next' ? 'New password' : 'Confirm new'}</label>
-              <div className="relative">
-                <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <input type={showPw ? 'text' : 'password'} value={pw[key]} onChange={e => setPw({ ...pw, [key]: e.target.value })} placeholder="••••••••" className="input pl-10 pr-10" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300">
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        {pwError && <p className="mt-3 text-sm text-red-500">{pwError}</p>}
-        <div className="mt-6 flex items-center gap-3">
-          <button onClick={savePassword} disabled={savingPw} className="btn-black rounded-xl inline-flex items-center gap-2 disabled:opacity-60">
-            {savingPw && <Loader2 size={15} className="animate-spin" />}
-            {savingPw ? 'Updating…' : 'Update password'}
-          </button>
-          {pwSaved && <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={15} /> Password updated</span>}
-        </div>
-      </div>
-
-      <div className="card">
-        <h2 className="text-lg font-black text-neutral-900 dark:text-white">Account Details</h2>
-        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-          {[{ label: 'Account ID', value: stored.id }, { label: 'Role', value: role.charAt(0) + role.slice(1).toLowerCase() }].map(({ label, value }) => (
-            <div key={label} className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/50">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{label}</dt>
-              <dd className="mt-0.5 font-semibold text-neutral-900 dark:text-white break-all">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+      <aside className="h-fit rounded-3xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-24">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-neutral-950 text-xl font-black text-white dark:bg-white dark:text-neutral-950">{(user.fullName || user.email)[0]}</div>
+        <h1 className="mt-4 font-black text-neutral-900 dark:text-white">{user.fullName}</h1>
+        <p className="text-xs text-neutral-500">{user.email}</p>
+        <span className="mt-3 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">{user.role}</span>
+        <nav className="mt-5 space-y-1">{links.map(([id, label, Icon]) => <button key={id} onClick={() => setSection(id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold ${section === id ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'}`}><Icon size={16} />{label}</button>)}</nav>
+      </aside>
+      <main>
+        {section === 'profile' && <section className="card"><h2 className="text-2xl font-black">Update profile</h2><p className="mt-1 text-sm text-neutral-500">Keep your account details current.</p><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-sm font-bold">Full name<input className="input mt-2" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></label><label className="text-sm font-bold">Phone<div className="relative mt-2"><Phone className="absolute left-3 top-3.5 text-neutral-400" size={15} /><input className="input pl-9" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div></label><label className="text-sm font-bold sm:col-span-2">Location<div className="relative mt-2"><MapPin className="absolute left-3 top-3.5 text-neutral-400" size={15} /><input className="input pl-9" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div></label></div><button onClick={saveProfile} disabled={saving} className="btn-black mt-6 rounded-xl">{saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Save changes</button></section>}
+        {section === 'password' && <section className="card"><h2 className="text-2xl font-black">Change password</h2><div className="mt-6 grid gap-4">{(['current', 'next', 'confirm'] as const).map((key) => <label key={key} className="text-sm font-bold">{key === 'current' ? 'Current password' : key === 'next' ? 'New password' : 'Confirm new password'}<input type="password" className="input mt-2" value={password[key]} onChange={(e) => setPassword({ ...password, [key]: e.target.value })} /></label>)}</div><button onClick={savePassword} disabled={saving} className="btn-black mt-6 rounded-xl">Update password</button></section>}
+        {section === 'certificates' && <section className="space-y-3"><h2 className="text-2xl font-black">Certificate achievements</h2>{learning?.certificates.map((certificate) => { const data: CertificateData = { id: certificate.id, studentName: user.fullName, courseTitle: certificate.course.title, issuedAt: certificate.issuedAt, skills: certificate.skills?.map(({ skill }) => skill.name) }; return <article key={certificate.id} className="card flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wide text-emerald-600">Achievement</p><h3 className="mt-1 font-black">{certificate.course.title}</h3><p className="text-sm text-neutral-500">Issued {new Date(certificate.issuedAt).toLocaleDateString()}</p></div><div className="flex flex-wrap gap-2"><button onClick={() => setCertificatePreview(data)} className="btn-white rounded-lg"><Eye size={15} /> Preview</button><button onClick={() => downloadCertificatePdf(data)} className="btn-black rounded-lg"><Download size={15} /> Download PDF</button></div></article>; })}{!learning?.certificates.length && <div className="card text-sm text-neutral-500">Pass a course exam to unlock your first certificate.</div>}</section>}
+        {section === 'jobs' && <section className="space-y-3"><h2 className="text-2xl font-black">Job application history</h2>{applications.map((application) => <article key={application.id} className="card flex items-center justify-between gap-3"><div><h3 className="font-black">{application.job?.title || application.jobId}</h3><p className="text-sm text-neutral-500">Application submitted</p></div><span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black dark:bg-neutral-800">{application.status}</span></article>)}{applications.length === 0 && <div className="card text-sm text-neutral-500">Your submitted job applications will appear here.</div>}</section>}
+        {section === 'skills' && <section><h2 className="text-2xl font-black">Skills added to your profile</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{learning?.userSkills.map(({ skill, completionStatus }) => <article key={skill.id} className="card"><Sparkles className="text-violet-600" size={19} /><h3 className="mt-3 font-black">{skill.name}</h3><p className="text-sm text-neutral-500">{skill.category} - {skill.level}</p><span className="mt-3 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">{completionStatus ? 'Verified skill' : 'In progress'}</span></article>)}</div>{!learning?.userSkills.length && <div className="card mt-4 text-sm text-neutral-500">Earn skills by passing course exams.</div>}</section>}
+      </main>
+      {certificatePreview && <CertificatePreview certificate={certificatePreview} onClose={() => setCertificatePreview(null)} />}
     </div>
   );
 }

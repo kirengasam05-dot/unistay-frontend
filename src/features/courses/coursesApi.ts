@@ -1,5 +1,5 @@
-import api from '../../lib/api';
-import { extractList, extractOne } from '../../types/api';
+import api from '../../shared/lib/api';
+import { extractList, extractOne } from '../../shared/types/api';
 
 export type Course = {
   id: string;
@@ -11,11 +11,11 @@ export type Course = {
   uploadedBy?: string;
   createdAt?: string;
   /** Populated when fetched with include: { materials: true } */
-  materials?: { id: string; title?: string; type?: string }[];
+  materials?: { id: string; title?: string; description?: string; type?: string; duration?: number; files?: { id: string; url: string; mimeType?: string; resourceType?: string; originalName?: string }[] }[];
   /** Populated when fetched with include: { skills: true } */
   skills?: { skill: { id: string; name: string } }[];
   /** Populated when fetched with include: { assignments: true } */
-  assignments?: { id: string; title: string }[];
+  assignments?: { id: string; title: string; isStandalone?: boolean }[];
   /** Student progress (0-100) — only present on student-scoped endpoints */
   progress?: number;
 };
@@ -33,6 +33,11 @@ export const coursesApi = {
   async getAll(): Promise<Course[]> {
     const res = await api.get('/courses');
     return extractList<Course>(res.data);
+  },
+
+  async getOne(id: string): Promise<Course> {
+    const res = await api.get('/courses/' + id);
+    return extractOne<Course>(res.data);
   },
 
   /** POST /courses — requires admin token */

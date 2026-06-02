@@ -4,7 +4,7 @@ import { coursesApi } from '../../courses/coursesApi';
 import { skillsApi } from '../skillsApi';
 import type { Course } from '../../courses/coursesApi';
 import type { Certificate, Assignment } from '../skillsApi';
-import Badge from '../../../components/ui/Badge';
+import Badge from '../../../shared/components/ui/Badge';
 
 export default function SkillsPage() {
   const [courses, setCourses]           = useState<Course[]>([]);
