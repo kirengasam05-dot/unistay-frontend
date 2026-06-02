@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BookOpen, Loader2, Plus, Trash2, X } from 'lucide-react';
+import { BookOpen, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { coursesApi } from '../../courses/coursesApi';
 import { skillsApi } from '../../skills/skillsApi';
@@ -18,7 +18,10 @@ export default function AdminLearningPage() {
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm]         = useState<CreateCoursePayload>(BLANK);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState('');
   const [saving, setSaving]     = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors]     = useState<Partial<Record<keyof CreateCoursePayload, string>>>({});
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [deletingId, setDeletingId]     = useState<string | null>(null);
@@ -48,7 +51,32 @@ export default function AdminLearningPage() {
     return true;
   }
 
-  async function create() {
+  function resetForm() {
+    setForm(BLANK);
+    setThumbnailFile(null);
+    setThumbnailPreview('');
+    setEditingId(null);
+    setShowForm(false);
+    setErrors({});
+  }
+
+  function edit(course: Course) {
+    setForm({
+      title: course.title,
+      description: course.description || '',
+      category: course.category || 'Digital Skills',
+      thumbnail: course.thumbnail || '',
+      skillIds: course.skills?.map(({ skill }) => skill.id) || [],
+    });
+    setThumbnailFile(null);
+    setThumbnailPreview(course.thumbnail || '');
+    setEditingId(course.id);
+    setErrors({});
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function save() {
     if (!validate()) return;
     setSaving(true);
     try {
@@ -56,16 +84,21 @@ export default function AdminLearningPage() {
         title: form.title.trim(),
         description: form.description?.trim() || undefined,
         category: form.category || undefined,
-        thumbnail: form.thumbnail?.trim() || undefined,
-        skillIds: form.skillIds?.length ? form.skillIds : undefined,
+        thumbnail: thumbnailFile ? await coursesApi.uploadThumbnail(thumbnailFile) : form.thumbnail || undefined,
+        skillIds: form.skillIds || [],
       };
-      const newCourse = await coursesApi.create(payload);
-      setCourses(prev => [newCourse, ...prev]);
-      setForm(BLANK);
-      setShowForm(false);
-      toast.success('Course created successfully');
+      if (editingId) {
+        const updated = await coursesApi.update(editingId, payload);
+        setCourses(prev => prev.map(course => course.id === editingId ? updated : course));
+        toast.success('Course updated successfully');
+      } else {
+        const newCourse = await coursesApi.create(payload);
+        setCourses(prev => [newCourse, ...prev]);
+        toast.success('Course created successfully');
+      }
+      resetForm();
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to create course');
+      toast.error(err?.message || `Failed to ${editingId ? 'update' : 'create'} course`);
     } finally {
       setSaving(false);
     }
@@ -82,6 +115,15 @@ export default function AdminLearningPage() {
     } finally {
       setPublishingId(null);
     }
+  }
+
+  function selectThumbnail(file: File | null) {
+    setThumbnailFile(file);
+    setThumbnailPreview('');
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setThumbnailPreview(typeof reader.result === 'string' ? reader.result : '');
+    reader.readAsDataURL(file);
   }
 
   async function toggleCourseSkill(course: Course, skillId: string) {
@@ -131,7 +173,7 @@ export default function AdminLearningPage() {
             </p>
           </div>
           <button
-            onClick={() => { setShowForm(v => !v); setForm(BLANK); setErrors({}); }}
+            onClick={() => showForm ? resetForm() : setShowForm(true)}
             className="btn-black shrink-0 rounded-xl flex items-center gap-2"
           >
             {showForm ? <X size={15} /> : <Plus size={15} />}
@@ -142,7 +184,7 @@ export default function AdminLearningPage() {
         {/* create form */}
         {showForm && (
           <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-700 dark:bg-neutral-800/50">
-            <h2 className="mb-5 font-black text-neutral-900 dark:text-white">New course</h2>
+            <h2 className="mb-5 font-black text-neutral-900 dark:text-white">{editingId ? 'Update course' : 'New course'}</h2>
 
             <div className="grid gap-5 sm:grid-cols-2">
               {/* title */}
@@ -151,7 +193,7 @@ export default function AdminLearningPage() {
                 <input
                   value={form.title}
                   onChange={e => set('title', e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && create()}
+                  onKeyDown={e => e.key === 'Enter' && save()}
                   placeholder="e.g. React Fundamentals for Student Jobs"
                   className={inputClass}
                 />
@@ -168,13 +210,14 @@ export default function AdminLearningPage() {
 
               {/* thumbnail */}
               <div>
-                <label className={labelClass}>Thumbnail URL <span className="font-normal text-neutral-400">(optional)</span></label>
+                <label className={labelClass}>Thumbnail image <span className="font-normal text-neutral-400">(optional)</span></label>
                 <input
-                  value={form.thumbnail}
-                  onChange={e => set('thumbnail', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  type="file"
+                  accept="image/*"
+                  onChange={e => selectThumbnail(e.target.files?.[0] || null)}
                   className={inputClass}
                 />
+                {thumbnailPreview && <img src={thumbnailPreview} alt="Course thumbnail preview" className="mt-3 h-28 w-full rounded-xl object-cover" />}
               </div>
 
               {/* description */}
@@ -223,12 +266,12 @@ export default function AdminLearningPage() {
 
             <div className="mt-5 flex justify-end">
               <button
-                onClick={create}
+                onClick={save}
                 disabled={saving}
                 className="btn-black rounded-xl flex items-center gap-2 disabled:opacity-60"
               >
                 {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-                {saving ? 'Creating…' : 'Create course'}
+                {saving ? 'Saving...' : editingId ? 'Save changes' : 'Create course'}
               </button>
             </div>
           </div>
@@ -303,6 +346,13 @@ export default function AdminLearningPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 shrink-0">
+                  <button
+                    onClick={() => edit(c)}
+                    className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-bold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </button>
                   <button
                     disabled={publishingId === c.id}
                     onClick={() => togglePublish(c)}
