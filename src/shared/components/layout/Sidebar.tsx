@@ -1,9 +1,9 @@
+import { useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, BookOpen, Briefcase, Building2, CheckCircle2, GraduationCap, Home, Inbox, LogOut, ShieldCheck, UserCog, Users, X } from 'lucide-react';
+import { BarChart3, BookOpen, Briefcase, Building2, CheckCircle2, ChevronDown, GraduationCap, Home, Inbox, LogOut, ShieldCheck, UserCog, Users, X } from 'lucide-react';
 import { useAuth } from '../../../features/auth/context/AuthContext';
 import { useConfirm } from '../ui/ConfirmDialog';
 import type { Role } from '../../types';
-import BrandLogo from '../BrandLogo';
 
 const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   STUDENT: [
@@ -30,7 +30,6 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
     { label: 'Dashboard', to: '/dashboard', icon: Home },
     { label: 'Create Jobs', to: '/employer/jobs', icon: Briefcase },
     { label: 'Review Applications', to: '/employer/applications', icon: Users },
-    { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Verification', to: '/employer/verification', icon: ShieldCheck },
     { label: 'Profile', to: '/profile', icon: UserCog },
   ],
@@ -60,9 +59,13 @@ interface SidebarProps {
 
 export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarProps) {
   const navigate = useNavigate();
-  const { logout: signOut } = useAuth();
+  const { user, logout: signOut } = useAuth();
   const confirm = useConfirm();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const logout = async () => {
+    setDropdownOpen(false);
     onClose?.();
     const ok = await confirm({
       title: 'Log out?',
@@ -74,21 +77,62 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
     navigate('/login');
   };
 
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
+    : user?.email?.[0]?.toUpperCase() ?? '?';
+
+  const displayName = user?.fullName || user?.email || 'Account';
+  const displayRole = role.charAt(0) + role.slice(1).toLowerCase();
+
   const sidebarContent = (
     <div className="flex h-full flex-col p-5">
-      <div className="flex items-center justify-between">
-        <Link
-          to="/"
-          onClick={onClose}
-          className="flex flex-1 items-center gap-3 rounded-2xl border border-neutral-200 p-4 transition hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
-        >
-          <div>
-            <BrandLogo />
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 capitalize">{role.toLowerCase()} workspace</p>
-          </div>
-        </Link>
 
-        {/* close button — mobile only */}
+      {/* ── User card with dropdown ── */}
+      <div className="flex items-center justify-between">
+        <div className="relative flex-1" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(v => !v)}
+            className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            {/* Avatar */}
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
+              {initials}
+            </div>
+            {/* Name + role */}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black text-neutral-900 dark:text-white">{displayName}</p>
+              <p className="text-xs font-semibold text-neutral-400">{displayRole}</p>
+            </div>
+            <ChevronDown
+              size={15}
+              className={`shrink-0 text-neutral-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {/* Dropdown menu */}
+          {dropdownOpen && (
+            <div className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+              <Link
+                to="/profile"
+                onClick={() => { setDropdownOpen(false); onClose?.(); }}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              >
+                <UserCog size={15} />
+                Profile
+              </Link>
+              <div className="mx-3 border-t border-neutral-100 dark:border-neutral-800" />
+              <button
+                onClick={logout}
+                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                <LogOut size={15} />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile close button */}
         {onClose && (
           <button
             onClick={onClose}
@@ -99,7 +143,8 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
         )}
       </div>
 
-      <nav className="mt-7 flex-1 space-y-2 overflow-y-auto">
+      {/* ── Nav links ── */}
+      <nav className="mt-6 flex-1 space-y-1 overflow-y-auto">
         {links[role].map((item) => {
           const Icon = item.icon;
           return (
@@ -121,14 +166,6 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
           );
         })}
       </nav>
-
-      <button
-        onClick={logout}
-        className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-neutral-800 dark:hover:bg-red-950/40"
-      >
-        <LogOut size={18} />
-        Logout
-      </button>
     </div>
   );
 
@@ -139,12 +176,9 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
         {sidebarContent}
       </aside>
 
-      {/* mobile drawer backdrop */}
+      {/* mobile backdrop */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={onClose} />
       )}
 
       {/* mobile drawer */}
