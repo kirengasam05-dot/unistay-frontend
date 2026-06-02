@@ -15,6 +15,8 @@ export type Job = {
   requirements?: string[];
   employerId?: string;
   description?: string;
+  companyLogo?: string;
+  createdAt?: string;
 };
 
 export type CreateJobPayload = {

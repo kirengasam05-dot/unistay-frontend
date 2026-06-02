@@ -33,6 +33,7 @@ import HostAddListingPage from "../features/host/pages/HostAddListingPage";
 import HostEditListingPage from "../features/host/pages/HostEditListingPage";
 import HostBookingsPage from "../features/host/pages/HostBookingsPage";
 import HostVerificationPage from "../features/host/pages/HostVerificationPage";
+import HostJobsPage from "../features/host/pages/HostJobsPage";
 
 import EmployerJobsPage from "../features/employer/pages/EmployerJobsPage";
 import EmployerApplicationsPage from "../features/employer/pages/EmployerApplicationsPage";
@@ -43,6 +44,7 @@ import AdminLearningPage from "../features/admin/pages/AdminLearningPage";
 import AdminModerationPage from "../features/admin/pages/AdminModerationPage";
 import AdminAnalyticsPage from "../features/admin/pages/AdminAnalyticsPage";
 import AdminSkillsPage from "../features/admin/pages/AdminSkillsPage";
+import AdminJobsPage from "../features/admin/pages/AdminJobsPage";
 
 import EmailsPage from "../features/emails/pages/EmailsPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -86,6 +88,7 @@ export default function AppRoutes() {
           <Route path="/host/listings/:id/edit" element={<HostEditListingPage />} />
           <Route path="/host/bookings" element={<HostBookingsPage />} />
           <Route path="/host/verification" element={<HostVerificationPage />} />
+          <Route path="/host/jobs" element={<HostJobsPage />} />
         </Route>
 
         <Route element={<ProtectedRoute role="EMPLOYER" />}>
@@ -100,6 +103,7 @@ export default function AppRoutes() {
           <Route path="/admin/moderation" element={<AdminModerationPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
           <Route path="/admin/skills" element={<AdminSkillsPage />} />
+          <Route path="/admin/jobs" element={<AdminJobsPage />} />
         </Route>
       </Route>
 

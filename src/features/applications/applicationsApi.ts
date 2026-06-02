@@ -9,6 +9,7 @@ export type Application = {
   score?: number;
   compatible?: boolean;
   missing?: string[];
+  createdAt?: string;
   user?: { fullName: string; email: string };
   job?: { id: string; title: string; company?: string };
 };
