@@ -42,6 +42,8 @@ import EmployerVerificationPage from "./features/employer/pages/EmployerVerifica
 import AdminUsersPage from "./features/admin/pages/AdminUsersPage";
 import AdminModerationPage from "./features/admin/pages/AdminModerationPage";
 import AdminAnalyticsPage from "./features/admin/pages/AdminAnalyticsPage";
+import AdminJobsPage from "./features/admin/pages/AdminJobsPage";
+import HostJobsPage from "./features/host/pages/HostJobsPage";
 import InstructorCoursesPage from "./features/instructor/pages/InstructorCoursesPage";
 import InstructorSkillsPage from "./features/instructor/pages/InstructorSkillsPage";
 import InstructorContentPage from "./features/instructor/pages/InstructorContentPage";
@@ -93,6 +95,7 @@ export default function App() {
           <Route path="/host/listings/:id/edit" element={<HostEditListingPage />} />
           <Route path="/host/bookings" element={<HostBookingsPage />} />
           <Route path="/host/verification" element={<HostVerificationPage />} />
+          <Route path="/host/jobs" element={<HostJobsPage />} />
         </Route>
 
         <Route element={<ProtectedRoute role="EMPLOYER" />}>
@@ -111,6 +114,7 @@ export default function App() {
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/moderation" element={<AdminModerationPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/admin/jobs" element={<AdminJobsPage />} />
         </Route>
       </Route>
 

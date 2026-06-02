@@ -6,9 +6,26 @@ import { applicationsApi } from '../applications/applicationsApi';
 import type { Job } from '../jobs/jobsApi';
 import type { Application } from '../applications/applicationsApi';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
-const S1 = [8, 22, 16, 38, 58, 44, 52, 32]; // All Applications
-const S2 = [3,  9,  6, 16, 26, 20, 24, 14]; // Accepted
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildMonthlyBuckets(apps: Application[], count = 8) {
+  const now = new Date();
+  return Array.from({ length: count }, (_, i) => {
+    const d     = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+    const year  = d.getFullYear();
+    const month = d.getMonth();
+    const inMonth = apps.filter(a => {
+      if (!a.createdAt) return false;
+      const c = new Date(a.createdAt);
+      return c.getFullYear() === year && c.getMonth() === month;
+    });
+    return {
+      label:    MONTH_LABELS[month],
+      total:    inMonth.length,
+      accepted: inMonth.filter(a => a.status === 'ACCEPTED').length,
+    };
+  });
+}
 
 function smoothPath(pts: [number, number][]): string {
   if (pts.length < 2) return '';
@@ -22,25 +39,28 @@ function smoothPath(pts: [number, number][]): string {
   return d;
 }
 
-function LineGraph() {
+function LineGraph({ buckets }: { buckets: { label: string; total: number; accepted: number }[] }) {
   const W = 560, H = 220;
   const PAD = { top: 16, right: 20, bottom: 36, left: 38 };
   const iW = W - PAD.left - PAD.right;
   const iH = H - PAD.top - PAD.bottom;
-  const maxV = Math.max(...S1, ...S2);
+
+  const s1 = buckets.map(b => b.total);
+  const s2 = buckets.map(b => b.accepted);
+  const maxV = Math.max(...s1, ...s2, 1); // floor at 1 to avoid division by zero
   const gridCount = 5;
 
-  const toX = (i: number) => PAD.left + (i / (S1.length - 1)) * iW;
+  const toX = (i: number) => PAD.left + (i / Math.max(buckets.length - 1, 1)) * iW;
   const toY = (v: number) => PAD.top + iH - (v / maxV) * iH;
 
-  const pts1: [number, number][] = S1.map((v, i) => [toX(i), toY(v)]);
-  const pts2: [number, number][] = S2.map((v, i) => [toX(i), toY(v)]);
+  const pts1: [number, number][] = s1.map((v, i) => [toX(i), toY(v)]);
+  const pts2: [number, number][] = s2.map((v, i) => [toX(i), toY(v)]);
 
   const line1 = smoothPath(pts1);
   const line2 = smoothPath(pts2);
-  const baseY  = PAD.top + iH;
-  const area1  = `${line1} L${pts1[pts1.length - 1][0]},${baseY} L${pts1[0][0]},${baseY} Z`;
-  const area2  = `${line2} L${pts2[pts2.length - 1][0]},${baseY} L${pts2[0][0]},${baseY} Z`;
+  const baseY = PAD.top + iH;
+  const area1 = `${line1} L${pts1[pts1.length - 1][0]},${baseY} L${pts1[0][0]},${baseY} Z`;
+  const area2 = `${line2} L${pts2[pts2.length - 1][0]},${baseY} L${pts2[0][0]},${baseY} Z`;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 220 }}>
@@ -55,42 +75,31 @@ function LineGraph() {
         </linearGradient>
       </defs>
 
-      {/* Horizontal grid lines + Y labels */}
+      {/* Grid lines + Y labels */}
       {Array.from({ length: gridCount + 1 }, (_, i) => {
         const frac = i / gridCount;
         const y    = PAD.top + iH * (1 - frac);
         const val  = Math.round(maxV * frac);
         return (
           <g key={i}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
-              stroke="#f1f5f9" strokeWidth="1" />
-            <text x={PAD.left - 6} y={y + 4} textAnchor="end"
-              fontSize="10" fill="#94a3b8" fontFamily="sans-serif">{val}</text>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+            <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#94a3b8" fontFamily="sans-serif">{val}</text>
           </g>
         );
       })}
 
-      {/* Area fills */}
       <path d={area1} fill="url(#g1)" />
       <path d={area2} fill="url(#g2)" />
-
-      {/* Smooth lines */}
       <path d={line1} fill="none" stroke="#1e3a8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d={line2} fill="none" stroke="#06b6d4" strokeWidth="2"   strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* Dots — series 1 */}
-      {pts1.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="4" fill="#1e3a8a" stroke="white" strokeWidth="2" />
-      ))}
-      {/* Dots — series 2 */}
-      {pts2.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.5" fill="#06b6d4" stroke="white" strokeWidth="2" />
-      ))}
+      {pts1.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="4"   fill="#1e3a8a" stroke="white" strokeWidth="2" />)}
+      {pts2.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="#06b6d4" stroke="white" strokeWidth="2" />)}
 
-      {/* X labels */}
-      {MONTHS.map((m, i) => (
-        <text key={m} x={toX(i)} y={H - 8} textAnchor="middle"
-          fontSize="10" fill="#94a3b8" fontFamily="sans-serif" fontWeight="600">{m}</text>
+      {buckets.map((b, i) => (
+        <text key={i} x={toX(i)} y={H - 8} textAnchor="middle" fontSize="10" fill="#94a3b8" fontFamily="sans-serif" fontWeight="600">
+          {b.label}
+        </text>
       ))}
     </svg>
   );
@@ -189,6 +198,7 @@ export default function EmployerDashboard() {
   const totalApps  = applications.length;
   const pending    = applications.filter(a => a.status === 'PENDING').length;
   const accepted   = applications.filter(a => a.status === 'ACCEPTED').length;
+  const buckets    = buildMonthlyBuckets(applications, 8);
 
   const stats = [
     { label: 'Active Job Listings',   value: loading ? '…' : String(jobs.length) },
@@ -244,7 +254,7 @@ export default function EmployerDashboard() {
           </div>
 
           <div className="mt-2">
-            <LineGraph />
+            <LineGraph buckets={buckets} />
           </div>
         </div>
 
