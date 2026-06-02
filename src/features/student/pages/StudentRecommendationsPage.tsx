@@ -4,8 +4,8 @@ import { ArrowRight, Loader2, MapPin, Sparkles, Wallet } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
 import { jobsApi } from "../../jobs/jobsApi";
-import { useAuth } from "../../../context/AuthContext";
-import type { Housing } from "../../../types/api";
+import { useAuth } from "../../../features/auth/context/AuthContext";
+import type { Housing } from "../../../shared/types/api";
 import type { Job } from "../../jobs/jobsApi";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -39,8 +39,8 @@ export default function StudentRecommendationsPage() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Top verified housing</h2>
-          <Link to="/housing" className="text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Browse all</Link>
+          <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Top verified hostels</h2>
+          <Link to="/hostels" className="text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Browse all</Link>
         </div>
         {loading ? (
           <div className="mt-5 grid min-h-40 place-items-center rounded-2xl border border-neutral-200 dark:border-neutral-800"><Loader2 className="animate-spin text-neutral-400" /></div>
@@ -49,7 +49,7 @@ export default function StudentRecommendationsPage() {
         ) : (
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             {topHousing.map(h => (
-              <Link key={h.id} to={`/housing/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+              <Link key={h.id} to={`/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
                 <img src={firstImage(h)} alt={h.title} className="h-40 w-full object-cover" />
                 <div className="p-4">
                   <h3 className="font-black text-neutral-900 dark:text-white">{h.title}</h3>

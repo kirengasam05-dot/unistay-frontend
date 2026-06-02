@@ -10,9 +10,9 @@ const steps = [
   },
   {
     icon: Building2,
-    title: 'Find & book verified housing',
+    title: 'Find & book verified hostels',
     description: 'Students browse verified listings, send booking requests, and wait for host confirmation. Payment is only processed after the host approves.',
-    tag: 'Housing',
+    tag: 'Hostels',
   },
   {
     icon: Briefcase,
@@ -99,11 +99,11 @@ export default function ProcessPage() {
           Ready to get started?
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-neutral-600 dark:text-neutral-400">
-          Create your account in seconds and access housing, jobs and skills all in one place.
+          Create your account in seconds and access hostels, jobs and skills all in one place.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link to="/register" className="btn-black">Create account</Link>
-          <Link to="/housing" className="btn-white">Browse housing</Link>
+          <Link to="/hostels" className="btn-white">Browse hostels</Link>
         </div>
       </section>
     </div>

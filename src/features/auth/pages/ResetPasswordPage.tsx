@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../authApi';
+import BrandLogo from '../../../shared/components/BrandLogo';
 
 export default function ResetPasswordPage() {
   const [params]            = useSearchParams();
@@ -36,7 +37,7 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 block text-center text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-          UniStay+
+          <BrandLogo />
         </Link>
 
         <div className="auth-card">

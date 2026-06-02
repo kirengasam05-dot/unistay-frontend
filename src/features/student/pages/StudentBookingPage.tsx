@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, CheckCircle2, Clock3, CreditCard, Loader2, RefreshCcw, ShieldCheck, UploadCloud, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
-import { useConfirm } from "../../../components/ui/ConfirmDialog";
-import type { Booking, BookingStatus, PaymentStatus } from "../../../types/api";
+import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
+import type { Booking, BookingStatus, PaymentStatus } from "../../../shared/types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
 
@@ -65,9 +65,9 @@ function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: B
       </div>
 
       <div className="mt-6 rounded-[1.5rem] bg-neutral-50 p-5">
-        <p className="text-sm font-bold text-neutral-500">Selected housing</p>
+        <p className="text-sm font-bold text-neutral-500">Selected hostel</p>
         <h3 className="mt-1 text-2xl font-black">{booking.housing?.title || booking.housingId}</h3>
-        <p className="mt-1 text-sm text-neutral-600">{booking.housing?.location || "Housing location"} • {new Date(booking.checkIn).toLocaleDateString()} to {new Date(booking.checkOut).toLocaleDateString()}</p>
+        <p className="mt-1 text-sm text-neutral-600">{booking.housing?.location || "Hostel location"} • {new Date(booking.checkIn).toLocaleDateString()} to {new Date(booking.checkOut).toLocaleDateString()}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-white p-4"><p className="text-xs font-bold text-neutral-500">Rent</p><p className="mt-1 font-black">{money(Number(booking.totalAmount || 0) - 5000)}</p></div>
           <div className="rounded-2xl bg-white p-4"><p className="text-xs font-bold text-neutral-500">Service</p><p className="mt-1 font-black">RWF 5,000</p></div>
@@ -89,7 +89,7 @@ function PaymentPanel({ booking, onSubmit }: { booking: Booking; onSubmit: (b: B
       )}
 
       {booking.paymentStatus === "PENDING_VERIFICATION" && <div className="mt-5 rounded-3xl border border-yellow-200 bg-yellow-50 p-5"><h4 className="font-black text-yellow-800">Payment proof submitted</h4><p className="mt-1 text-sm text-yellow-700">Reference: {booking.paymentRef || booking.paymentProof}. Waiting for verification.</p></div>}
-      {booking.status === "COMPLETED" && booking.paymentStatus === "PAID" && <div className="mt-5 rounded-3xl border border-green-200 bg-green-50 p-5"><h4 className="font-black text-green-800">Booking completed</h4><p className="mt-1 text-sm text-green-700">Payment verified. Your housing is secured.</p></div>}
+      {booking.status === "COMPLETED" && booking.paymentStatus === "PAID" && <div className="mt-5 rounded-3xl border border-green-200 bg-green-50 p-5"><h4 className="font-black text-green-800">Booking completed</h4><p className="mt-1 text-sm text-green-700">Payment verified. Your hostel is secured.</p></div>}
     </div>
   );
 }
@@ -132,7 +132,7 @@ export default function StudentBookingPage() {
   return (
     <div className="space-y-8">
       <section className="rounded-[2rem] bg-black p-8 text-white"><p className="font-bold text-neutral-300">Student booking center</p><h1 className="mt-2 text-4xl font-black">Track booking and payment professionally.</h1><p className="mt-3 max-w-3xl text-neutral-300">Your payment card appears after the host confirms availability. This page refreshes automatically.</p></section>
-      {loading ? <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white"><Loader2 className="animate-spin" /></div> : bookings.length === 0 ? <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center"><h2 className="text-2xl font-black">No booking requests yet</h2><p className="mt-2 text-neutral-600">Go to Housing and send a booking request for a verified available room.</p></div> : <>
+      {loading ? <div className="grid min-h-72 place-items-center rounded-[2rem] border border-neutral-200 bg-white"><Loader2 className="animate-spin" /></div> : bookings.length === 0 ? <div className="rounded-[2rem] border border-dashed border-neutral-300 bg-white p-12 text-center"><h2 className="text-2xl font-black">No booking requests yet</h2><p className="mt-2 text-neutral-600">Go to Hostels and send a booking request for a verified available room.</p></div> : <>
         {activeBooking && <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]"><BookingTimeline booking={activeBooking} /><PaymentPanel booking={activeBooking} onSubmit={submitPayment} /></section>}
         <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-black">My booking history</h2><p className="mt-1 text-sm text-neutral-500">Live bookings from the backend.</p></div><button onClick={loadBookings} className="rounded-full border border-neutral-200 px-4 py-2 text-sm font-black"><RefreshCcw className="mr-2 inline" size={15} />Refresh</button></div><div className="mt-5 space-y-4">{bookings.map((booking) => <article key={booking.id} className="rounded-3xl border border-neutral-200 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-black">{booking.housing?.title || booking.housingId}</p><p className="mt-1 text-sm text-neutral-500">{new Date(booking.checkIn).toLocaleDateString()} → {new Date(booking.checkOut).toLocaleDateString()} • {money(booking.totalAmount)}</p></div><div className="flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span><span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.paymentStatus)}`}>{booking.paymentStatus}</span></div></div></article>)}</div></section>
       </>}

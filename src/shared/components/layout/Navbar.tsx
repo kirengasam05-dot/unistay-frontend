@@ -1,0 +1,188 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, LogOut, Menu, Moon, Sun, User } from "lucide-react";
+import { useAuth } from "../../../features/auth/context/AuthContext";
+import { useConfirm } from "../ui/ConfirmDialog";
+import { useTheme } from "../../lib/themeContext";
+import BrandLogo from "../BrandLogo";
+
+const NAV_LINKS = [
+  { label: "Hostels", to: "/hostels" },
+  { label: "Jobs", to: "/jobs" },
+  { label: "Skills", to: "/skills" },
+  { label: "Process", to: "/process" },
+] as const;
+
+export default function Navbar() {
+  const { user, logout: signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const confirm = useConfirm();
+  const { theme, toggle } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const logout = async () => {
+    setMenuOpen(false);
+    const ok = await confirm({
+      title: "Log out?",
+      description: "You'll need to sign in again to access your dashboard.",
+      confirmText: "Log out",
+    });
+    if (!ok) return;
+    signOut();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 24);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const overHero = location.pathname === "/" && !scrolled;
+
+  return (
+    <header className={`${location.pathname === "/" ? "fixed" : "sticky"} top-0 z-40 w-full transition-all duration-300 ${overHero ? "border-transparent bg-transparent" : "border-b border-neutral-200 bg-white/95 shadow-sm backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95"}`}>
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+        <Link to="/"><BrandLogo lightText={overHero} iconTile={overHero} /></Link>
+
+        {/* desktop nav links */}
+        <div className="hidden items-center gap-6 text-sm font-semibold md:flex">
+          {NAV_LINKS.map(({ label, to }) => (
+            <NavLink
+              key={label}
+              to={to}
+              className={({ isActive }) =>
+                isActive
+                  ? overHero ? "text-white" : "text-neutral-900 dark:text-white"
+                  : overHero ? "text-white/75 hover:text-white" : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* dark mode toggle */}
+          <button
+            onClick={toggle}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            aria-label="Toggle dark mode"
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
+          {/* avatar / burger */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm transition hover:shadow-md dark:bg-white dark:text-neutral-900"
+              aria-label="Open menu"
+            >
+              {menuOpen
+                ? <Menu size={18} />
+                : user
+                  ? <span className="text-sm font-bold">{(user.fullName || user.email || "?").charAt(0).toUpperCase()}</span>
+                  : <User size={18} />
+              }
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-14 z-50 w-72 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+
+                {/* mobile-only nav links */}
+                <div className="border-b border-neutral-100 p-2 dark:border-neutral-800 md:hidden">
+                  {NAV_LINKS.map(({ label, to }) => (
+                    <NavLink
+                      key={label}
+                      to={to}
+                      onClick={() => setMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                          isActive
+                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                            : "text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                        }`
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+
+                {/* user section */}
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-3 bg-neutral-50 px-5 py-4 dark:bg-neutral-800">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
+                        {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-neutral-900 dark:text-white">{user.fullName || user.email}</p>
+                        <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{user.email}</p>
+                        <span className="mt-1 inline-block rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-semibold uppercase text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
+                          {user.role}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-2">
+                      <button
+                        onClick={() => { setMenuOpen(false); navigate("/dashboard"); }}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      >
+                        <LayoutDashboard size={18} />
+                        Dashboard
+                      </button>
+
+                      <div className="my-2 border-t border-neutral-100 dark:border-neutral-700" />
+
+                      <button
+                        onClick={logout}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/40"
+                      >
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                      Create an account
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+    </header>
+  );
+}

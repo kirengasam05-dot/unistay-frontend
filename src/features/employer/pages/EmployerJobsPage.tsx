@@ -5,9 +5,9 @@ import { jobsApi } from '../../jobs/jobsApi';
 import { coursesApi } from '../../courses/coursesApi';
 import type { Job, CreateJobPayload } from '../../jobs/jobsApi';
 import type { Course } from '../../courses/coursesApi';
-import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
-import Badge from '../../../components/ui/Badge';
+import Input from '../../../shared/components/ui/Input';
+import Button from '../../../shared/components/ui/Button';
+import Badge from '../../../shared/components/ui/Badge';
 
 export default function EmployerJobsPage() {
   const [jobs, setJobs]       = useState<Job[]>([]);

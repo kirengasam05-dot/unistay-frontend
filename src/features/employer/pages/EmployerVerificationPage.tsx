@@ -1,5 +1,5 @@
 import { CheckCircle2, FileCheck2, Mail, ShieldCheck, Building2 } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "../../../features/auth/context/AuthContext";
 
 export default function EmployerVerificationPage() {
   const { user } = useAuth();
