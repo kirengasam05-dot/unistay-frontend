@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import Card from '../../../components/ui/Card';
-import Button from '../../../components/ui/Button';
-import Badge from '../../../components/ui/Badge';
+import Card from '../../../shared/components/ui/Card';
+import Button from '../../../shared/components/ui/Button';
+import Badge from '../../../shared/components/ui/Badge';
 import { usersApi } from '../../users/usersApi';
 import { housingApi } from '../../housing/housingApi';
 import { jobsApi } from '../../jobs/jobsApi';
 import { coursesApi } from '../../courses/coursesApi';
-import type { Housing } from '../../../types/api';
+import type { Housing } from '../../../shared/types/api';
 
 export default function AdminDashboardPage() {
   const [userCount, setUserCount]     = useState<number | null>(null);
@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Card><p className="text-sm text-neutral-500">Users</p><h2 className="text-3xl font-black">{stat(userCount)}</h2></Card>
-        <Card><p className="text-sm text-neutral-500">Housing</p><h2 className="text-3xl font-black">{stat(housings.length || null)}</h2></Card>
+        <Card><p className="text-sm text-neutral-500">Hostels</p><h2 className="text-3xl font-black">{stat(housings.length || null)}</h2></Card>
         <Card><p className="text-sm text-neutral-500">Jobs</p><h2 className="text-3xl font-black">{stat(jobCount)}</h2></Card>
         <Card><p className="text-sm text-neutral-500">Courses</p><h2 className="text-3xl font-black">{stat(courseCount)}</h2></Card>
       </div>
@@ -39,15 +39,14 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Manage all platform areas from one place.</p>
           <div className="mt-4 grid gap-3">
             <a href="/admin/users" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Manage Users &amp; Roles</a>
-            <a href="/admin/learning" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Manage Courses &amp; Exams</a>
-            <a href="/admin/moderation" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Housing Moderation</a>
+            <a href="/admin/moderation" className="input text-center font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">Hostel Moderation</a>
           </div>
         </Card>
 
         <Card>
-          <h2 className="text-2xl font-black">Housing verification</h2>
+          <h2 className="text-2xl font-black">Hostel verification</h2>
           {housings.length === 0 ? (
-            <p className="mt-3 text-sm text-neutral-500">No housing listings found.</p>
+            <p className="mt-3 text-sm text-neutral-500">No hostel listings found.</p>
           ) : (
             housings.filter(h => h.verificationStatus === 'PENDING').slice(0, 5).map(h => (
               <div className="mb-3 flex items-center justify-between rounded-2xl border p-3 dark:border-neutral-700" key={h.id}>

@@ -3,7 +3,7 @@ import { Building2, CheckCircle2, Clock3, Home, Loader2, RefreshCcw, Users } fro
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
 import { usersApi } from "../../users/usersApi";
-import type { Housing, User } from "../../../types/api";
+import type { Housing, User } from "../../../shared/types/api";
 
 const ROLES = ["STUDENT", "HOST", "EMPLOYER", "ADMIN"] as const;
 const roleColor: Record<string, string> = {

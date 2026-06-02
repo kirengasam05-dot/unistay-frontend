@@ -1,4 +1,4 @@
-import { getUser } from '../../lib/authStorage';
+import { getUser } from '../../shared/lib/authStorage';
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'PAID';
 

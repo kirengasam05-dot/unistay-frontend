@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
 import { housingApi } from "../../housing/housingApi";
-import type { Booking } from "../../../types/api";
+import type { Booking } from "../../../shared/types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
 const pill = (status: string) =>
