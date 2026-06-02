@@ -11,6 +11,7 @@ export type User = {
   role?: UserRole;
   phone?: string | null;
   location?: string | null;
+  avatar?: string | null;
   active?: boolean;
   isActive?: boolean;
   createdAt?: string;

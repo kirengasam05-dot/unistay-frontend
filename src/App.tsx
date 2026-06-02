@@ -45,6 +45,7 @@ import AdminAnalyticsPage from "./features/admin/pages/AdminAnalyticsPage";
 import AdminJobsPage from "./features/admin/pages/AdminJobsPage";
 import HostJobsPage from "./features/host/pages/HostJobsPage";
 import InstructorCoursesPage from "./features/instructor/pages/InstructorCoursesPage";
+import InstructorCourseFormPage from "./features/instructor/pages/InstructorCourseFormPage";
 import InstructorSkillsPage from "./features/instructor/pages/InstructorSkillsPage";
 import InstructorContentPage from "./features/instructor/pages/InstructorContentPage";
 
@@ -106,6 +107,8 @@ export default function App() {
 
         <Route element={<ProtectedRoute role="INSTRUCTOR" />}>
           <Route path="/instructor/courses" element={<InstructorCoursesPage />} />
+          <Route path="/instructor/courses/new" element={<InstructorCourseFormPage />} />
+          <Route path="/instructor/courses/:id/edit" element={<InstructorCourseFormPage />} />
           <Route path="/instructor/skills" element={<InstructorSkillsPage />} />
           <Route path="/instructor/content" element={<InstructorContentPage />} />
         </Route>

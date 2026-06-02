@@ -46,6 +46,13 @@ export const coursesApi = {
     return extractOne<Course>(res.data);
   },
 
+  async uploadThumbnail(file: File): Promise<string> {
+    const data = new FormData();
+    data.append('file', file);
+    const res = await api.post('/uploads/course-thumbnail', data);
+    return res.data.url as string;
+  },
+
   /** PUT /courses/:id — requires admin token */
   async update(id: string, data: Partial<CreateCoursePayload>): Promise<Course> {
     const res = await api.put('/courses/' + id, data);
