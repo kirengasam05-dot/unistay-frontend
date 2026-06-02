@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Bell, CheckCircle2, Clock3, CreditCard, Loader2, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsApi } from "../../bookings/bookingsApi";
-import type { Booking } from "../../../types/api";
+import type { Booking } from "../../../shared/types/api";
 
 type Notice = {
   id: string;
@@ -65,7 +65,7 @@ export default function StudentNotificationsPage() {
           <Bell size={40} className="mx-auto text-neutral-400" />
           <p className="mt-4 font-black text-neutral-900 dark:text-white">You're all caught up</p>
           <p className="mt-1 text-sm text-neutral-500">Book a verified room and updates will show up here.</p>
-          <Link to="/housing" className="btn-black mt-5 inline-block rounded-xl">Browse housing</Link>
+          <Link to="/hostels" className="btn-black mt-5 inline-block rounded-xl">Browse hostels</Link>
         </div>
       ) : (
         <div className="space-y-3">

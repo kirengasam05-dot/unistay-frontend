@@ -1,4 +1,4 @@
-import type { Role } from '../types';
+import type { Role } from '../shared/types';
 
 export const users = [
   { id:'u-student', fullName:'Aline Student', email:'student@unistay.com', phone:'+250 788 000 001', password:'password123', role:'STUDENT' as Role, location:'Kigali', skillsProfile:'React, communication, digital literacy', profileScore:72 },

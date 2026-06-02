@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, MapPin, RefreshCcw, ShieldCheck, X, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
+<<<<<<< HEAD
 import type { Housing } from "../../../types/api";
+=======
+import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
+import type { Housing } from "../../../shared/types/api";
+>>>>>>> main
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80";
 const firstImage = (h: Housing) => h.images?.[0] || h.image || FALLBACK_IMG;
@@ -72,8 +77,13 @@ export default function AdminModerationPage() {
       <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
+<<<<<<< HEAD
             <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">Housing Moderation</h1>
             <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Review listings before they become visible to students. Always provide a reason when rejecting.</p>
+=======
+            <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">Hostel Moderation</h1>
+            <p className="mt-2 text-neutral-600 dark:text-neutral-400">Approve verified listings and reject unsafe or incomplete content.</p>
+>>>>>>> main
           </div>
           <button onClick={load} className="btn-white rounded-xl flex items-center gap-2 text-sm">
             <RefreshCcw size={14} /> Refresh

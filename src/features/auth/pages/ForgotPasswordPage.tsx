@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Loader2, MailCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../authApi';
+import BrandLogo from '../../../shared/components/BrandLogo';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail]     = useState('');
@@ -26,7 +27,7 @@ export default function ForgotPasswordPage() {
     <div className="auth-page">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 block text-center text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-          UniStay+
+          <BrandLogo />
         </Link>
 
         <div className="auth-card">

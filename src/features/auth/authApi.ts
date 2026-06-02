@@ -1,5 +1,5 @@
-import api from "../../lib/api";
-import type { AuthUser, UserRole } from "../../lib/authStorage";
+import api from "../../shared/lib/api";
+import type { AuthUser, UserRole } from "../../shared/lib/authStorage";
 
 /**
  * Auth API — UniStay+ backend endpoints
@@ -96,7 +96,7 @@ export const authApi = {
 
   /** Change password — accepts currentPassword or oldPassword (backend handles both). */
   async changePassword(payload: ChangePasswordPayload): Promise<void> {
-    await api.post("/auth/change-password", payload);
+    await api.post("/auth/change-password", { ...payload, oldPassword: payload.currentPassword });
   },
 
   /** Send a password-reset link to the given email address. */

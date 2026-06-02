@@ -1,5 +1,5 @@
-import api from '../../lib/api';
-import { extractList } from '../../types/api';
+import api from '../../shared/lib/api';
+import { extractList } from '../../shared/types/api';
 
 export type Email = {
   id: string;

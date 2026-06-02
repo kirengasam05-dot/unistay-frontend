@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
-import { useConfirm } from "../../../components/ui/ConfirmDialog";
-import type { Housing } from "../../../types/api";
+import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
+import type { Housing } from "../../../shared/types/api";
 
 const FALLBACK_IMG =
   "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80";
@@ -111,7 +111,7 @@ export default function HostListingsPage() {
               My Listings
             </h1>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-              Manage your housing listings. Keep availability accurate so
+              Manage your hostel listings. Keep availability accurate so
               students can book.
             </p>
           </div>

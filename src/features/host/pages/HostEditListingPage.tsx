@@ -3,8 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ImagePlus, Loader2, Save, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
-import { useConfirm } from "../../../components/ui/ConfirmDialog";
-import type { Housing } from "../../../types/api";
+import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
+import type { Housing } from "../../../shared/types/api";
 
 interface FormState { title: string; location: string; price: string; bedrooms: string; description: string; amenities: string; }
 
