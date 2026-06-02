@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Briefcase, Calendar, ChevronDown, Loader2, MapPin, Trash2, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Briefcase, Calendar, ChevronDown, Loader2, MapPin, Trash2, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi } from '../../jobs/jobsApi';
 import type { Job, CreateJobPayload } from '../../jobs/jobsApi';
@@ -86,17 +85,7 @@ export default function EmployerJobsPage() {
     <div className="space-y-8">
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-          <Link to="/dashboard" className="flex items-center gap-1 font-semibold hover:text-neutral-900 dark:hover:text-white">
-            <ArrowLeft size={15} /> Back
-          </Link>
-          <span>·</span>
-          <span>Job List</span>
-          <span>/</span>
-          <span className="font-bold text-neutral-900 dark:text-white">Create Job</span>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex justify-end gap-2">
           <button
             onClick={() => toast('Draft saved', { icon: '📝' })}
             className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-bold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
@@ -111,7 +100,6 @@ export default function EmployerJobsPage() {
             {saving ? <Loader2 size={14} className="animate-spin" /> : null}
             Publish Now
           </button>
-        </div>
       </div>
 
       {/* ── Two-column form ──────────────────────────────────────────── */}
