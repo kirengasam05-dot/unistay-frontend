@@ -42,14 +42,14 @@ export type AuthResult = { token: string | null; user: AuthUser };
 /**
  * Unwrap the user from any backend response shape and normalise field names.
  * - Handles both { user } and flat objects.
- * - Maps profilePicture → avatar so the rest of the app can use user.avatar.
+ * - Keeps a profilePicture fallback for older backend responses.
  */
 function normalizeUser(raw: any): AuthUser {
   const u = raw?.user ?? raw?.data?.user ?? raw?.data ?? raw ?? {};
   return {
     ...u,
     id: u.id ?? u._id ?? "",
-    // Backend stores it as profilePicture; AuthUser calls it avatar
+    // profilePicture remains as a rollout fallback for older API deployments.
     avatar: u.avatar ?? u.profilePicture ?? undefined,
   };
 }

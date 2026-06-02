@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, FileQuestion, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, FileQuestion, Loader2, RotateCcw, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { queryKeys } from '../../../shared/lib/queryKeys';
@@ -16,6 +16,7 @@ export default function StudentAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState<ExamAttempt | null>(null);
+  const [activeAssignment, setActiveAssignment] = useState<Assignment | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<ExamResult | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -43,6 +44,7 @@ export default function StudentAssignmentsPage() {
   async function start(assignment: Assignment) {
     try {
       setResult(null);
+      setActiveAssignment(assignment);
       setAnswers({});
       setQuestionIndex(0);
       setDirection('next');
@@ -58,9 +60,12 @@ export default function StudentAssignmentsPage() {
     if (!force && Object.keys(answers).length !== questions.length) return toast.error('Answer every question before submitting.');
     setSubmitting(true);
     try {
-      setResult(await skillsApi.submitAssignment(attempt.id, Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId }))));
+      const submitted = await skillsApi.submitAssignment(attempt.id, Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId })));
+      setResult(submitted);
       void queryClient.invalidateQueries({ queryKey: queryKeys.learningProfile });
       setAttempt(null);
+      if (submitted.passed) toast.success('Congratulations. You passed the exam.');
+      else toast.error('You did not reach the passing mark. You can redo the exam.');
       if (force) toast('Time is up. Your answered questions were submitted.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not submit exam');
@@ -123,7 +128,7 @@ export default function StudentAssignmentsPage() {
   return (
     <LearningLayout><div className="space-y-6">
       <section className="rounded-xl bg-slate-950 p-7 text-white"><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Assessments</p><h1 className="mt-2 text-3xl font-black">{assignmentId ? 'Course exam' : 'Standalone exams'}</h1><p className="mt-2 text-sm text-slate-300">Answer one question at a time. You can return to earlier questions before submitting.</p></section>
-      {result && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"><p className="flex items-center gap-2 font-black"><CheckCircle2 size={18} /> Exam submitted</p><p className="mt-1 text-sm">Your score is {result.score}%.</p></div>}
+      {result && <div className={`rounded-lg border p-5 ${result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300'}`}><p className="flex items-center gap-2 font-black">{result.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}{result.passed ? 'You passed the exam' : 'You did not pass the exam'}</p><p className="mt-1 text-sm">Your score is {result.score}%. {result.passed ? 'Your course completion and verified skills are now updated.' : `You need at least ${activeAssignment?.passingScore || 70}% to pass.`}</p>{!result.passed && activeAssignment && <button onClick={() => start(activeAssignment)} className="btn-black mt-4 rounded-lg"><RotateCcw size={15} /> Redo exam</button>}</div>}
       {visibleAssignments.length === 0 ? <div className="card py-12 text-center"><FileQuestion className="mx-auto text-neutral-300" size={36} /><p className="mt-3 font-black">No exams available yet</p></div> : visibleAssignments.map((assignment) => <article key={assignment.id} className="card flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-lg font-black">{assignment.title}</h2><p className="mt-1 flex items-center gap-3 text-sm text-neutral-500"><span className="flex items-center gap-1"><Clock3 size={14} />{assignment.timeLimit || 45} minutes</span><span>Pass mark {assignment.passingScore || 70}%</span></p></div><button onClick={() => start(assignment)} className="btn-black rounded-xl">Take exam</button></article>)}
     </div></LearningLayout>
   );
