@@ -16,7 +16,9 @@ export default function StudentCoursePage() {
   const queryClient = useQueryClient();
   const { data: course, isPending: loading, error } = useCourseDetailQuery(id);
   const { data: learningProfile } = useLearningProfileQuery();
-  const enrolled = learningProfile?.enrollments.some((enrollment) => enrollment.course.id === id);
+  const enrollment = learningProfile?.enrollments.find((item) => item.course.id === id);
+  const enrolled = Boolean(enrollment);
+  const completed = (enrollment?.progress || 0) >= 100;
   const enrollMutation = useMutation({
     mutationFn: () => learningProfileApi.enroll(id),
     onSuccess: () => {
@@ -69,7 +71,7 @@ export default function StudentCoursePage() {
           <p className="mt-3 text-sm leading-6 text-slate-300">{course.description || 'Complete the lessons and pass the assessment to earn verified skills.'}</p>
           {activeVideo && <p className="mt-5 text-sm font-bold text-violet-200">Lesson {activeVideoIndex + 1} of {videos.length}: {activeVideo.materialTitle}</p>}
           {!enrolled && <button onClick={() => enrollMutation.mutate()} disabled={enrollMutation.isPending} className="mt-6 w-full rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 disabled:opacity-60">{enrollMutation.isPending ? 'Enrolling...' : 'Enroll in course'}</button>}
-          {enrolled && <p className="mt-6 flex items-center gap-2 text-sm font-black text-emerald-300"><CheckCircle2 size={17} /> Enrolled in this course</p>}
+          {completed ? <p className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-3 text-sm font-black text-emerald-300"><CheckCircle2 size={17} /> Course completed</p> : enrolled && <p className="mt-6 flex items-center gap-2 text-sm font-black text-emerald-300"><CheckCircle2 size={17} /> Enrolled in this course</p>}
           {courseExam ? <Link to={`/student/assignments/${courseExam.id}`} className="mt-3 block rounded-xl border border-white/20 px-4 py-3 text-center text-sm font-black">Take course exam</Link> : <p className="mt-3 text-center text-xs font-bold text-slate-400">The instructor has not added a course exam yet.</p>}
         </div>
       </section>
@@ -95,7 +97,7 @@ export default function StudentCoursePage() {
           </article>)}
         </div>
       </section>
-      <p className="flex items-center gap-2 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> Finish the assessment to add the course skills to your profile.</p>
+      <p className="flex items-center gap-2 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> {completed ? 'You completed this course. Its verified skills are now on your profile.' : 'Finish the assessment to add the course skills to your profile.'}</p>
     </div></LearningLayout>
   );
 }
