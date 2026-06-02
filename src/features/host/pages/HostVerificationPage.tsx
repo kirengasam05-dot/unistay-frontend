@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, Clock3, Loader2, ShieldCheck, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../../housing/housingApi";
-import { useAuth } from "../../../context/AuthContext";
-import type { Housing } from "../../../types/api";
+import { useAuth } from "../../../features/auth/context/AuthContext";
+import type { Housing } from "../../../shared/types/api";
 
 export default function HostVerificationPage() {
   const { user } = useAuth();

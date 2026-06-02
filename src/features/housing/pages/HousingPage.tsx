@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
-import type { Housing } from "../../../types/api";
+import type { Housing } from "../../../shared/types/api";
 
 const money = (value: number) => `RWF ${Number(value || 0).toLocaleString()}`;
 const firstImage = (h: Housing) =>
@@ -19,7 +19,7 @@ export default function HousingPage() {
   useEffect(() => {
     housingApi.getAll()
       .then(setItems)
-      .catch(err => toast.error(err instanceof Error ? err.message : "Failed to load housing"))
+      .catch(err => toast.error(err instanceof Error ? err.message : "Failed to load hostels"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -34,8 +34,8 @@ export default function HousingPage() {
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
       {/* hero */}
       <section className="rounded-[2rem] bg-black p-8 text-white">
-        <p className="text-sm font-black uppercase tracking-[0.35em] text-neutral-400">Verified housing</p>
-        <h1 className="mt-4 text-4xl font-black md:text-5xl">Find safe student housing and pay only after host confirmation.</h1>
+        <p className="text-sm font-black uppercase tracking-[0.35em] text-neutral-400">Verified hostels</p>
+        <h1 className="mt-4 text-4xl font-black md:text-5xl">Find a safe student hostel and pay only after host confirmation.</h1>
         <p className="mt-4 max-w-2xl text-neutral-300">Live backend listings, host confirmation, and secure payment proof tracking.</p>
       </section>
 
@@ -83,7 +83,7 @@ export default function HousingPage() {
             return (
               <Link
                 key={housing.id}
-                to={`/housing/${housing.id}`}
+                to={`/hostels/${housing.id}`}
                 className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="relative">
