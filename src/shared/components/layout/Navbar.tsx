@@ -90,15 +90,31 @@ export default function Navbar() {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((o) => !o)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm transition hover:shadow-md dark:bg-white dark:text-neutral-900"
+              className={
+                user 
+                  ? "flex items-center gap-2 rounded-full border border-neutral-200 bg-white p-1 pr-2 shadow-sm transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 md:pr-4"
+                  : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-white shadow-sm transition hover:shadow-md dark:bg-white dark:text-neutral-900"
+              }
               aria-label="Open menu"
             >
-              {menuOpen
-                ? <Menu size={18} />
-                : user
-                  ? <span className="text-sm font-bold">{(user.fullName || user.email || "?").charAt(0).toUpperCase()}</span>
-                  : <User size={18} />
-              }
+              {menuOpen && !user ? (
+                <Menu size={18} />
+              ) : user ? (
+                <>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.fullName || user.email} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-bold">{(user.fullName || user.email || "?").charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <span className="hidden text-sm font-bold text-neutral-700 dark:text-neutral-200 md:block">
+                    {user.fullName?.split(' ')[0] || user.email}
+                  </span>
+                </>
+              ) : (
+                <User size={18} />
+              )}
             </button>
 
             {menuOpen && (
@@ -128,9 +144,13 @@ export default function Navbar() {
                 {user ? (
                   <>
                     <div className="flex items-center gap-3 bg-neutral-50 px-5 py-4 dark:bg-neutral-800">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
-                        {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
-                      </div>
+                      <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.fullName || user.email} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="grid h-full w-full place-items-center">{(user.fullName || user.email || "?").charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
                       <div className="min-w-0">
                         <p className="truncate font-bold text-neutral-900 dark:text-white">{user.fullName || user.email}</p>
                         <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{user.email}</p>

@@ -8,8 +8,8 @@ import type { Role } from '../../types';
 const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   STUDENT: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
-    { label: 'Find Hostels', to: '/student/hostels', icon: Building2 },
-    { label: 'My Bookings', to: '/student/booking', icon: CheckCircle2 },
+    { label: 'Find Hotels', to: '/student/hostels', icon: Building2 },
+    { label: 'My Accommodation', to: '/student/accommodation', icon: CheckCircle2 },
     { label: 'Search Jobs', to: '/student/jobs', icon: Briefcase },
     { label: 'Courses & Skills', to: '/student/learning', icon: BookOpen },
     { label: 'Assignments & Exams', to: '/student/assignments', icon: GraduationCap },
@@ -97,8 +97,12 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
             className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             {/* Avatar */}
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
-              {initials}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             {/* Name + role */}
             <div className="min-w-0 flex-1">

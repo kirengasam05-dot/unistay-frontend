@@ -10,7 +10,8 @@ export type Application = {
   compatible?: boolean;
   missing?: string[];
   createdAt?: string;
-  user?: { fullName: string; email: string };
+  user?: { fullName: string; email: string; avatar?: string };
+
   job?: { id: string; title: string; company?: string };
 };
 

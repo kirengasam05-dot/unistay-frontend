@@ -55,8 +55,8 @@ export default function HostListingsPage() {
     const ok = await confirm({
       title: goingToBooked ? "Mark as booked?" : "Mark as available?",
       description: goingToBooked
-        ? `"${h.title}" will be hidden from new student bookings until you mark it available again.`
-        : `"${h.title}" will become bookable by students again.`,
+        ? `"${h.name ?? h.title}" will be hidden from new student bookings until you mark it available again.`
+        : `"${h.name ?? h.title}" will become bookable by students again.`,
       confirmText: goingToBooked ? "Mark booked" : "Mark available",
     });
     if (!ok) return;
@@ -64,7 +64,7 @@ export default function HostListingsPage() {
       setBusyId(h.id);
       const updated = await housingApi.update(h.id, {
         availability: !h.availability,
-      });
+      } as any);
       setItems((prev) =>
         prev.map((x) => (x.id === h.id ? { ...x, ...updated } : x)),
       );
@@ -83,7 +83,7 @@ export default function HostListingsPage() {
   async function remove(h: Housing) {
     const ok = await confirm({
       title: "Delete this listing?",
-      description: `"${h.title}" will be permanently removed. This cannot be undone.`,
+      description: `"${h.name ?? h.title}" will be permanently removed. This cannot be undone.`,
       confirmText: "Delete listing",
       variant: "destructive",
     });
@@ -181,7 +181,7 @@ export default function HostListingsPage() {
               </div>
               <div className="p-5">
                 <h2 className="font-black text-neutral-900 dark:text-white">
-                  {h.title}
+                  {h.name ?? h.title}
                 </h2>
                 <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
                   <MapPin size={13} />

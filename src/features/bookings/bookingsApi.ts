@@ -2,93 +2,77 @@ import api from "../../shared/lib/api";
 import type { Booking } from "../../shared/types/api";
 import { extractList, extractOne } from "../../shared/types/api";
 
-/**
- * Bookings API — routes on the backend:
- *
- *   POST   /bookings                        (STUDENT) create booking request
- *   GET    /bookings/my                     (STUDENT) student's own bookings
- *   PATCH  /bookings/:id/payment-proof      (STUDENT) submit payment reference
- *   PATCH  /bookings/:id/cancel             (STUDENT | ADMIN)
- *
- *   GET    /bookings/listing/:housing_id    (HOST | ADMIN) bookings for a listing
- *   PATCH  /bookings/:id/confirm            (HOST | ADMIN) confirm → locks listing
- *   PATCH  /bookings/:id/reject             (HOST | ADMIN) reject request
- *   PATCH  /bookings/:id/complete           (HOST | ADMIN) verify payment → unlocks listing
- *
- *   GET    /bookings/:id                    (STUDENT | HOST | ADMIN) single booking
- *   GET    /bookings                        (ADMIN) all bookings
- */
-
 export type CreateBookingPayload = {
-  housingId: string;
+  roomId: string;
   checkIn: string;
   checkOut: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
 };
 
 export const bookingsApi = {
   // ─── STUDENT ───────────────────────────────────────────────────────────────
 
-  /** GET /bookings/my — student's own booking list */
+  /** GET /hostel-bookings — student's own booking list */
   async getMyBookings(): Promise<Booking[]> {
-    const res = await api.get("/bookings/my");
+    const res = await api.get("/hostel-bookings");
     return extractList<Booking>(res.data);
   },
 
-  /** POST /bookings — create a new booking request */
+  /** POST /hostel-bookings — create a new booking request */
   async create(data: CreateBookingPayload): Promise<Booking> {
-    const res = await api.post("/bookings", data);
+    const res = await api.post("/hostel-bookings", data);
     return extractOne<Booking>(res.data);
   },
 
   /**
-   * PATCH /bookings/:id/payment-proof — student submits payment reference.
-   * Call this after the host confirms. The host will then verify and complete.
+   * Submit payment. In backend, this calls pay booking which creates Stripe Checkout.
    */
   async submitPaymentProof(id: string, paymentProof: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/payment-proof`, { paymentProof, paymentRef: paymentProof });
+    const res = await api.post(`/hostel-bookings/${id}/pay`, { paymentProof, paymentRef: paymentProof });
     return extractOne<Booking>(res.data);
   },
 
-  /** PATCH /bookings/:id/cancel — student cancels their own booking */
+  /** POST /hostel-bookings/:id/cancel — student/staff cancels booking */
   async cancel(id: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/cancel`);
+    const res = await api.post(`/hostel-bookings/${id}/cancel`);
     return extractOne<Booking>(res.data);
   },
 
   // ─── HOST ──────────────────────────────────────────────────────────────────
 
   /**
-   * GET /bookings/listing/:housing_id — all bookings for a specific listing.
-   * HostBookingsPage calls this for each listing then merges the results.
+   * GET /hostel-bookings — all bookings filtered by hostelId.
    */
-  async getByListing(housingId: string): Promise<Booking[]> {
-    const res = await api.get(`/bookings/listing/${housingId}`);
+  async getByListing(hostelId: string): Promise<Booking[]> {
+    const res = await api.get(`/hostel-bookings`, { params: { hostelId } });
     return extractList<Booking>(res.data);
   },
 
-  /** PATCH /bookings/:id/confirm — host confirms → listing marked as booked */
+  /** PATCH /hostel-bookings/:id/status — host confirms status */
   async confirm(id: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/confirm`);
+    const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "CONFIRMED" });
     return extractOne<Booking>(res.data);
   },
 
-  /** PATCH /bookings/:id/reject — host rejects with a mandatory reason */
+  /** PATCH /hostel-bookings/:id/status — host rejects status */
   async reject(id: string, reason: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/reject`, { reason });
+    const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "REJECTED", reason });
     return extractOne<Booking>(res.data);
   },
 
-  /** PATCH /bookings/:id/complete — host verifies payment → listing made available again */
+  /** PATCH /hostel-bookings/:id/status — host completes status */
   async complete(id: string): Promise<Booking> {
-    const res = await api.patch(`/bookings/${id}/complete`);
+    const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "COMPLETED" });
     return extractOne<Booking>(res.data);
   },
 
   // ─── SHARED ────────────────────────────────────────────────────────────────
 
-  /** GET /bookings/:id — single booking detail */
+  /** GET /hostel-bookings/:id — single booking detail */
   async getOne(id: string): Promise<Booking> {
-    const res = await api.get(`/bookings/${id}`);
+    const res = await api.get(`/hostel-bookings/${id}`);
     return extractOne<Booking>(res.data);
   },
 };

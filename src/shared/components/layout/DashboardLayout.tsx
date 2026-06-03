@@ -78,9 +78,13 @@ export default function DashboardLayout() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(v => !v)}
-              className="grid h-9 w-9 place-items-center rounded-full bg-neutral-900 text-xs font-black text-white transition hover:opacity-80 dark:bg-white dark:text-neutral-900"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-xs font-black text-white transition hover:opacity-80 dark:bg-white dark:text-neutral-900"
             >
-              {initials}
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.fullName || user.email} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </button>
 
             {dropdownOpen && (

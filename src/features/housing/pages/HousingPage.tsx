@@ -15,6 +15,9 @@ export default function HousingPage() {
   const [items, setItems]   = useState<Housing[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]   = useState(initialQuery);
+  const [category, setCategory] = useState<string>("ALL");
+  const [maxPrice, setMaxPrice] = useState<number>(300000);
+  const [onlyAvailable, setOnlyAvailable] = useState<boolean>(false);
 
   useEffect(() => {
     housingApi.getAll()
@@ -25,10 +28,16 @@ export default function HousingPage() {
 
   const filtered = useMemo(() => {
     const value = query.toLowerCase().trim();
-    return items.filter((h) =>
-      `${h.title} ${h.location} ${h.description || ""}`.toLowerCase().includes(value)
-    );
-  }, [items, query]);
+    return items.filter((h) => {
+      const matchSearch = `${h.name ?? h.title} ${h.location} ${h.description || ""}`.toLowerCase().includes(value);
+      const price = h.price ?? 0;
+      const hCategory = h.category ?? (price >= 80000 ? "VIP" : price >= 35000 ? "Standard" : "Budget");
+      const matchCategory = category === "ALL" || hCategory === category;
+      const matchPrice = price <= maxPrice;
+      const matchAvailability = !onlyAvailable || h.availability;
+      return matchSearch && matchCategory && matchPrice && matchAvailability;
+    });
+  }, [items, query, category, maxPrice, onlyAvailable]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
@@ -39,8 +48,8 @@ export default function HousingPage() {
         <p className="mt-4 max-w-2xl text-neutral-300">Live backend listings, host confirmation, and secure payment proof tracking.</p>
       </section>
 
-      {/* search */}
-      <section className="rounded-[2rem] border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      {/* search and filters */}
+      <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 space-y-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
           <input
@@ -51,6 +60,54 @@ export default function HousingPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-6 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+          {/* Category Pill Filters */}
+          <div className="flex flex-wrap gap-2">
+            {["ALL", "Budget", "Standard", "VIP"].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${
+                  category === cat
+                    ? "bg-black text-white dark:bg-white dark:text-black"
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                }`}
+              >
+                {cat === "ALL" ? "All Categories" : cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Price Range Slider */}
+          <div className="flex items-center gap-4 min-w-[200px] flex-1 max-w-sm">
+            <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400 shrink-0">Max Price:</span>
+            <input
+              type="range"
+              min="20000"
+              max="300000"
+              step="5000"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-black dark:accent-white"
+            />
+            <span className="text-xs font-black text-neutral-900 dark:text-white shrink-0">
+              RWF {maxPrice.toLocaleString()}
+            </span>
+          </div>
+
+          {/* Availability Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={onlyAvailable}
+              onChange={(e) => setOnlyAvailable(e.target.checked)}
+              className="h-4 w-4 rounded border-neutral-300 text-black focus:ring-black dark:border-neutral-700 dark:bg-neutral-800"
+            />
+            <span className="text-xs font-bold text-neutral-600 dark:text-neutral-300">Show Available Only</span>
+          </label>
         </div>
       </section>
 
@@ -109,7 +166,7 @@ export default function HousingPage() {
                   <div className="mt-6 flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400">Monthly price</p>
-                      <p className="text-2xl font-black text-neutral-900 dark:text-white">{money(housing.price)}</p>
+                      <p className="text-2xl font-black text-neutral-900 dark:text-white">{money(housing.price ?? 0)}</p>
                     </div>
                     <span className="rounded-2xl bg-black px-5 py-3 text-sm font-black text-white transition group-hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:group-hover:bg-neutral-100">
                       View details
