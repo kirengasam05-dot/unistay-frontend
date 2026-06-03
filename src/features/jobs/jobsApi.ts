@@ -32,6 +32,8 @@ export type CreateJobPayload = {
   description?: string;
 };
 
+export type UpdateJobPayload = Partial<Pick<CreateJobPayload, 'title' | 'location' | 'salary' | 'scheduleType'>>;
+
 export const jobsApi = {
   /** GET /jobs — all jobs (public) */
   async getAll(): Promise<Job[]> {
@@ -51,6 +53,12 @@ export const jobsApi = {
   /** POST /jobs — employer creates a job */
   async create(data: CreateJobPayload): Promise<Job> {
     const res = await api.post('/jobs', data);
+    return extractOne<Job>(res.data);
+  },
+
+  /** PUT /jobs/:id — employer updates a job */
+  async update(id: string, data: UpdateJobPayload): Promise<Job> {
+    const res = await api.put('/jobs/' + id, data);
     return extractOne<Job>(res.data);
   },
 
