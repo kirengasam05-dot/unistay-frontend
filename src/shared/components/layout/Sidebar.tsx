@@ -1,9 +1,7 @@
-import { useRef, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, BookOpen, Briefcase, Building2, CheckCircle2, ChevronDown, GraduationCap, Home, Inbox, LogOut, ShieldCheck, UserCog, Users, X } from 'lucide-react';
-import { useAuth } from '../../../features/auth/context/AuthContext';
-import { useConfirm } from '../ui/ConfirmDialog';
+import { NavLink } from 'react-router-dom';
+import { BarChart3, BookOpen, Briefcase, Building2, CheckCircle2, GraduationCap, Home, Inbox, ShieldCheck, UserCog, Users, X } from 'lucide-react';
 import type { Role } from '../../types';
+import BrandLogo from '../BrandLogo';
 
 const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   STUDENT: [
@@ -60,85 +58,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarProps) {
-  const navigate = useNavigate();
-  const { user, logout: signOut } = useAuth();
-  const confirm = useConfirm();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const logout = async () => {
-    setDropdownOpen(false);
-    onClose?.();
-    const ok = await confirm({
-      title: 'Log out?',
-      description: "You'll need to sign in again to access your dashboard.",
-      confirmText: 'Log out',
-    });
-    if (!ok) return;
-    signOut();
-    navigate('/login');
-  };
-
-  const initials = user?.fullName
-    ? user.fullName.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? '?';
-
-  const displayName = user?.fullName || user?.email || 'Account';
-  const displayRole = role.charAt(0) + role.slice(1).toLowerCase();
 
   const sidebarContent = (
     <div className="flex h-full flex-col p-5">
 
-      {/* ── User card with dropdown ── */}
-      <div className="flex items-center justify-between">
-        <div className="relative flex-1" ref={dropdownRef}>
-          <button
-            onClick={() => setDropdownOpen(v => !v)}
-            className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          >
-            {/* Avatar */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
-            {/* Name + role */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-neutral-900 dark:text-white">{displayName}</p>
-              <p className="text-xs font-semibold text-neutral-400">{displayRole}</p>
-            </div>
-            <ChevronDown
-              size={15}
-              className={`shrink-0 text-neutral-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-
-          {/* Dropdown menu */}
-          {dropdownOpen && (
-            <div className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
-              <Link
-                to="/profile"
-                onClick={() => { setDropdownOpen(false); onClose?.(); }}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              >
-                <UserCog size={15} />
-                Profile
-              </Link>
-              <div className="mx-3 border-t border-neutral-100 dark:border-neutral-800" />
-              <button
-                onClick={logout}
-                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/30"
-              >
-                <LogOut size={15} />
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Mobile close button */}
+      {/* ── Logo ── */}
+      <div className="flex items-center justify-between pb-4">
+        <BrandLogo />
         {onClose && (
           <button
             onClick={onClose}
