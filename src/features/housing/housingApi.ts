@@ -1,13 +1,13 @@
-import api from "../../lib/api";
-import type { Housing, VerificationStatus } from "../../types/api";
-import { extractList, extractOne } from "../../types/api";
+import api from "../../shared/lib/api";
+import type { Housing, VerificationStatus } from "../../shared/types/api";
+import { extractList, extractOne } from "../../shared/types/api";
 
 /**
  * Housing / Listings API — mirrors the UniStay+ backend
  * (see https://cdn-unistay.onrender.com/api-docs)
  *   GET    /listings                 (public)            — all listings
  *   GET    /listings/:id             (public)            — single listing
- *   GET    /listings/host/my-listings (host)              — my listings
+ *   GET    /listings/me/listings     (host)              — my listings
  *   POST   /listings                 (host, multipart)   — create
  *   PUT    /listings/:id             (host)              — update (supports partial)
  *   DELETE /listings/:id             (host)              — delete

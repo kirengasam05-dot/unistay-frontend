@@ -1,5 +1,5 @@
-import api from '../../lib/api';
-import { extractList, extractOne } from '../../types/api';
+import api from '../../shared/lib/api';
+import { extractList, extractOne } from '../../shared/types/api';
 
 export type Job = {
   id: string;
@@ -15,6 +15,7 @@ export type Job = {
   requirements?: string[];
   employerId?: string;
   description?: string;
+  image?: string;
   companyLogo?: string;
   createdAt?: string;
 };

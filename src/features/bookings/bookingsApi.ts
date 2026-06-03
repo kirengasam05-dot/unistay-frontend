@@ -1,26 +1,22 @@
-import api from "../../lib/api";
-import type { Booking } from "../../types/api";
-import { extractList, extractOne } from "../../types/api";
-import { getUser } from "../../lib/authStorage";
-import { housingApi } from "../housing/housingApi";
+import api from "../../shared/lib/api";
+import type { Booking } from "../../shared/types/api";
+import { extractList, extractOne } from "../../shared/types/api";
 
 /**
- * Bookings API — verified against the running backend (localhost:3000).
+ * Bookings API — routes on the backend:
  *
- *   GET    /bookings              — ALL bookings (not scoped); filter client-side
- *   GET    /bookings/:id          — single booking
- *   POST   /bookings              (student) — create { housingId, checkIn, checkOut }
- *   PUT    /bookings/approve/:id  (host)    — change status { status: PENDING|CONFIRMED|CANCELLED }
- *   PUT    /bookings/:id          — generic update
- *   DELETE /bookings/:id          — delete
+ *   POST   /bookings                        (STUDENT) create booking request
+ *   GET    /bookings/my                     (STUDENT) student's own bookings
+ *   PATCH  /bookings/:id/payment-proof      (STUDENT) submit payment reference
+ *   PATCH  /bookings/:id/cancel             (STUDENT | ADMIN)
  *
- * There is no /bookings/my or /bookings/host route, and no per-status routes —
- * the list endpoint returns every booking, so we filter by the current user:
- *   • students see bookings they created (userId === me)
- *   • hosts see bookings on listings they own (housingId ∈ my listings)
+ *   GET    /bookings/listing/:housing_id    (HOST | ADMIN) bookings for a listing
+ *   PATCH  /bookings/:id/confirm            (HOST | ADMIN) confirm → locks listing
+ *   PATCH  /bookings/:id/reject             (HOST | ADMIN) reject request
+ *   PATCH  /bookings/:id/complete           (HOST | ADMIN) verify payment → unlocks listing
  *
- * A booking carries { userId, housingId, status, paymentStatus, totalAmount,
- * checkIn, checkOut, user:{fullName,email}, housing:{title,location,images} }.
+ *   GET    /bookings/:id                    (STUDENT | HOST | ADMIN) single booking
+ *   GET    /bookings                        (ADMIN) all bookings
  */
 
 export type CreateBookingPayload = {
@@ -29,87 +25,70 @@ export type CreateBookingPayload = {
   checkOut: string;
 };
 
-type HostStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
-
-async function fetchAll(): Promise<Booking[]> {
-  const res = await api.get("/bookings");
-  return extractList<Booking>(res.data);
-}
-
-/** Host status change — PUT /bookings/approve/:id with { status }. */
-async function changeStatus(id: string, status: HostStatus): Promise<Booking> {
-  const res = await api.put(`/bookings/approve/${id}`, { status });
-  // Controller responds with { message, updatedBooking }.
-  return (res.data?.updatedBooking as Booking) ?? extractOne<Booking>(res.data);
-}
-
-/** Host — bookings on listings the current host owns. */
-async function getHostBookings(): Promise<Booking[]> {
-  const [all, listings] = await Promise.all([
-    fetchAll(),
-    housingApi.getMyListings().catch(() => []),
-  ]);
-  const mine = new Set(listings.map((l) => l.id));
-  return all.filter((b) => mine.has(b.housingId));
-}
-
 export const bookingsApi = {
-  /** Student — the bookings the current user created. */
+  // ─── STUDENT ───────────────────────────────────────────────────────────────
+
+  /** GET /bookings/my — student's own booking list */
   async getMyBookings(): Promise<Booking[]> {
-    const all = await fetchAll();
-    const me = getUser();
-    return me?.id ? all.filter((b) => b.userId === me.id) : all;
+    const res = await api.get("/bookings/my");
+    return extractList<Booking>(res.data);
   },
 
-  getHostBookings,
-
-  /** Bookings for one specific listing. */
-  async getByListing(housingId: string): Promise<Booking[]> {
-    const all = await fetchAll();
-    return all.filter((b) => b.housingId === housingId);
-  },
-
-  /** Single booking detail. GET /bookings/:id */
-  async getOne(id: string): Promise<Booking> {
-    const res = await api.get(`/bookings/${id}`);
-    return extractOne<Booking>(res.data);
-  },
-
-  /** Student — create a booking. POST /bookings */
+  /** POST /bookings — create a new booking request */
   async create(data: CreateBookingPayload): Promise<Booking> {
     const res = await api.post("/bookings", data);
     return extractOne<Booking>(res.data);
   },
 
-  /** Host — confirm a booking (CONFIRMED). */
-  confirm: (id: string) => changeStatus(id, "CONFIRMED"),
-  /** Host — reject a booking (no REJECTED status server-side → CANCELLED). */
-  reject: (id: string) => changeStatus(id, "CANCELLED"),
-  /** Cancel a booking. */
-  cancel: (id: string) => changeStatus(id, "CANCELLED"),
-
-  /** Host — verify payment / complete. No dedicated route; best-effort via generic update. */
-  async complete(id: string): Promise<Booking> {
-    const res = await api.put(`/bookings/${id}`, { status: "COMPLETED", paymentStatus: "PAID" });
+  /**
+   * PATCH /bookings/:id/payment-proof — student submits payment reference.
+   * Call this after the host confirms. The host will then verify and complete.
+   */
+  async submitPaymentProof(id: string, paymentProof: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/payment-proof`, { paymentProof, paymentRef: paymentProof });
     return extractOne<Booking>(res.data);
   },
+
+  /** PATCH /bookings/:id/cancel — student cancels their own booking */
+  async cancel(id: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/cancel`);
+    return extractOne<Booking>(res.data);
+  },
+
+  // ─── HOST ──────────────────────────────────────────────────────────────────
 
   /**
-   * Student — submit payment proof + the email the host should use to reach
-   * them. No dedicated route yet; best-effort via generic update.
+   * GET /bookings/listing/:housing_id — all bookings for a specific listing.
+   * HostBookingsPage calls this for each listing then merges the results.
    */
-  async submitPaymentProof(id: string, paymentProof: string, paymentEmail?: string): Promise<Booking> {
-    const res = await api.put(`/bookings/${id}`, {
-      paymentProof,
-      paymentRef: paymentProof,
-      paymentEmail,
-      paymentStatus: "PENDING_VERIFICATION",
-    });
+  async getByListing(housingId: string): Promise<Booking[]> {
+    const res = await api.get(`/bookings/listing/${housingId}`);
+    return extractList<Booking>(res.data);
+  },
+
+  /** PATCH /bookings/:id/confirm — host confirms → listing marked as booked */
+  async confirm(id: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/confirm`);
     return extractOne<Booking>(res.data);
   },
 
-  /** Delete a booking. DELETE /bookings/:id */
-  async remove(id: string): Promise<void> {
-    await api.delete(`/bookings/${id}`);
+  /** PATCH /bookings/:id/reject — host rejects with a mandatory reason */
+  async reject(id: string, reason: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/reject`, { reason });
+    return extractOne<Booking>(res.data);
+  },
+
+  /** PATCH /bookings/:id/complete — host verifies payment → listing made available again */
+  async complete(id: string): Promise<Booking> {
+    const res = await api.patch(`/bookings/${id}/complete`);
+    return extractOne<Booking>(res.data);
+  },
+
+  // ─── SHARED ────────────────────────────────────────────────────────────────
+
+  /** GET /bookings/:id — single booking detail */
+  async getOne(id: string): Promise<Booking> {
+    const res = await api.get(`/bookings/${id}`);
+    return extractOne<Booking>(res.data);
   },
 };

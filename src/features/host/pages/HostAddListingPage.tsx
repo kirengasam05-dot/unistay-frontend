@@ -91,7 +91,7 @@ export default function HostAddListingPage() {
           </button>
           <div>
             <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">New Listing</h1>
-            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">Fill in the details below to publish a housing listing.</p>
+            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">Fill in the details below to publish a hostel listing.</p>
           </div>
         </div>
       </div>
@@ -99,33 +99,58 @@ export default function HostAddListingPage() {
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="card">
           <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Property photos</label>
-          {images.length > 0 && (
-            <div className="mb-3 grid grid-cols-3 gap-3">
+          {images.length === 0 ? (
+            /* Empty state — full drop zone */
+            <div
+              onDragOver={e => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={onDrop}
+              onClick={() => inputRef.current?.click()}
+              className={`flex h-52 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-colors ${dragging ? 'border-neutral-900 bg-neutral-50 dark:border-white dark:bg-neutral-800' : 'border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800/50 dark:hover:border-neutral-500'}`}
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 dark:bg-neutral-700">
+                {dragging ? <CloudUpload size={24} className="text-neutral-700 dark:text-neutral-200" /> : <ImageOff size={22} className="text-neutral-500 dark:text-neutral-400" />}
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-neutral-700 dark:text-neutral-300">{dragging ? 'Drop them here' : 'Drag & drop photos here'}</p>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">or <span className="font-semibold text-neutral-900 underline dark:text-white">click to browse</span></p>
+                <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">PNG, JPG, WEBP — up to 10 photos</p>
+              </div>
+            </div>
+          ) : (
+            /* Photos grid — fills the space; last tile is "add more" */
+            <div
+              onDragOver={e => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={onDrop}
+              className={`grid grid-cols-3 gap-3 rounded-2xl transition-colors ${dragging ? 'ring-2 ring-neutral-900 dark:ring-white' : ''}`}
+            >
               {images.map((img, i) => (
                 <div key={img.url} className="relative overflow-hidden rounded-xl">
-                  <img src={img.url} alt="Preview" className="h-28 w-full object-cover" />
-                  <button onClick={() => removeImage(i)} className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80">
+                  <img src={img.url} alt={`Photo ${i + 1}`} className="h-36 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-red-600"
+                  >
                     <X size={13} />
                   </button>
+                  {i === 0 && (
+                    <span className="absolute bottom-1.5 left-1.5 rounded-lg bg-black/60 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-sm">Cover</span>
+                  )}
                 </div>
               ))}
+              {/* Add more tile */}
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="flex h-36 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 text-neutral-500 transition hover:border-neutral-500 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-400 dark:hover:border-neutral-500"
+              >
+                <Plus size={22} />
+                <span className="text-xs font-semibold">Add more</span>
+              </button>
             </div>
           )}
-          <div
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={onDrop}
-            onClick={() => inputRef.current?.click()}
-            className={`flex h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-colors ${dragging ? 'border-neutral-900 bg-neutral-50 dark:border-white dark:bg-neutral-800' : 'border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800/50 dark:hover:border-neutral-500'}`}
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-200 dark:bg-neutral-700">
-              {dragging ? <CloudUpload size={22} className="text-neutral-700 dark:text-neutral-200" /> : <ImageOff size={20} className="text-neutral-500 dark:text-neutral-400" />}
-            </div>
-            <div className="text-center">
-              <p className="font-semibold text-neutral-700 dark:text-neutral-300">{dragging ? 'Drop them here' : 'Drag & drop photos here'}</p>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">or <span className="font-semibold text-neutral-900 underline dark:text-white">click to browse</span></p>
-            </div>
-          </div>
           <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { if (e.target.files) addFiles(e.target.files); }} />
           {errors.image && <p className="mt-2 text-xs text-red-500">{errors.image}</p>}
         </div>

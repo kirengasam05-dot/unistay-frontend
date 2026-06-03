@@ -1,5 +1,5 @@
-import api from '../../lib/api';
-import { extractList, extractOne } from '../../types/api';
+import api from '../../shared/lib/api';
+import { extractList, extractOne } from '../../shared/types/api';
 
 export type Application = {
   id: string;

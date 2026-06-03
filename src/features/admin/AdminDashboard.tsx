@@ -7,8 +7,7 @@ import { coursesApi } from '../courses/coursesApi';
 
 const actions = [
   { label: 'Users & Roles',  desc: 'Create users and assign roles',        to: '/admin/users',      color: 'border-blue-200 dark:border-blue-800/60',     icon: Users      },
-  { label: 'Course Builder', desc: 'Build and publish learning materials',  to: '/admin/learning',   color: 'border-violet-200 dark:border-violet-800/60', icon: BookOpen   },
-  { label: 'Moderation',     desc: 'Review and verify housing listings',    to: '/admin/moderation', color: 'border-amber-200 dark:border-amber-800/60',   icon: ShieldCheck },
+  { label: 'Moderation',     desc: 'Review and verify hostel listings',    to: '/admin/moderation', color: 'border-amber-200 dark:border-amber-800/60',   icon: ShieldCheck },
   { label: 'Analytics',      desc: 'Platform usage and insights',           to: '/admin/analytics',  color: 'border-emerald-200 dark:border-emerald-800/60', icon: Award    },
 ];
 
@@ -38,19 +37,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="card relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800/60" />
+      <div className="card">
+        <div />
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-neutral-200/50 dark:bg-white/5" />
         <div className="relative">
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl leading-tight">
             Control users, roles,<br className="hidden sm:block" /> content &amp; moderation.
           </h2>
           <p className="mt-2 max-w-lg text-sm text-neutral-500 dark:text-neutral-400">
-            Manage members and roles, moderate &amp; verify housing, and build learning materials.
+            Manage members and roles, moderate &amp; verify hostels, and build learning materials.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link className="btn-black rounded-xl" to="/admin/users">Manage users</Link>
-            <Link className="btn-white rounded-xl" to="/admin/moderation">Moderate housing</Link>
+            <Link className="btn-white rounded-xl" to="/admin/moderation">Moderate hostels</Link>
           </div>
         </div>
       </div>

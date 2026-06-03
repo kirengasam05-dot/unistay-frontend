@@ -2,15 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Power, RefreshCcw, Search, Trash2, UserCircle2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersApi } from '../../users/usersApi';
-import { useConfirm } from '../../../components/ui/ConfirmDialog';
-import type { User, UserRole } from '../../../types/api';
+import { useConfirm } from '../../../shared/components/ui/ConfirmDialog';
+import type { User, UserRole } from '../../../shared/types/api';
 
-const ROLES: UserRole[] = ['STUDENT', 'HOST', 'EMPLOYER', 'ADMIN'];
+const ROLES: UserRole[] = ['STUDENT', 'HOST', 'EMPLOYER', 'INSTRUCTOR', 'ADMIN'];
 
 const roleMeta: Record<UserRole, { label: string; badge: string; avatar: string }> = {
   STUDENT:  { label: 'Student',  badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         avatar: 'bg-blue-600'    },
   HOST:     { label: 'Host',     badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400', avatar: 'bg-emerald-600' },
   EMPLOYER: { label: 'Employer', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',   avatar: 'bg-violet-600'  },
+  INSTRUCTOR: { label: 'Instructor', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400', avatar: 'bg-amber-600' },
   ADMIN:    { label: 'Admin',    badge: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400',           avatar: 'bg-rose-600'    },
 };
 

@@ -2,33 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BedDouble, CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
-import { housingApi } from "../../housing/housingApi";
-import type { Housing } from "../../../types/api";
+import type { Housing } from "../../../shared/types/api";
+import { useHousingQuery } from "../../housing/hooks/useHousingQueries";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
 const firstImage = (h: Housing) =>
   h.images?.[0] || h.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80";
 
 export default function StudentHousingPage() {
-  const [items, setItems] = useState<Housing[]>([]);
-  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [onlyAvailable, setOnlyAvailable] = useState(true);
+  const { data = [], error, isPending: loading } = useHousingQuery();
+  const items: Housing[] = data.filter((h) => h.verificationStatus === "VERIFIED");
 
-  async function load() {
-    try {
-      setLoading(true);
-      const all = await housingApi.getAll();
-      // Students only ever book verified housing.
-      setItems(all.filter((h) => h.verificationStatus === "VERIFIED"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to load housing");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (error) toast.error(error instanceof Error ? error.message : "Failed to load hostels");
+  }, [error]);
 
   const filtered = useMemo(() => {
     const value = query.toLowerCase().trim();
@@ -41,10 +30,10 @@ export default function StudentHousingPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">Find housing</p>
-        <h1 className="mt-2 text-2xl font-black sm:text-3xl">Browse verified student housing</h1>
-        <p className="mt-2 max-w-xl text-sm text-neutral-400">You only pay after the host confirms availability. Track requests under My Bookings.</p>
+      <section className="rounded-[2rem] bg-gradient-to-br from-emerald-700 to-slate-950 p-6 text-white sm:p-10">
+        <p className="text-xs font-bold uppercase tracking-widest text-emerald-100">Verified student stays</p>
+        <h1 className="mt-2 max-w-2xl text-3xl font-black sm:text-4xl">Find a comfortable hostel close to where life happens.</h1>
+        <p className="mt-3 max-w-xl text-sm text-emerald-50">Browse available verified rooms, compare amenities, and request your booking before making a payment.</p>
       </section>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -65,13 +54,13 @@ export default function StudentHousingPage() {
       ) : filtered.length === 0 ? (
         <div className="card py-12 text-center">
           <ShieldCheck size={40} className="mx-auto text-neutral-300 dark:text-neutral-700" />
-          <p className="mt-4 font-black text-neutral-900 dark:text-white">No housing found</p>
+          <p className="mt-4 font-black text-neutral-900 dark:text-white">No hostels found</p>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Try a different search or check back soon for new verified rooms.</p>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((h) => (
-            <Link key={h.id} to={`/housing/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-card transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+            <Link key={h.id} to={`/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-card transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
               <div className="relative">
                 <img src={firstImage(h)} alt={h.title} className="h-44 w-full object-cover" />
                 <span className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-black text-white ${h.availability ? "bg-emerald-500" : "bg-neutral-500"}`}>
