@@ -1,6 +1,6 @@
-import api from "../../lib/api";
-import type { Housing, VerificationStatus } from "../../types/api";
-import { extractList, extractOne } from "../../types/api";
+import api from "../../shared/lib/api";
+import type { Housing, VerificationStatus } from "../../shared/types/api";
+import { extractList, extractOne } from "../../shared/types/api";
 
 /**
  * Housing / Listings API — mirrors the UniStay+ backend

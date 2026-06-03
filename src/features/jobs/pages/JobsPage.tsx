@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Briefcase, Clock3, Loader2, MapPin, Search, Wallet } from 'lucide-react';
 import { jobsApi } from '../jobsApi';
 import type { Job } from '../jobsApi';
-import Badge from '../../../components/ui/Badge';
+import Badge from '../../../shared/components/ui/Badge';
 
 export default function JobsPage() {
   const [jobs, setJobs]         = useState<Job[]>([]);

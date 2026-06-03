@@ -91,7 +91,7 @@ export default function HostAddListingPage() {
           </button>
           <div>
             <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">New Listing</h1>
-            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">Fill in the details below to publish a housing listing.</p>
+            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">Fill in the details below to publish a hostel listing.</p>
           </div>
         </div>
       </div>

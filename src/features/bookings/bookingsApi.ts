@@ -1,6 +1,6 @@
-import api from "../../lib/api";
-import type { Booking } from "../../types/api";
-import { extractList, extractOne } from "../../types/api";
+import api from "../../shared/lib/api";
+import type { Booking } from "../../shared/types/api";
+import { extractList, extractOne } from "../../shared/types/api";
 
 /**
  * Bookings API — current backend routes:
@@ -21,6 +21,9 @@ export type CreateBookingPayload = {
   housingId: string;
   checkIn: string;
   checkOut: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
 };
 
 export const bookingsApi = {

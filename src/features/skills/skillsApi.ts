@@ -1,5 +1,5 @@
-import api from '../../lib/api';
-import { extractList, extractOne } from '../../types/api';
+import api from '../../shared/lib/api';
+import { extractList, extractOne } from '../../shared/types/api';
 
 export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
@@ -30,11 +30,18 @@ export type Assignment = {
   id: string;
   title: string;
   courseId?: string;
+  isStandalone?: boolean;
   timeLimit?: number;
   questionCount?: number;
   passingScore?: number;
   status?: string;
+  questions?: ExamQuestion[];
 };
+
+export type ExamOption = { id: string; text: string };
+export type ExamQuestion = { id: string; text: string; options: ExamOption[] };
+export type ExamAttempt = { id: string; assignmentId: string; assignment?: Assignment; questions?: { question: ExamQuestion }[] };
+export type ExamResult = { score: number; passed?: boolean; status?: string };
 
 export const skillsApi = {
   /** GET /skills — all skills (public) */
@@ -70,6 +77,21 @@ export const skillsApi = {
   async getAssignments(): Promise<Assignment[]> {
     const res = await api.get('/assignments');
     return extractList<Assignment>(res.data);
+  },
+
+  async getAssignment(id: string): Promise<Assignment> {
+    const res = await api.get('/assignments/' + id);
+    return extractOne<Assignment>(res.data);
+  },
+
+  async startAssignment(assignmentId: string): Promise<ExamAttempt> {
+    const res = await api.post('/assignment-results/start', { assignmentId });
+    return extractOne<ExamAttempt>(res.data);
+  },
+
+  async submitAssignment(assignmentResultId: string, answers: { questionId: string; selectedOptionId: string }[]): Promise<ExamResult> {
+    const res = await api.post('/student-answers', { assignmentResultId, answers });
+    return extractOne<ExamResult>(res.data);
   },
 
   /** No certificate endpoint yet — returns empty until backend adds it. */
