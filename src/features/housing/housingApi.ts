@@ -14,7 +14,6 @@ import { extractList, extractOne } from "../../shared/types/api";
  *   PATCH  /hostels/:id/verify       (admin only)        — verify
  *
  * Responses are wrapped as { success, data } (verified against the live API).
- * NOTE: price / bedrooms / amenities belong to ROOMS, not the hostel entity.
  */
 
 /** Fields accepted by POST /hostels and PUT /hostels/:id */
@@ -22,7 +21,11 @@ export type ListingPayload = {
   name: string;          // backend field — was erroneously `title` before
   location: string;
   description?: string;
-  // price / bedrooms / amenities live on Room, not on Hostel
+  price?: number;
+  category?: "VIP" | "Standard" | "Budget";
+  bedrooms?: number;
+  capacity?: number;
+  amenities?: string[];
 };
 
 /** Kept for backwards-compatibility with earlier imports. */

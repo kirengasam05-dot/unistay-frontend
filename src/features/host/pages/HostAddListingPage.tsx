@@ -4,16 +4,34 @@ import { ArrowLeft, CloudUpload, ImageOff, Loader2, Plus, X } from 'lucide-react
 import toast from 'react-hot-toast';
 import { housingApi } from '../../housing/housingApi';
 
-interface FormState { name: string; location: string; description: string; }
-const BLANK: FormState = { name: '', location: '', description: '' };
+interface FormState {
+  name: string;
+  location: string;
+  description: string;
+  price: string;
+  category: '' | 'VIP' | 'Standard' | 'Budget';
+  bedrooms: string;
+  capacity: string;
+}
+const BLANK: FormState = {
+  name: '', location: '', description: '',
+  price: '', category: '', bedrooms: '', capacity: '',
+};
 
 interface Picked { file: File; url: string; }
+
+const COMMON_AMENITIES = [
+  'WiFi', 'Hot Water', 'Security', 'Parking', 'Laundry',
+  'Study Room', 'Kitchen', 'Generator', 'CCTV', 'Gym',
+];
 
 export default function HostAddListingPage() {
   const navigate = useNavigate();
   const [form, setForm]     = useState<FormState>(BLANK);
-  const [errors, setErrors] = useState<Partial<FormState & { image: string }>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'image' | 'amenities', string>>>({});
   const [images, setImages] = useState<Picked[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [amenityInput, setAmenityInput] = useState('');
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const inputRef            = useRef<HTMLInputElement>(null);
@@ -41,15 +59,31 @@ export default function HostAddListingPage() {
     });
   }
 
+  function addAmenity(value?: string) {
+    const item = (value ?? amenityInput).trim();
+    if (!item) return;
+    if (amenities.includes(item)) { toast.error('Already added'); return; }
+    setAmenities(prev => [...prev, item]);
+    setAmenityInput('');
+  }
+
+  function removeAmenity(item: string) {
+    setAmenities(prev => prev.filter(a => a !== item));
+  }
+
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDragging(false);
     if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
   }, []);
 
   function validate() {
-    const e: Partial<FormState & { image: string }> = {};
+    const e: Partial<Record<keyof FormState | 'image', string>> = {};
     if (!form.name.trim())     e.name     = 'Hostel name is required';
     if (!form.location.trim()) e.location = 'Location is required';
+    if (!form.price.trim())    e.price    = 'Monthly price is required';
+    if (form.price && (isNaN(Number(form.price)) || Number(form.price) <= 0))
+      e.price = 'Enter a valid price';
+    if (!form.category) e.category = 'Please select a category';
     return e;
   }
 
@@ -57,18 +91,21 @@ export default function HostAddListingPage() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
 
-    // Backend hostel fields: name, location, description only.
-    // Price / bedrooms / amenities belong to Rooms and are set there.
     const payload = {
       name: form.name.trim(),
       location: form.location.trim(),
       description: form.description.trim() || undefined,
+      price: Number(form.price),
+      category: form.category as 'VIP' | 'Standard' | 'Budget',
+      bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+      capacity: form.capacity ? Number(form.capacity) : undefined,
+      amenities: amenities.length ? amenities : undefined,
     };
 
     setSubmitting(true);
     try {
       await housingApi.create(payload, images.map(i => i.file));
-      toast.success('Hostel created — pending verification. You can now add rooms.');
+      toast.success('Hostel created — pending verification.');
       navigate('/host/listings');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not create hostel');
@@ -152,9 +189,6 @@ export default function HostAddListingPage() {
 
         <div className="card space-y-4">
           <h2 className="font-black text-neutral-900 dark:text-white">Hostel details</h2>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Fill in the basic hostel info. You can add rooms (with pricing &amp; amenities) after creation.
-          </p>
 
           {/* Hostel Name */}
           <div>
@@ -193,10 +227,154 @@ export default function HostAddListingPage() {
               className="input resize-none"
             />
           </div>
+        </div>
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
-            💡 <strong>Tip:</strong> After the hostel is created and verified, go to <em>Manage Rooms</em> to add room types, set prices, and upload room-specific photos.
+        {/* Pricing & Category */}
+        <div className="card space-y-4">
+          <h2 className="font-black text-neutral-900 dark:text-white">Pricing &amp; category</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Set the monthly price and category so students know what to expect.
+          </p>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Monthly Price */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Monthly price (RWF) *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-neutral-400">RWF</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.price}
+                  onChange={e => set('price', e.target.value)}
+                  placeholder="e.g. 150000"
+                  className="input pl-12"
+                />
+              </div>
+              {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price}</p>}
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Category *</label>
+              <select
+                value={form.category}
+                onChange={e => set('category', e.target.value)}
+                className="input"
+              >
+                <option value="">Select category…</option>
+                <option value="VIP">🌟 VIP — Premium rooms</option>
+                <option value="Standard">🏠 Standard — Comfortable rooms</option>
+                <option value="Budget">💰 Budget — Affordable rooms</option>
+              </select>
+              {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category}</p>}
+            </div>
           </div>
+
+          {/* Category description hint */}
+          {form.category && (
+            <div className={`rounded-xl border px-4 py-3 text-sm ${
+              form.category === 'VIP'
+                ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400'
+                : form.category === 'Standard'
+                ? 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-400'
+                : 'border-green-200 bg-green-50 text-green-800 dark:border-green-800/40 dark:bg-green-900/20 dark:text-green-400'
+            }`}>
+              {form.category === 'VIP' && '🌟 VIP rooms typically include en-suite bathrooms, AC, better furnishing, and more privacy.'}
+              {form.category === 'Standard' && '🏠 Standard rooms offer shared facilities with good comfort at a moderate price.'}
+              {form.category === 'Budget' && '💰 Budget rooms are the most affordable option, ideal for cost-conscious students.'}
+            </div>
+          )}
+        </div>
+
+        {/* Capacity */}
+        <div className="card space-y-4">
+          <h2 className="font-black text-neutral-900 dark:text-white">Capacity</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            How many rooms and beds does this hostel have?
+          </p>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Bedrooms */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                Number of rooms <span className="font-normal text-neutral-400">(optional)</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.bedrooms}
+                onChange={e => set('bedrooms', e.target.value)}
+                placeholder="e.g. 20"
+                className="input"
+              />
+            </div>
+
+            {/* Total Capacity */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                Total bed capacity <span className="font-normal text-neutral-400">(optional)</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.capacity}
+                onChange={e => set('capacity', e.target.value)}
+                placeholder="e.g. 80"
+                className="input"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Amenities */}
+        <div className="card space-y-4">
+          <h2 className="font-black text-neutral-900 dark:text-white">Amenities</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Select or type the amenities your hostel offers.
+          </p>
+
+          {/* Quick-add common amenities */}
+          <div className="flex flex-wrap gap-2">
+            {COMMON_AMENITIES.filter(a => !amenities.includes(a)).map(a => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => addAmenity(a)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-600 transition hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-neutral-500"
+              >
+                <Plus size={12} /> {a}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom amenity input */}
+          <div className="flex gap-2">
+            <input
+              value={amenityInput}
+              onChange={e => setAmenityInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAmenity(); } }}
+              placeholder="Type a custom amenity and press Enter…"
+              className="input flex-1"
+            />
+            <button type="button" onClick={() => addAmenity()} className="btn-white rounded-xl inline-flex items-center gap-1.5 shrink-0 text-sm">
+              <Plus size={14} /> Add
+            </button>
+          </div>
+
+          {/* Selected amenities */}
+          {amenities.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {amenities.map(a => (
+                <span key={a} className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">
+                  {a}
+                  <button type="button" onClick={() => removeAmenity(a)} className="ml-0.5 rounded-full p-0.5 hover:bg-white/20 dark:hover:bg-neutral-900/20">
+                    <X size={11} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-4 pb-6">
