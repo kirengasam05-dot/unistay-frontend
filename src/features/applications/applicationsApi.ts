@@ -10,9 +10,22 @@ export type Application = {
   compatible?: boolean;
   missing?: string[];
   createdAt?: string;
+  message?: string;
   user?: { fullName: string; email: string; avatar?: string };
-
   job?: { id: string; title: string; company?: string };
+};
+
+export type ApplicationFormData = {
+  dateOfBirth: string;
+  nationality: string;
+  idType: string;
+  phone: string;
+  address: string;
+  location: string;
+  linkedin: string;
+  portfolio: string;
+  coverLetter: string;
+  confirmedSkills: string[];
 };
 
 export const applicationsApi = {
@@ -31,9 +44,10 @@ export const applicationsApi = {
     return extractList<Application>(res.data);
   },
 
-  /** Student apply — POST /applications/jobs/:jobId (jobId in URL, no body needed) */
-  async apply(jobId: string): Promise<Application> {
-    const res = await api.post(`/applications/jobs/${jobId}`);
+  /** Student apply — POST /applications/jobs/:jobId */
+  async apply(jobId: string, formData?: ApplicationFormData): Promise<Application> {
+    const message = formData ? JSON.stringify(formData) : undefined;
+    const res = await api.post(`/applications/jobs/${jobId}`, message ? { message } : {});
     return extractOne<Application>(res.data);
   },
 

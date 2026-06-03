@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, Bookmark, BookmarkCheck, Briefcase,
   CheckCircle2, ChevronDown, Clock3, Loader2, MapPin,
-  Search, Trash2, Wallet, X,
+  Search, Trash2, UploadCloud, Wallet, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi } from '../jobsApi';
 import { applicationsApi } from '../../applications/applicationsApi';
+import type { ApplicationFormData } from '../../applications/applicationsApi';
 import type { Job } from '../jobsApi';
+import { useAuth } from '../../auth/context/AuthContext';
 
 export type JobsBrowseRole = 'STUDENT' | 'ADMIN' | 'HOST';
 
@@ -36,36 +38,58 @@ function timeAgo(d?: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// ── Application slide-over (STUDENT only) ─────────────────────────────────────
+// ── Application centered modal (STUDENT only) ────────────────────────────────
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-bold text-neutral-700 dark:text-neutral-300">
+        {label}{required && <span className="ml-0.5 text-red-500">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
 
 function ApplicationPanel({
   job, applied, onClose, onSuccess,
 }: {
   job: Job; applied: boolean; onClose: () => void; onSuccess: (id: string) => void;
 }) {
-  const [whyFit, setWhyFit]         = useState('');
-  const [confirmedSkills, setCS]    = useState<Set<string>>(new Set());
-  const [confirmedReqs, setCR]      = useState<Set<number>>(new Set());
-  const [agreedTerms, setAgreed]    = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors]         = useState<string[]>([]);
+  const { user } = useAuth();
+  const skills   = job.requiredSkills ?? [];
 
-  const skills = job.requiredSkills ?? [];
-  const reqs   = job.requirements  ?? [];
+  const [form, setForm] = useState({
+    fullName:    user?.fullName ?? '',
+    dateOfBirth: '',
+    idType:      '',
+    phone:       user?.phone ?? '',
+    email:       user?.email ?? '',
+    address:     '',
+    location:    user?.location ?? '',
+  });
+  const [confirmedSkills, setCS] = useState<Set<string>>(new Set());
+  const [resumeFile, setResume]  = useState<File | null>(null);
+  const [agreed, setAgreed]      = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors]      = useState<string[]>([]);
+
+  const set = (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }));
 
   function toggleSkill(s: string) {
     setCS(p => { const n = new Set(p); n.has(s) ? n.delete(s) : n.add(s); return n; });
   }
-  function toggleReq(i: number) {
-    setCR(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; });
-  }
 
   function validate() {
     const e: string[] = [];
-    if (whyFit.trim().length < 30)              e.push("Tell us why you're a good fit (≥30 chars).");
-    if (skills.length > 0 && confirmedSkills.size < skills.length) e.push('Confirm all required skills.');
-    if (reqs.length > 0 && confirmedReqs.size < reqs.length)       e.push('Confirm all requirements.');
-    if (!agreedTerms)                           e.push('Please agree to submit your application.');
+    if (!form.fullName.trim()) e.push('Full name is required.');
+    if (!form.dateOfBirth)     e.push('Date of birth is required.');
+    if (!form.phone.trim())    e.push('Mobile number is required.');
+    if (!form.email.trim())    e.push('Email is required.');
+    if (skills.length > 0 && confirmedSkills.size < skills.length) e.push('Please confirm all required skills.');
+    if (!agreed) e.push('Please confirm the agreement.');
     return e;
   }
 
@@ -75,7 +99,19 @@ function ApplicationPanel({
     setErrors([]);
     setSubmitting(true);
     try {
-      await applicationsApi.apply(job.id);
+      const formData: ApplicationFormData = {
+        dateOfBirth:     form.dateOfBirth,
+        nationality:     '',
+        idType:          form.idType,
+        phone:           form.phone,
+        address:         form.address,
+        location:        form.location,
+        linkedin:        '',
+        portfolio:       '',
+        coverLetter:     '',
+        confirmedSkills: Array.from(confirmedSkills),
+      };
+      await applicationsApi.apply(job.id, formData);
       onSuccess(job.id);
       toast.success('Application submitted! The employer will contact you by email.');
       onClose();
@@ -87,118 +123,126 @@ function ApplicationPanel({
   }
 
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-white shadow-2xl dark:bg-neutral-900 sm:border-l sm:border-neutral-200 sm:dark:border-neutral-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-neutral-900">
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-neutral-200 p-5 dark:border-neutral-800">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Applying for</p>
-            <h2 className="mt-1 truncate text-xl font-black text-neutral-900 dark:text-white">{job.title}</h2>
-            {job.company && <p className="text-sm text-neutral-500 dark:text-neutral-400">{job.company}</p>}
+        <div className="flex items-start justify-between gap-4 border-b border-neutral-100 px-7 py-5 dark:border-neutral-800">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">Applying for</p>
+            <h2 className="mt-1 text-xl font-black text-neutral-900 dark:text-white">{job.title}</h2>
+            <div className="mt-1 flex flex-wrap gap-3 text-xs text-neutral-500">
+              {job.location && <span className="flex items-center gap-1"><MapPin size={12} />{job.location}</span>}
+              <span className="flex items-center gap-1"><Clock3 size={12} />{SCHEDULE_LABELS[job.scheduleType] ?? job.scheduleType}</span>
+              {money(job.salary) && <span className="flex items-center gap-1"><Wallet size={12} />{money(job.salary)}</span>}
+            </div>
           </div>
-          <button onClick={onClose} className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
-            <X size={18} />
+          <button onClick={onClose} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 space-y-6 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto px-7 py-6">
           {applied ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-800/40 dark:bg-emerald-900/20">
-              <CheckCircle2 size={32} className="mx-auto text-emerald-600 dark:text-emerald-400" />
-              <h3 className="mt-3 font-black text-emerald-800 dark:text-emerald-400">Already applied</h3>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-800/40 dark:bg-emerald-900/20">
+              <CheckCircle2 size={36} className="mx-auto text-emerald-600 dark:text-emerald-400" />
+              <h3 className="mt-3 text-lg font-black text-emerald-800 dark:text-emerald-400">Already applied</h3>
               <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-500">The employer will reach out by email.</p>
             </div>
           ) : (
-            <>
-              {/* Job overview */}
-              <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800">
-                <div className="flex flex-wrap gap-3 text-sm text-neutral-600 dark:text-neutral-400">
-                  <span className="flex items-center gap-1.5"><MapPin size={14} />{job.location}</span>
-                  {money(job.salary) && <span className="flex items-center gap-1.5"><Wallet size={14} />{money(job.salary)}</span>}
-                  <span className="flex items-center gap-1.5"><Clock3 size={14} />{SCHEDULE_LABELS[job.scheduleType] ?? job.scheduleType}</span>
-                  {job.deadline && <span className="flex items-center gap-1.5"><Clock3 size={14} />Deadline: {job.deadline}</span>}
+            <div className="space-y-8">
+
+              {/* ── Personal Information ── */}
+              <div>
+                <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-neutral-400">Personal Information</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Full Name" required>
+                    <input value={form.fullName} onChange={set('fullName')} className="input" placeholder="Your full name" />
+                  </Field>
+                  <Field label="Date of Birth" required>
+                    <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className="input" />
+                  </Field>
+                  <Field label="Identification Type">
+                    <select value={form.idType} onChange={set('idType')} className="input">
+                      <option value="">Select type</option>
+                      <option>National ID</option>
+                      <option>Passport</option>
+                      <option>Student ID</option>
+                    </select>
+                  </Field>
+                  <Field label="Mobile" required>
+                    <input value={form.phone} onChange={set('phone')} className="input" placeholder="+250 7XX XXX XXX" />
+                  </Field>
+                  <Field label="Email" required>
+                    <input type="email" value={form.email} onChange={set('email')} className="input" placeholder="you@email.com" />
+                  </Field>
+                  <Field label="Address">
+                    <input value={form.address} onChange={set('address')} className="input" placeholder="Your address" />
+                  </Field>
+                  <Field label="Location">
+                    <input value={form.location} onChange={set('location')} className="input" placeholder="City, Country" />
+                  </Field>
                 </div>
-                {job.description && <p className="mt-3 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{job.description}</p>}
               </div>
 
-              {/* Skills */}
+              {/* ── Resume Upload ── */}
+              <div>
+                <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-neutral-400">Resume <span className="text-neutral-300 dark:text-neutral-600 normal-case font-semibold">(optional)</span></h3>
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 px-6 py-8 transition hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800">
+                  <UploadCloud size={28} className="text-neutral-400" />
+                  <p className="mt-2 text-sm font-bold text-neutral-700 dark:text-neutral-300">
+                    {resumeFile ? resumeFile.name : 'Drop file here or browse'}
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-400">Max 4 MB · PDF, DOCX</p>
+                  <input type="file" accept=".pdf,.docx" className="hidden" onChange={e => setResume(e.target.files?.[0] ?? null)} />
+                </label>
+              </div>
+
+              {/* ── Required Skills ── */}
               {skills.length > 0 && (
                 <div>
-                  <h3 className="mb-1 font-black text-neutral-900 dark:text-white">Step 1 — Confirm your skills</h3>
-                  <p className="mb-3 text-xs text-neutral-400">Check each skill you genuinely have.</p>
-                  <div className="space-y-2">
+                  <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-neutral-400">Required Skills — confirm what you have</h3>
+                  <div className="grid gap-2 sm:grid-cols-2">
                     {skills.map(s => (
                       <label key={s} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${confirmedSkills.has(s) ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-900/20' : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800'}`}>
                         <input type="checkbox" checked={confirmedSkills.has(s)} onChange={() => toggleSkill(s)} className="h-4 w-4 accent-emerald-600" />
                         <span className={`text-sm font-semibold ${confirmedSkills.has(s) ? 'text-emerald-800 dark:text-emerald-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{s}</span>
-                        {confirmedSkills.has(s) && <CheckCircle2 size={15} className="ml-auto text-emerald-600 dark:text-emerald-400" />}
+                        {confirmedSkills.has(s) && <CheckCircle2 size={14} className="ml-auto shrink-0 text-emerald-600 dark:text-emerald-400" />}
                       </label>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Requirements */}
-              {reqs.length > 0 && (
-                <div>
-                  <h3 className="mb-1 font-black text-neutral-900 dark:text-white">
-                    Step {skills.length > 0 ? 2 : 1} — Confirm requirements
-                  </h3>
-                  <div className="space-y-2">
-                    {reqs.map((req, i) => (
-                      <label key={i} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${confirmedReqs.has(i) ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-900/20' : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800'}`}>
-                        <input type="checkbox" checked={confirmedReqs.has(i)} onChange={() => toggleReq(i)} className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600" />
-                        <span className={`text-sm ${confirmedReqs.has(i) ? 'text-emerald-800 dark:text-emerald-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{req}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Why fit */}
-              <div>
-                <h3 className="mb-1 font-black text-neutral-900 dark:text-white">
-                  Step {[skills.length > 0, reqs.length > 0].filter(Boolean).length + 1} — Why are you a good fit?
-                </h3>
-                <textarea value={whyFit} onChange={e => setWhyFit(e.target.value)} rows={4}
-                  placeholder="e.g. I have 2 years of experience in React…"
-                  className="input resize-none" />
-                <p className={`mt-1 text-right text-xs ${whyFit.trim().length >= 30 ? 'text-emerald-600' : 'text-neutral-400'}`}>
-                  {whyFit.trim().length} / 30+
-                </p>
-              </div>
-
-              {/* Agreement */}
-              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${agreedTerms ? 'border-neutral-900 bg-neutral-900 dark:border-white dark:bg-white' : 'border-neutral-200 bg-white hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800'}`}>
-                <input type="checkbox" checked={agreedTerms} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900 dark:accent-white" />
-                <span className={`text-sm font-semibold leading-relaxed ${agreedTerms ? 'text-white dark:text-neutral-900' : 'text-neutral-700 dark:text-neutral-300'}`}>
-                  I confirm all information is accurate and I meet the requirements.
+              {/* ── Agreement ── */}
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${agreed ? 'border-neutral-900 bg-neutral-900 dark:border-white dark:bg-white' : 'border-neutral-200 bg-white hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800'}`}>
+                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900 dark:accent-white" />
+                <span className={`text-sm font-semibold leading-relaxed ${agreed ? 'text-white dark:text-neutral-900' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                  I confirm all information provided is accurate and I meet the requirements for this position.
                 </span>
               </label>
 
               {errors.length > 0 && (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-800/40 dark:bg-red-900/20">
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/40 dark:bg-red-900/20">
                   {errors.map(e => <p key={e} className="text-xs font-semibold text-red-700 dark:text-red-400">• {e}</p>)}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
         {/* Footer */}
         {!applied && (
-          <div className="border-t border-neutral-200 p-5 dark:border-neutral-800">
+          <div className="border-t border-neutral-100 px-7 py-5 dark:border-neutral-800">
             <button onClick={submit} disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-black py-4 text-base font-black text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-white dark:text-neutral-900">
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral-900 py-4 text-base font-black text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-white dark:text-neutral-900">
               {submitting ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : <><ArrowRight size={18} /> Submit application</>}
             </button>
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

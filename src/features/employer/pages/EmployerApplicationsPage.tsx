@@ -80,7 +80,7 @@ function ApplicantPanel({
 
           {/* Identity */}
           <div className="flex items-center gap-4">
-            <Avatar name={name} size="lg" />
+            <Avatar name={name} avatar={app.user?.avatar} size="lg" />
             <div>
               <h2 className="text-xl font-black text-neutral-900 dark:text-white">{name}</h2>
               {app.user?.email && (
@@ -90,6 +90,44 @@ function ApplicantPanel({
               )}
             </div>
           </div>
+
+          {/* Application form data */}
+          {(() => {
+            if (!app.message) return null;
+            try {
+              const d = JSON.parse(app.message);
+              const rows = [
+                ['Date of Birth', d.dateOfBirth],
+                ['ID Type',       d.idType],
+                ['Phone',         d.phone],
+                ['Address',       d.address],
+                ['Location',      d.location],
+              ].filter(([, v]) => v);
+              return (
+                <div>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-neutral-400">Application Details</p>
+                  <div className="rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden">
+                    {rows.map(([label, value]) => (
+                      <div key={label} className="flex items-start justify-between gap-4 border-b border-neutral-100 px-4 py-2.5 last:border-0 dark:border-neutral-800">
+                        <span className="text-xs font-bold text-neutral-400 shrink-0">{label}</span>
+                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 text-right break-all">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {d.confirmedSkills?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="mb-2 text-xs font-bold text-neutral-400">Confirmed Skills</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {d.confirmedSkills.map((s: string) => (
+                          <span key={s} className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            } catch { return null; }
+          })()}
 
           {/* Applied for */}
           <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800">
