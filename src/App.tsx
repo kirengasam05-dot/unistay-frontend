@@ -1,7 +1,12 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 
 import MainLayout from "./shared/components/layout/MainLayout";
 import DashboardLayout from "./shared/components/layout/DashboardLayout";
+
+function HousingRedirect() {
+  const { id } = useParams();
+  return <Navigate to={id ? `/hostels/${id}` : "/hostels"} replace />;
+}
 
 import HomePage from "./features/home/pages/HomePage";
 import ProcessPage from "./features/home/pages/ProcessPage";
@@ -19,7 +24,11 @@ import SkillsPage from "./features/skills/pages/SkillsPage";
 import DashboardPage from "./features/users/pages/DashboardPage";
 import ProfilePage from "./features/users/pages/ProfilePage";
 
-import StudentHousingPage from "./features/student/pages/StudentHousingPage";
+import StudentHotelDetailPage from "./features/student/pages/StudentHotelDetailPage";
+import StudentHotelApplicationPage from "./features/student/pages/StudentHotelApplicationPage";
+import StudentHotelPaymentPage from "./features/student/pages/StudentHotelPaymentPage";
+import StudentHotelConfirmationPage from "./features/student/pages/StudentHotelConfirmationPage";
+import MyAccommodationPage from "./features/student/pages/MyAccommodationPage";
 import StudentBookingPage from "./features/student/pages/StudentBookingPage";
 import StudentJobsPage from "./features/student/pages/StudentJobsPage";
 import StudentLearningPage from "./features/student/pages/StudentLearningPage";
@@ -65,7 +74,7 @@ export default function App() {
         <Route path="/hostels" element={<HousingPage />} />
         <Route path="/hostels/:id" element={<HousingDetailPage />} />
         <Route path="/housing" element={<Navigate to="/hostels" replace />} />
-        <Route path="/housing/:id" element={<HousingDetailPage />} />
+        <Route path="/housing/:id" element={<HousingRedirect />} />
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/skills" element={<SkillsPage />} />
         <Route path="/process" element={<ProcessPage />} />
@@ -77,7 +86,12 @@ export default function App() {
         <Route path="/emails" element={<EmailsPage />} />
 
         <Route element={<ProtectedRoute role="STUDENT" />}>
-          <Route path="/student/hostels" element={<StudentHousingPage />} />
+          <Route path="/student/hostels" element={<HousingPage />} />
+          <Route path="/student/hostels/:id" element={<StudentHotelDetailPage />} />
+          <Route path="/student/hostels/:id/apply" element={<StudentHotelApplicationPage />} />
+          <Route path="/student/booking/:id/payment" element={<StudentHotelPaymentPage />} />
+          <Route path="/student/booking/:id/confirmation" element={<StudentHotelConfirmationPage />} />
+          <Route path="/student/accommodation" element={<MyAccommodationPage />} />
           <Route path="/student/housing" element={<Navigate to="/student/hostels" replace />} />
           <Route path="/student/booking" element={<StudentBookingPage />} />
           <Route path="/student/jobs" element={<StudentJobsPage />} />

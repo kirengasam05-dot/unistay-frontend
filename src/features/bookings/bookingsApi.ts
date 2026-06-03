@@ -23,6 +23,9 @@ export type CreateBookingPayload = {
   housingId: string;
   checkIn: string;
   checkOut: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
 };
 
 export const bookingsApi = {

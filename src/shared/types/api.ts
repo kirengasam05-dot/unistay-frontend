@@ -1,6 +1,7 @@
 export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
-export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "REJECTED" | "COMPLETED";
-export type PaymentStatus = "UNPAID" | "PENDING_VERIFICATION" | "PAID" | "REFUNDED";
+export type BookingStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
+export type PaymentStatus = "UNPAID" | "PAYMENT_PENDING" | "PENDING_VERIFICATION" | "PAID" | "FAILED" | "CANCELLED" | "REFUNDED";
+export type HotelCategory = "VIP" | "Standard" | "Budget";
 
 export type UserRole = "STUDENT" | "HOST" | "EMPLOYER" | "INSTRUCTOR" | "ADMIN";
 
@@ -22,7 +23,10 @@ export type Housing = {
   title: string;
   location: string;
   description?: string | null;
+  category?: HotelCategory;
   bedrooms?: number | null;
+  capacity?: number | null;
+  availableBeds?: number | null;
   amenities?: string[];
   images?: string[];
   image?: string;
@@ -32,6 +36,8 @@ export type Housing = {
   hostId: string;
   host?: User;
 };
+
+export type Hotel = Housing;
 
 export type Booking = {
   id: string;
@@ -48,7 +54,13 @@ export type Booking = {
   checkOut: string;
   createdAt?: string;
   user?: User;
+  hotel?: Hotel;
   housing?: Housing;
+  queuePosition?: number | null;
+  bedAssignment?: string | null;
+  moveInDate?: string | null;
+  bookingReference?: string | null;
+  paymentMethod?: string | null;
 };
 
 export function extractList<T>(payload: any): T[] {

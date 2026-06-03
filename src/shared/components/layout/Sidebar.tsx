@@ -8,8 +8,8 @@ import type { Role } from '../../types';
 const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   STUDENT: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
-    { label: 'Find Hostels', to: '/student/hostels', icon: Building2 },
-    { label: 'My Bookings', to: '/student/booking', icon: CheckCircle2 },
+    { label: 'Find Hotels', to: '/student/hostels', icon: Building2 },
+    { label: 'My Accommodation', to: '/student/accommodation', icon: CheckCircle2 },
     { label: 'Search Jobs', to: '/student/jobs', icon: Briefcase },
     { label: 'Courses & Skills', to: '/student/learning', icon: BookOpen },
     { label: 'Assignments & Exams', to: '/student/assignments', icon: GraduationCap },
