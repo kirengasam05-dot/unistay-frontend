@@ -97,8 +97,12 @@ export default function Sidebar({ role, mobileOpen = false, onClose }: SidebarPr
             className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             {/* Avatar */}
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
-              {initials}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-900 text-sm font-black text-white dark:bg-white dark:text-neutral-900">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             {/* Name + role */}
             <div className="min-w-0 flex-1">

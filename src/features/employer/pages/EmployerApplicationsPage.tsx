@@ -26,14 +26,18 @@ function StatusPill({ status }: { status: Application['status'] }) {
   );
 }
 
-function InitialsAvatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'lg' }) {
+function Avatar({ name, avatar, size = 'sm' }: { name: string; avatar?: string; size?: 'sm' | 'lg' }) {
   const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
   const cls = size === 'lg'
     ? 'h-16 w-16 text-xl rounded-2xl'
     : 'h-9 w-9 text-xs rounded-full';
   return (
-    <div className={`grid shrink-0 place-items-center bg-neutral-200 font-black text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300 ${cls}`}>
-      {initials}
+    <div className={`flex shrink-0 items-center justify-center overflow-hidden bg-neutral-200 font-black text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300 ${cls}`}>
+      {avatar ? (
+        <img src={avatar} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -76,7 +80,7 @@ function ApplicantPanel({
 
           {/* Identity */}
           <div className="flex items-center gap-4">
-            <InitialsAvatar name={name} size="lg" />
+            <Avatar name={name} size="lg" />
             <div>
               <h2 className="text-xl font-black text-neutral-900 dark:text-white">{name}</h2>
               {app.user?.email && (
@@ -324,7 +328,7 @@ export default function EmployerApplicationsPage() {
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
-                        <InitialsAvatar name={a.user?.fullName ?? 'U'} />
+                        <Avatar name={a.user?.fullName ?? 'U'} avatar={a.user?.avatar} />
                         <div>
                           <p className="font-bold text-neutral-900 dark:text-white">
                             {a.user?.fullName ?? `Applicant #${a.id.slice(0, 6)}`}
