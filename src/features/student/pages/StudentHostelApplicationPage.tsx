@@ -45,8 +45,9 @@ export default function StudentHostelApplicationPage() {
     setSubmitting(true);
 
     try {
+      const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
       const booking = await bookingsApi.create({
-        housingId: hostel.id,
+        roomId: firstRoomId,
         checkIn,
         checkOut,
       });
@@ -66,10 +67,10 @@ export default function StudentHostelApplicationPage() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Apply for accommodation</h1>
-            <p className="mt-2 text-slate-600">Complete your application for {hostel.title} and continue to secure your stay.</p>
+            <p className="mt-2 text-slate-600">Complete your application for {hostel.name ?? hostel.title} and continue to secure your stay.</p>
           </div>
           <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">
-            Monthly price: <strong>{hostel.price.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
+            Monthly price: <strong>{(hostel.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
           </div>
         </div>
       </div>
@@ -124,10 +125,10 @@ export default function StudentHostelApplicationPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-900">Hostel summary</h2>
             <div className="mt-4 text-slate-600">
-              <div className="mb-3 text-sm">{hostel.title}</div>
+              <div className="mb-3 text-sm">{hostel.name ?? hostel.title}</div>
               <div className="grid gap-2 text-sm leading-6">
                 <div>Location: {hostel.location}</div>
-                <div>Price: {hostel.price.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} / month</div>
+                <div>Price: {(hostel.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} / month</div>
                 <div>Rooms: {hostel.bedrooms ?? "N/A"}</div>
               </div>
             </div>
