@@ -26,11 +26,15 @@ function StatusPill({ status }: { status: Application['status'] }) {
   );
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, avatar }: { name: string; avatar?: string }) {
   const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
   return (
-    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-200 text-xs font-black text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
-      {initials}
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-200 text-xs font-black text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
+      {avatar ? (
+        <img src={avatar} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -169,7 +173,7 @@ export default function EmployerApplicationsPage() {
                     {/* Name + email */}
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
-                        <Avatar name={a.user?.fullName ?? 'U'} />
+                        <Avatar name={a.user?.fullName ?? 'U'} avatar={a.user?.avatar} />
                         <div>
                           <p className="font-bold text-neutral-900 dark:text-white">
                             {a.user?.fullName ?? `Applicant #${a.id.slice(0, 6)}`}

@@ -71,7 +71,13 @@ export default function StudentNavbar() {
           </NavLink>
           <div className="relative" ref={menuRef}>
             <button onClick={() => setMenuOpen((open) => !open)} className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-xs text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">{(user?.fullName || user?.email || 'S')[0].toUpperCase()}</span>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xs text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.fullName || user.email || 'Student'} className="h-full w-full object-cover" />
+                ) : (
+                  (user?.fullName || user?.email || 'S')[0].toUpperCase()
+                )}
+              </div>
               <span className="hidden max-w-40 truncate sm:inline">{user?.fullName || user?.email || 'Student'}</span>
               <ChevronDown size={14} />
             </button>
