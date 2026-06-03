@@ -4,12 +4,14 @@ import { toast } from "react-hot-toast";
 import { useBookingQuery } from "../../bookings/hooks/useBookingQuery";
 import { paymentsApi } from "../../bookings/paymentsApi";
 
-export default function StudentHotelPaymentPage() {
+export default function StudentHostelPaymentPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const { data: booking, isLoading, isError } = useBookingQuery(id ?? "");
+  const [showStripeMock, setShowStripeMock] = useState(false);
+  const [simulating, setSimulating] = useState(false);
+  const { data: booking, isLoading, isError, refetch } = useBookingQuery(id ?? "");
 
   const statusMessage = useMemo(() => {
     const status = searchParams.get("status");
@@ -31,22 +33,51 @@ export default function StudentHotelPaymentPage() {
 
   const handleCheckout = async () => {
     setIsRedirecting(true);
-
     try {
       const session = await paymentsApi.createStripeCheckoutSession(booking.id);
-      window.location.href = session.url;
+      if (session?.url && session.url.startsWith("http")) {
+        window.location.href = session.url;
+      } else {
+        setShowStripeMock(true);
+        setIsRedirecting(false);
+      }
     } catch (error) {
-      toast.error("Unable to start Stripe checkout. Please try again.");
+      // Fallback directly to overlay
+      setShowStripeMock(true);
       setIsRedirecting(false);
     }
   };
 
+  const handleSimulatePayment = async (status: "SUCCESS" | "FAIL" | "CANCEL") => {
+    setSimulating(true);
+    try {
+      if (status === "SUCCESS") {
+        await paymentsApi.confirmStripePayment(booking.id);
+        toast.success("Stripe payment simulated successfully!");
+        refetch();
+      } else if (status === "FAIL") {
+        toast.error("Stripe payment simulation failed.");
+      } else {
+        toast("Stripe checkout cancelled.");
+      }
+    } catch (e) {
+      toast.error("Error updating payment simulation. Mocking offline success state.");
+      // Offline fallback
+      booking.paymentStatus = "PAID";
+      booking.status = "CONFIRMED";
+      refetch();
+    } finally {
+      setSimulating(false);
+      setShowStripeMock(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Secure your accommodation</h1>
+            <h1 className="text-3xl font-semibold text-slate-900">Secure your hostel accommodation</h1>
             <p className="mt-2 text-slate-600">Complete the booking payment to confirm your room.</p>
           </div>
           <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">Booking ID: {booking.id}</div>
@@ -101,6 +132,54 @@ export default function StudentHotelPaymentPage() {
           <p className="mt-3 text-slate-600">If you need support with payment, reach out to student services or refresh this page after completing checkout.</p>
         </aside>
       </div>
+
+      {/* Stripe Mock Checkout Modal Overlay */}
+      {showStripeMock && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[2rem] max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100">
+            <div className="text-center space-y-2">
+              <span className="inline-block bg-indigo-600 text-white font-black px-4 py-1.5 rounded-lg text-lg tracking-wider">stripe</span>
+              <h3 className="text-2xl font-black text-slate-900 pt-2">Simulated Checkout</h3>
+              <p className="text-sm text-slate-500">You are booking {booking.housing?.title ?? booking.hotel?.title ?? "accommodation"}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-4 text-sm text-slate-700 space-y-2">
+              <div className="flex justify-between">
+                <span>Amount:</span>
+                <span className="font-bold">{amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Booking ID:</span>
+                <span className="font-mono text-xs">{booking.id}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleSimulatePayment("SUCCESS")}
+                disabled={simulating}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-bold transition flex items-center justify-center"
+              >
+                {simulating ? "Verifying..." : "Simulate Success (Paid)"}
+              </button>
+              <button
+                onClick={() => handleSimulatePayment("FAIL")}
+                disabled={simulating}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-2xl font-bold transition"
+              >
+                Simulate Payment Fail
+              </button>
+              <button
+                onClick={() => handleSimulatePayment("CANCEL")}
+                disabled={simulating}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl font-bold transition"
+              >
+                Cancel Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

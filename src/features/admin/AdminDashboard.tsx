@@ -8,7 +8,8 @@ import { coursesApi } from '../courses/coursesApi';
 const actions = [
   { label: 'Users & Roles',  desc: 'Create users and assign roles',        to: '/admin/users',      color: 'border-blue-200 dark:border-blue-800/60',     icon: Users      },
   { label: 'Moderation',     desc: 'Review and verify hostel listings',    to: '/admin/moderation', color: 'border-amber-200 dark:border-amber-800/60',   icon: ShieldCheck },
-  { label: 'Analytics',      desc: 'Platform usage and insights',           to: '/admin/analytics',  color: 'border-emerald-200 dark:border-emerald-800/60', icon: Award    },
+  { label: 'Stripe Payments', desc: 'Monitor transactions & refund actions', to: '/admin/payments',   color: 'border-rose-200 dark:border-rose-800/60',     icon: Award      },
+  { label: 'System Settings', desc: 'Configure policies, periods & audit logs', to: '/admin/settings', color: 'border-violet-200 dark:border-violet-800/60', icon: BookOpen   },
 ];
 
 export default function AdminDashboard() {
