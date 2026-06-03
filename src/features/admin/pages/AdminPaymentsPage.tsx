@@ -14,7 +14,7 @@ export default function AdminPaymentsPage() {
     setLoading(true);
     try {
       // Fetch all bookings across platform
-      const res = await api.get("/bookings");
+      const res = await api.get("/hostel-bookings");
       const list = extractList<Booking>(res.data);
       setBookings(list);
     } catch (e) {

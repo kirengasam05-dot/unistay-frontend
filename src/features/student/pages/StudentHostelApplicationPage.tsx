@@ -45,8 +45,9 @@ export default function StudentHostelApplicationPage() {
     setSubmitting(true);
 
     try {
+      const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
       const booking = await bookingsApi.create({
-        housingId: hostel.id,
+        roomId: firstRoomId,
         checkIn,
         checkOut,
       });

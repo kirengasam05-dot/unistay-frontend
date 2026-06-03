@@ -44,62 +44,57 @@ function toFormData(data: Partial<ListingPayload>, files: File[] = []): FormData
 
 export const housingApi = {
   async getAll(): Promise<Housing[]> {
-    const res = await api.get("/listings");
+    const res = await api.get("/hostels");
     return extractList<Housing>(res.data);
   },
 
   async getMyListings(): Promise<Housing[]> {
-    const res = await api.get("/listings/me/listings");
+    const res = await api.get("/hostels/me/hostels");
     return extractList<Housing>(res.data);
   },
 
   async getOne(id: string): Promise<Housing> {
-    const res = await api.get(`/listings/${id}`);
+    const res = await api.get(`/hostels/${id}`);
     return extractOne<Housing>(res.data);
   },
 
   /**
-   * Create a listing. Per the Swagger contract, POST /listings only accepts
-   * multipart/form-data, so we always send FormData (the global instance sets
-   * the boundary). `files` is optional.
+   * Create a hostel listing.
    */
   async create(data: ListingPayload, files: File[] = []): Promise<Housing> {
-    const res = await api.post("/listings", toFormData(data, files));
+    const res = await api.post("/hostels", toFormData(data, files));
     return extractOne<Housing>(res.data);
   },
 
   /** Alias kept for readability at call sites that always have images. */
   async createWithImages(data: ListingPayload, files: File[]): Promise<Housing> {
-    const res = await api.post("/listings", toFormData(data, files));
+    const res = await api.post("/hostels", toFormData(data, files));
     return extractOne<Housing>(res.data);
   },
 
-  /** Partial update is supported by the backend (verified). */
+  /** Partial update. */
   async update(
     id: string,
     data: Partial<ListingPayload> & { verificationStatus?: VerificationStatus }
   ): Promise<Housing> {
-    const res = await api.put(`/listings/${id}`, data);
+    const res = await api.put(`/hostels/${id}`, data);
     return extractOne<Housing>(res.data);
   },
 
   async remove(id: string): Promise<void> {
-    await api.delete(`/listings/${id}`);
+    await api.delete(`/hostels/${id}`);
   },
 
   /**
-   * Admin-only — approve or reject a listing. Both use the same endpoint
-   * (PATCH /listings/:id/verify) with a `status` of "VERIFIED" or "REJECTED".
+   * Admin-only — approve or reject a listing.
    */
   async setVerification(id: string, status: "VERIFIED" | "REJECTED"): Promise<Housing> {
-    const res = await api.patch(`/listings/${id}/verify`, { status });
+    const res = await api.patch(`/hostels/${id}/verify`, { status });
     return extractOne<Housing>(res.data);
   },
 
   /**
-   * Add image URLs to a listing. The backend stores images as an array of
-   * URL strings (no file upload on PUT /listings/:id), so we fetch the current
-   * images, append the new URLs, and PATCH the listing.
+   * Add image URLs to a listing.
    */
   async addImages(id: string, imageUrls: string[]): Promise<Housing> {
     const current = await housingApi.getOne(id);
@@ -108,8 +103,7 @@ export const housingApi = {
   },
 
   /**
-   * Remove a single image URL from a listing by fetching current images,
-   * filtering out the target URL, then updating via PUT /listings/:id.
+   * Remove a single image URL from a listing.
    */
   async removeImage(id: string, imageUrl: string): Promise<Housing> {
     const current = await housingApi.getOne(id);
