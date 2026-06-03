@@ -29,10 +29,11 @@ export default function HousingPage() {
   const filtered = useMemo(() => {
     const value = query.toLowerCase().trim();
     return items.filter((h) => {
-      const matchSearch = `${h.title} ${h.location} ${h.description || ""}`.toLowerCase().includes(value);
-      const hCategory = h.category ?? (h.price >= 80000 ? "VIP" : h.price >= 35000 ? "Standard" : "Budget");
+      const matchSearch = `${h.name ?? h.title} ${h.location} ${h.description || ""}`.toLowerCase().includes(value);
+      const price = h.price ?? 0;
+      const hCategory = h.category ?? (price >= 80000 ? "VIP" : price >= 35000 ? "Standard" : "Budget");
       const matchCategory = category === "ALL" || hCategory === category;
-      const matchPrice = h.price <= maxPrice;
+      const matchPrice = price <= maxPrice;
       const matchAvailability = !onlyAvailable || h.availability;
       return matchSearch && matchCategory && matchPrice && matchAvailability;
     });
@@ -165,7 +166,7 @@ export default function HousingPage() {
                   <div className="mt-6 flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400">Monthly price</p>
-                      <p className="text-2xl font-black text-neutral-900 dark:text-white">{money(housing.price)}</p>
+                      <p className="text-2xl font-black text-neutral-900 dark:text-white">{money(housing.price ?? 0)}</p>
                     </div>
                     <span className="rounded-2xl bg-black px-5 py-3 text-sm font-black text-white transition group-hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:group-hover:bg-neutral-100">
                       View details
