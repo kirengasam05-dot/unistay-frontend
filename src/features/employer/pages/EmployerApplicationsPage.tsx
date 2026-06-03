@@ -3,8 +3,6 @@ import {
   AlertCircle,
   Briefcase,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   Mail,
   MoreHorizontal,
@@ -18,7 +16,6 @@ import { applicationsApi } from "../../applications/applicationsApi";
 import type { Application } from "../../applications/applicationsApi";
 
 type Filter = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
-const PAGE_SIZE = 8;
 
 type ApplicationSubmissionData = {
   dateOfBirth?: string;
@@ -408,7 +405,6 @@ export default function EmployerApplicationsPage() {
   const [selected, setSelected] = useState<Application | null>(null);
   const [filter, setFilter] = useState<Filter>("ALL");
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
     jobsApi
@@ -465,9 +461,6 @@ export default function EmployerApplicationsPage() {
     return matchFilter && matchSearch;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   const FILTERS: [Filter, string][] = [
     ["ALL", "All"],
     ["ACCEPTED", "Completed"],
@@ -490,7 +483,6 @@ export default function EmployerApplicationsPage() {
                 key={val}
                 onClick={() => {
                   setFilter(val);
-                  setPage(1);
                 }}
                 className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                   filter === val
@@ -511,7 +503,6 @@ export default function EmployerApplicationsPage() {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                setPage(1);
               }}
               placeholder="Search..."
               className="w-52 rounded-xl border border-neutral-200 bg-neutral-50 py-2 pl-8 pr-3 text-sm outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
@@ -524,7 +515,7 @@ export default function EmployerApplicationsPage() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-neutral-400" size={28} />
           </div>
-        ) : paginated.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="py-20 text-center text-sm text-neutral-400">
             No applications match your filters.
           </div>
@@ -552,7 +543,7 @@ export default function EmployerApplicationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                {paginated.map((a) => (
+                {filtered.map((a) => (
                   <tr
                     key={a.id}
                     onClick={() => setSelected(a)}
@@ -664,42 +655,6 @@ export default function EmployerApplicationsPage() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-neutral-100 px-5 py-3 dark:border-neutral-800">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-bold text-neutral-600 transition hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300"
-            >
-              <ChevronLeft size={15} /> Previous
-            </button>
-            <div className="flex items-center gap-1">
-              {Array.from(
-                { length: Math.min(totalPages, 5) },
-                (_, i) => i + 1,
-              ).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setPage(n)}
-                  className={`h-8 w-8 rounded-lg text-sm font-bold transition ${page === n ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900" : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
-                >
-                  {n}
-                </button>
-              ))}
-              {totalPages > 5 && (
-                <span className="px-1 text-neutral-400">…</span>
-              )}
-            </div>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-bold text-neutral-600 transition hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300"
-            >
-              Next <ChevronRight size={15} />
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Applicant detail panel */}
