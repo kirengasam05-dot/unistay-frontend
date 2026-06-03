@@ -10,7 +10,7 @@ const CATEGORY_LABELS: Record<HotelCategory, string> = {
   VIP: "VIP",
 };
 
-export default function StudentHotelDetailPage() {
+export default function StudentHostelDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -61,7 +61,8 @@ export default function StudentHotelDetailPage() {
             <div className="mt-2 text-4xl font-semibold text-slate-900">{hostel.price.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</div>
             <div className="mt-4 grid gap-3 text-sm text-slate-600">
               <div>Bedrooms: {hostel.bedrooms ?? "N/A"}</div>
-              <div>Beds available: {availableBeds}</div>
+              <div>Total Bed Capacity: {hostel.capacity ?? (hostel.bedrooms ? hostel.bedrooms * 2 : 2)}</div>
+              <div>Beds Available: {availableBeds}</div>
               <div>Category: {category}</div>
             </div>
           </div>

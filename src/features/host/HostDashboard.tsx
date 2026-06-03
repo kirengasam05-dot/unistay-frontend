@@ -35,10 +35,13 @@ export default function HostDashboard() {
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/5" />
         <div className="relative">
           <h2 className="text-2xl font-black leading-tight sm:text-3xl">Manage hostels, bookings &amp; availability.</h2>
-          <p className="mt-3 max-w-lg text-sm text-neutral-400">Students cannot pay until you confirm the booking and room availability.</p>
+          <p className="mt-3 max-w-lg text-sm text-neutral-400">Confirm available beds, track occupancy rates, analyze performance reports, and manage waitlists.</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link className="btn-white rounded-xl" to="/host/listings">Manage hostels</Link>
-            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/bookings">Review bookings</Link>
+            <Link className="btn-white rounded-xl" to="/host/listings">Manage Hostels</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/bookings">Booking Requests</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/occupancy">Occupancy</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/waitlist">Waiting Lists</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/reports">Performance Reports</Link>
           </div>
         </div>
       </div>

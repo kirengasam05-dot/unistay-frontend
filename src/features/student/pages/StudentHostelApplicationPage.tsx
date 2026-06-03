@@ -5,7 +5,7 @@ import { useHousingDetailQuery } from "../../housing/hooks/useHousingQueries";
 import { bookingsApi } from "../../bookings/bookingsApi";
 import { toast } from "react-hot-toast";
 
-export default function StudentHotelApplicationPage() {
+export default function StudentHostelApplicationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
