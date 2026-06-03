@@ -6,7 +6,7 @@ import { housingApi } from "../../housing/housingApi";
 import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
 import type { Housing } from "../../../shared/types/api";
 
-interface FormState { title: string; location: string; price: string; bedrooms: string; description: string; amenities: string; }
+interface FormState { name: string; location: string; description: string; }
 
 export default function HostEditListingPage() {
   const { id = "" } = useParams();
@@ -18,19 +18,16 @@ export default function HostEditListingPage() {
   const [uploading, setUploading] = useState(false);
   const [images, setImages]     = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
-  const [form, setForm] = useState<FormState>({ title: "", location: "", price: "", bedrooms: "", description: "", amenities: "" });
+  const [form, setForm] = useState<FormState>({ name: "", location: "", description: "" });
 
   useEffect(() => {
     (async () => {
       try {
         const h = await housingApi.getOne(id);
         setForm({
-          title: h.title || "",
+          name: h.name ?? h.title ?? "",
           location: h.location || "",
-          price: String(h.price ?? ""),
-          bedrooms: h.bedrooms != null ? String(h.bedrooms) : "",
           description: h.description || "",
-          amenities: (h.amenities || []).join(", "),
         });
         setImages(h.images || []);
       } catch (err) {
@@ -46,24 +43,21 @@ export default function HostEditListingPage() {
   function syncImages(h: Housing) { setImages(h.images || []); }
 
   async function save() {
-    if (!form.title.trim() || !form.location.trim() || !form.price.trim()) {
-      toast.error("Title, location and price are required.");
+    if (!form.name.trim() || !form.location.trim()) {
+      toast.error("Hostel name and location are required.");
       return;
     }
     setSaving(true);
     try {
       await housingApi.update(id, {
-        title: form.title.trim(),
+        name: form.name.trim(),
         location: form.location.trim(),
-        price: Number(form.price),
-        bedrooms: form.bedrooms.trim() ? Number(form.bedrooms) : undefined,
-        description: form.description.trim(),
-        amenities: form.amenities.split(",").map((a) => a.trim()).filter(Boolean),
+        description: form.description.trim() || undefined,
       });
-      toast.success("Listing updated");
+      toast.success("Hostel updated");
       navigate("/host/listings");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update listing");
+      toast.error(err instanceof Error ? err.message : "Could not update hostel");
     } finally {
       setSaving(false);
     }
@@ -106,7 +100,7 @@ export default function HostEditListingPage() {
   async function deleteListing() {
     const ok = await confirm({
       title: "Delete this listing?",
-      description: `"${form.title}" will be permanently removed. This cannot be undone.`,
+      description: `"${form.name || 'This hostel'}" will be permanently removed. This cannot be undone.`,
       confirmText: "Delete listing",
       variant: "destructive",
     });
@@ -170,28 +164,25 @@ export default function HostEditListingPage() {
           <p className="mt-2 text-xs text-neutral-400">Paste a Cloudinary, Unsplash, or any public image URL and press Enter or click Add.</p>
         </div>
 
-        {/* details */}
         <div className="card space-y-4">
-          <h2 className="font-black text-neutral-900 dark:text-white">Property details</h2>
-          {([["title", "Title *", "e.g. Kacyiru Student Residence"], ["location", "Location *", "e.g. Kacyiru, Kigali"], ["amenities", "Amenities (comma-separated)", "e.g. WiFi, Hot water, Security"]] as const).map(([key, label, ph]) => (
-            <div key={key}>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{label}</label>
-              <input value={form[key]} onChange={(e) => set(key, e.target.value)} placeholder={ph} className="input" />
-            </div>
-          ))}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Monthly price (RWF) *</label>
-              <input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="input" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Bedrooms</label>
-              <input type="number" value={form.bedrooms} onChange={(e) => set("bedrooms", e.target.value)} className="input" />
-            </div>
+          <h2 className="font-black text-neutral-900 dark:text-white">Hostel details</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Update the hostel's basic info. To manage rooms, pricing &amp; amenities, use the Rooms tab.
+          </p>
+
+          <div>
+            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Hostel name *</label>
+            <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Kacyiru Student Residence" className="input" />
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Location *</label>
+            <input value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Kacyiru, Kigali" className="input" />
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Description</label>
-            <textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} className="input resize-none" />
+            <textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} className="input resize-none" placeholder="Describe the hostel…" />
           </div>
         </div>
 

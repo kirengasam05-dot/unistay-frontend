@@ -18,7 +18,7 @@ export default function StudentHostelDetailPage() {
 
   const category = useMemo<HotelCategory>(() => {
     if (!hostel) return "Budget";
-    return hostel.category ?? (hostel.price >= 80000 ? "VIP" : hostel.price >= 35000 ? "Standard" : "Budget");
+    return hostel.category ?? ((hostel.price ?? 0) >= 80000 ? "VIP" : (hostel.price ?? 0) >= 35000 ? "Standard" : "Budget");
   }, [hostel]);
 
   if (isLoading) {
@@ -52,13 +52,13 @@ export default function StudentHostelDetailPage() {
               </span>
               <span className="text-sm text-slate-600">{hostel.location}</span>
             </div>
-            <h1 className="text-3xl font-semibold text-slate-900">{hostel.title}</h1>
+            <h1 className="text-3xl font-semibold text-slate-900">{hostel.name ?? hostel.title}</h1>
             <p className="max-w-2xl text-slate-600">{hostel.description}</p>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-right">
             <div className="text-sm text-slate-500">Per month</div>
-            <div className="mt-2 text-4xl font-semibold text-slate-900">{hostel.price.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</div>
+            <div className="mt-2 text-4xl font-semibold text-slate-900">{(hostel.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</div>
             <div className="mt-4 grid gap-3 text-sm text-slate-600">
               <div>Bedrooms: {hostel.bedrooms ?? "N/A"}</div>
               <div>Total Bed Capacity: {hostel.capacity ?? (hostel.bedrooms ? hostel.bedrooms * 2 : 2)}</div>

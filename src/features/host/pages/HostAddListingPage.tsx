@@ -4,8 +4,8 @@ import { ArrowLeft, CloudUpload, ImageOff, Loader2, Plus, X } from 'lucide-react
 import toast from 'react-hot-toast';
 import { housingApi } from '../../housing/housingApi';
 
-interface FormState { title: string; location: string; price: string; bedrooms: string; description: string; amenities: string; }
-const BLANK: FormState = { title: '', location: '', price: '', bedrooms: '', description: '', amenities: '' };
+interface FormState { name: string; location: string; description: string; }
+const BLANK: FormState = { name: '', location: '', description: '' };
 
 interface Picked { file: File; url: string; }
 
@@ -48,10 +48,8 @@ export default function HostAddListingPage() {
 
   function validate() {
     const e: Partial<FormState & { image: string }> = {};
-    if (!form.title.trim())    e.title    = 'Title is required';
+    if (!form.name.trim())     e.name     = 'Hostel name is required';
     if (!form.location.trim()) e.location = 'Location is required';
-    if (!form.price.trim() || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Enter a valid price';
-    if (form.bedrooms.trim() && (isNaN(Number(form.bedrooms)) || Number(form.bedrooms) < 0)) e.bedrooms = 'Enter a valid number';
     return e;
   }
 
@@ -59,24 +57,21 @@ export default function HostAddListingPage() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
 
+    // Backend hostel fields: name, location, description only.
+    // Price / bedrooms / amenities belong to Rooms and are set there.
     const payload = {
-      title: form.title.trim(),
+      name: form.name.trim(),
       location: form.location.trim(),
-      price: Number(form.price),
-      bedrooms: form.bedrooms.trim() ? Number(form.bedrooms) : undefined,
       description: form.description.trim() || undefined,
-      amenities: form.amenities.split(',').map(a => a.trim()).filter(Boolean),
-      availability: true,
     };
 
     setSubmitting(true);
     try {
-      // POST /listings is multipart/form-data per the API contract.
       await housingApi.create(payload, images.map(i => i.file));
-      toast.success('Listing created — pending verification.');
+      toast.success('Hostel created — pending verification. You can now add rooms.');
       navigate('/host/listings');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not create listing');
+      toast.error(err instanceof Error ? err.message : 'Could not create hostel');
     } finally {
       setSubmitting(false);
     }
@@ -156,29 +151,51 @@ export default function HostAddListingPage() {
         </div>
 
         <div className="card space-y-4">
-          <h2 className="font-black text-neutral-900 dark:text-white">Property details</h2>
-          {([['title','Title *','e.g. Kacyiru Student Residence'],['location','Location *','e.g. Kacyiru, Kigali'],['amenities','Amenities (comma-separated)','e.g. WiFi, Hot water, Security']] as const).map(([key, label, placeholder]) => (
-            <div key={key}>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{label}</label>
-              <input value={form[key as keyof FormState]} onChange={e => set(key as keyof FormState, e.target.value)} placeholder={placeholder} className="input" />
-              {errors[key as keyof typeof errors] && <p className="mt-1 text-xs text-red-500">{errors[key as keyof typeof errors]}</p>}
-            </div>
-          ))}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Monthly price (RWF) *</label>
-              <input type="number" value={form.price} onChange={e => set('price', e.target.value)} placeholder="e.g. 150000" className="input" />
-              {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Bedrooms</label>
-              <input type="number" value={form.bedrooms} onChange={e => set('bedrooms', e.target.value)} placeholder="e.g. 1" className="input" />
-              {errors.bedrooms && <p className="mt-1 text-xs text-red-500">{errors.bedrooms}</p>}
-            </div>
-          </div>
+          <h2 className="font-black text-neutral-900 dark:text-white">Hostel details</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Fill in the basic hostel info. You can add rooms (with pricing &amp; amenities) after creation.
+          </p>
+
+          {/* Hostel Name */}
           <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Description <span className="font-normal text-neutral-400">(optional)</span></label>
-            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} placeholder="Describe the property…" className="input resize-none" />
+            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Hostel name *</label>
+            <input
+              value={form.name}
+              onChange={e => set('name', e.target.value)}
+              placeholder="e.g. Kacyiru Student Residence"
+              className="input"
+            />
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+          </div>
+
+          {/* Location */}
+          <div>
+            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Location *</label>
+            <input
+              value={form.location}
+              onChange={e => set('location', e.target.value)}
+              placeholder="e.g. Kacyiru, Kigali"
+              className="input"
+            />
+            {errors.location && <p className="mt-1 text-xs text-red-500">{errors.location}</p>}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">
+              Description <span className="font-normal text-neutral-400">(optional)</span>
+            </label>
+            <textarea
+              value={form.description}
+              onChange={e => set('description', e.target.value)}
+              rows={4}
+              placeholder="Describe the hostel — facilities, rules, nearby landmarks…"
+              className="input resize-none"
+            />
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
+            💡 <strong>Tip:</strong> After the hostel is created and verified, go to <em>Manage Rooms</em> to add room types, set prices, and upload room-specific photos.
           </div>
         </div>
 

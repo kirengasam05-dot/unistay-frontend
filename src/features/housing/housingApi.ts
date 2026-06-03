@@ -3,29 +3,26 @@ import type { Housing, VerificationStatus } from "../../shared/types/api";
 import { extractList, extractOne } from "../../shared/types/api";
 
 /**
- * Housing / Listings API — mirrors the UniStay+ backend
+ * Hostels API — mirrors the UniStay+ backend
  * (see https://cdn-unistay.onrender.com/api-docs)
- *   GET    /listings                 (public)            — all listings
- *   GET    /listings/:id             (public)            — single listing
- *   GET    /listings/me/listings     (host)              — my listings
- *   POST   /listings                 (host, multipart)   — create
- *   PUT    /listings/:id             (host)              — update (supports partial)
- *   DELETE /listings/:id             (host)              — delete
- *   PATCH  /listings/:id/verify      (admin only)        — verify
- *   POST   /listings/:id/images      (host, multipart)   — add images
- *   DELETE /listings/:id/images      (host, ?imageUrl=)  — remove one image
+ *   GET    /hostels                  (public)            — all hostels
+ *   GET    /hostels/:id              (public)            — single hostel
+ *   GET    /hostels/me/hostels       (host)              — my hostels
+ *   POST   /hostels                  (host, multipart)   — create hostel  { name, location, description }
+ *   PUT    /hostels/:id              (host, multipart)   — update hostel
+ *   DELETE /hostels/:id              (host)              — delete
+ *   PATCH  /hostels/:id/verify       (admin only)        — verify
  *
  * Responses are wrapped as { success, data } (verified against the live API).
+ * NOTE: price / bedrooms / amenities belong to ROOMS, not the hostel entity.
  */
 
+/** Fields accepted by POST /hostels and PUT /hostels/:id */
 export type ListingPayload = {
-  title: string;
+  name: string;          // backend field — was erroneously `title` before
   location: string;
   description?: string;
-  bedrooms?: number;
-  amenities?: string[];
-  price: number;
-  availability?: boolean;
+  // price / bedrooms / amenities live on Room, not on Hostel
 };
 
 /** Kept for backwards-compatibility with earlier imports. */

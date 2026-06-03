@@ -65,14 +65,14 @@ export default function HousingDetailPage() {
     }
     const ok = await confirm({
       title: "Send booking request?",
-      description: `We'll request "${housing.title}" from ${new Date(checkIn).toLocaleDateString()} to ${new Date(checkOut).toLocaleDateString()}. You'll only pay after the host confirms.`,
+      description: `We'll request "${housing.name ?? housing.title}" from ${new Date(checkIn).toLocaleDateString()} to ${new Date(checkOut).toLocaleDateString()}. You'll only pay after the host confirms.`,
       confirmText: "Send request",
     });
     if (!ok) return;
     try {
       setBooking(true);
       await bookingsApi.create({
-        housingId: housing.id,
+        roomId: housing.id,
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
       });
@@ -107,7 +107,7 @@ export default function HousingDetailPage() {
         {/* Gallery + details */}
         <div className="space-y-5">
           <div className="overflow-hidden rounded-[2rem] border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-            <img src={images[active]} alt={housing.title} className="h-[360px] w-full object-cover" />
+            <img src={images[active]} alt={housing.name ?? housing.title} className="h-[360px] w-full object-cover" />
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto p-3">
                 {images.map((src, i) => (
@@ -124,7 +124,7 @@ export default function HousingDetailPage() {
               <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-emerald-600" : "bg-red-600"}`}>{housing.availability ? "Available" : "Booked"}</span>
               <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : "bg-neutral-500"}`}>{housing.verificationStatus}</span>
             </div>
-            <h1 className="mt-4 text-3xl font-black text-neutral-900 dark:text-white">{housing.title}</h1>
+            <h1 className="mt-4 text-3xl font-black text-neutral-900 dark:text-white">{housing.name ?? housing.title}</h1>
             <p className="mt-2 flex items-center gap-2 text-neutral-500 dark:text-neutral-400"><MapPin size={16} />{housing.location}</p>
             {typeof housing.bedrooms === "number" && (
               <p className="mt-1 flex items-center gap-2 text-neutral-500 dark:text-neutral-400"><BedDouble size={16} />{housing.bedrooms} bedroom{housing.bedrooms === 1 ? "" : "s"}</p>
