@@ -4,6 +4,7 @@ import { useHousingQuery } from '../housing/hooks/useHousingQueries';
 import { useJobsQuery } from '../jobs/hooks/useJobsQuery';
 import { useCoursesQuery } from '../courses/hooks/useCoursesQueries';
 import type { Housing } from '../../shared/types/api';
+import { hostelName } from '../../shared/types/api';
 import type { Course } from '../courses/coursesApi';
 import type { Job } from '../jobs/jobsApi';
 
@@ -57,10 +58,10 @@ export default function StudentDashboard() {
         <div className="grid gap-4 md:grid-cols-3">
           {housing.map((item: Housing) => (
             <Link key={item.id} to={`/hostels/${item.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-              <img src={item.images?.[0] || item.image || fallbackHousing} alt={item.title} className="h-44 w-full object-cover transition duration-500 group-hover:scale-105" />
+              <img src={item.images?.[0] || item.image || fallbackHousing} alt={hostelName(item)} className="h-44 w-full object-cover transition duration-500 group-hover:scale-105" />
               <div className="p-4">
                 <p className="text-xs font-black uppercase tracking-wide text-emerald-600">Available now</p>
-                <h3 className="mt-1 font-black text-slate-950 dark:text-white">{item.title}</h3>
+                <h3 className="mt-1 font-black text-slate-950 dark:text-white">{hostelName(item)}</h3>
                 <p className="mt-1 flex items-center gap-1 text-sm text-slate-500"><MapPin size={13} /> {item.location}</p>
                 <p className="mt-3 font-black text-slate-900 dark:text-white">{money(item.price)} <span className="text-xs font-semibold text-slate-500">/ month</span></p>
               </div>

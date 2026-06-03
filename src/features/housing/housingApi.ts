@@ -26,6 +26,7 @@ export type ListingPayload = {
   bedrooms?: number;
   capacity?: number;
   amenities?: string[];
+  availability?: boolean;
 };
 
 /** Kept for backwards-compatibility with earlier imports. */

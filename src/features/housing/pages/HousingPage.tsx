@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
 import type { Housing } from "../../../shared/types/api";
+import { hostelName } from "../../../shared/types/api";
 
 const money = (value: number) => `RWF ${Number(value || 0).toLocaleString()}`;
 const firstImage = (h: Housing) =>
@@ -144,7 +145,7 @@ export default function HousingPage() {
                 className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="relative">
-                  <img src={firstImage(housing)} alt={housing.title} className="h-56 w-full object-cover" />
+                  <img src={firstImage(housing)} alt={hostelName(housing)} className="h-56 w-full object-cover" />
                   <div className="absolute left-4 top-4 flex gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-green-600" : "bg-red-600"}`}>
                       {housing.availability ? "Available" : "Booked"}
@@ -156,7 +157,7 @@ export default function HousingPage() {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">{housing.title}</h3>
+                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">{hostelName(housing)}</h3>
                   <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                     <MapPin size={15} />{housing.location}
                   </p>

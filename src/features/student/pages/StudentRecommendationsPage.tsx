@@ -6,6 +6,7 @@ import { housingApi } from "../../housing/housingApi";
 import { jobsApi } from "../../jobs/jobsApi";
 import { useAuth } from "../../../features/auth/context/AuthContext";
 import type { Housing } from "../../../shared/types/api";
+import { hostelName } from "../../../shared/types/api";
 import type { Job } from "../../jobs/jobsApi";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -50,9 +51,9 @@ export default function StudentRecommendationsPage() {
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             {topHousing.map(h => (
               <Link key={h.id} to={`/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-                <img src={firstImage(h)} alt={h.title} className="h-40 w-full object-cover" />
+                <img src={firstImage(h)} alt={hostelName(h)} className="h-40 w-full object-cover" />
                 <div className="p-4">
-                  <h3 className="font-black text-neutral-900 dark:text-white">{h.title}</h3>
+                  <h3 className="font-black text-neutral-900 dark:text-white">{hostelName(h)}</h3>
                   <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500"><MapPin size={13} />{h.location}</p>
                   <p className="mt-2 font-black text-neutral-900 dark:text-white">{money(h.price)}<span className="text-xs font-normal text-neutral-500">/mo</span></p>
                 </div>

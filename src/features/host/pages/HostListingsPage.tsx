@@ -205,7 +205,7 @@ export default function HostListingsPage() {
                   </div>
                 )}
                 <p className="mt-3 text-2xl font-black text-neutral-900 dark:text-white">
-                  RWF {Number(h.price).toLocaleString()}
+                  RWF {Number(h.price ?? 0).toLocaleString()}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   per month

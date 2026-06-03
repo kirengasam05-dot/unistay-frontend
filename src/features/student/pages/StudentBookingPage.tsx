@@ -85,7 +85,7 @@ function PaymentPanel({ booking, onSubmit }: {
       {/* Booking summary */}
       <div className="mt-5 rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800">
         <p className="text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Selected housing</p>
-        <h3 className="mt-1 text-lg font-black text-neutral-900 dark:text-white">{booking.housing?.title || booking.housingId}</h3>
+        <h3 className="mt-1 text-lg font-black text-neutral-900 dark:text-white">{booking.housing?.name || booking.housing?.title || booking.housingId}</h3>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {booking.housing?.location} • {new Date(booking.checkIn).toLocaleDateString()} → {new Date(booking.checkOut).toLocaleDateString()}
         </p>
@@ -333,7 +333,7 @@ export default function StudentBookingPage() {
   async function submitPayment(booking: Booking, txRef: string) {
     const ok = await confirm({
       title: "Confirm payment?",
-      description: `You're about to pay ${money(booking.totalAmount)} for "${booking.housing?.title || "this listing"}". The host will verify and confirm your booking.`,
+      description: `You're about to pay ${money(booking.totalAmount)} for "${booking.housing?.name || booking.housing?.title || "this listing"}". The host will verify and confirm your booking.`,
       confirmText: "Confirm payment",
     });
     if (!ok) return;
@@ -402,11 +402,11 @@ export default function StudentBookingPage() {
                   return (
                     <article key={booking.id} className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
                       <div className="flex flex-wrap">
-                        <img src={img} alt={booking.housing?.title} className="h-36 w-full object-cover sm:h-auto sm:w-36 sm:shrink-0" />
+                        <img src={img} alt={booking.housing?.name || booking.housing?.title} className="h-36 w-full object-cover sm:h-auto sm:w-36 sm:shrink-0" />
                         <div className="flex flex-1 flex-col justify-between gap-2 p-4">
                           <div>
                             <div className="flex flex-wrap items-start justify-between gap-2">
-                              <p className="font-black text-neutral-900 dark:text-white">{booking.housing?.title || booking.housingId}</p>
+                              <p className="font-black text-neutral-900 dark:text-white">{booking.housing?.name || booking.housing?.title || booking.housingId}</p>
                               <div className="flex flex-wrap gap-1.5">
                                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span>
                                 {showPayBadge && (

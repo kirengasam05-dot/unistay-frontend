@@ -30,7 +30,7 @@ export default function MyAccommodationPage() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-slate-500">Current booking</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">{activeBooking.housing?.title ?? activeBooking.hotel?.title ?? "Current hostel"}</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">{activeBooking.housing?.name ?? activeBooking.housing?.title ?? activeBooking.hotel?.name ?? activeBooking.hotel?.title ?? "Current hostel"}</h2>
               </div>
               <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">{activeBooking.status}</span>
             </div>
@@ -79,7 +79,7 @@ export default function MyAccommodationPage() {
               <div key={booking.id} className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-slate-500">{booking.housing?.title ?? booking.hotel?.title ?? booking.housingId}</p>
+                    <p className="text-sm text-slate-500">{booking.housing?.name ?? booking.housing?.title ?? booking.hotel?.name ?? booking.hotel?.title ?? booking.housingId}</p>
                     <p className="text-sm font-semibold text-slate-900">{booking.status}</p>
                   </div>
                   <div className="text-sm text-slate-600">{booking.checkIn} → {booking.checkOut}</div>
