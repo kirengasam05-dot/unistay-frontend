@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, Home, LogOut, User } from 'lucide-react';
+import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, Home, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useAuth } from '../../../features/auth/context/AuthContext';
 import { useConfirm } from '../ui/ConfirmDialog';
+import { useTheme } from '../../lib/themeContext';
 import BrandLogo from '../BrandLogo';
 
 const links = [
@@ -15,6 +16,7 @@ const links = [
 
 export default function StudentNavbar() {
   const { user, logout } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const confirm = useConfirm();
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,6 +68,13 @@ export default function StudentNavbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className={`grid h-10 w-10 place-items-center rounded-full transition ${overHero ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-neutral-800'}`}
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
           <NavLink to="/student/notifications" className={`grid h-10 w-10 place-items-center rounded-full transition ${overHero ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-neutral-800'}`} aria-label="Notifications">
             <Bell size={17} />
           </NavLink>

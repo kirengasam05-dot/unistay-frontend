@@ -11,6 +11,7 @@ export type Application = {
   missing?: string[];
   createdAt?: string;
   message?: string;
+  resumeUrl?: string;
   user?: { fullName: string; email: string; avatar?: string };
   job?: { id: string; title: string; company?: string };
 };
@@ -26,6 +27,7 @@ export type ApplicationFormData = {
   portfolio: string;
   coverLetter: string;
   confirmedSkills: string[];
+  resumeName: string;
 };
 
 export const applicationsApi = {
@@ -48,15 +50,19 @@ export const applicationsApi = {
   },
 
   /** Student apply — POST /applications/jobs/:jobId */
-  async apply(
-    jobId: string,
-    formData?: ApplicationFormData,
-  ): Promise<Application> {
-    const payload = formData
-      ? { ...formData, message: JSON.stringify(formData) }
-      : {};
-    const res = await api.post(`/applications/jobs/${jobId}`, payload);
-    return extractOne<Application>(res.data);
+  async apply(jobId: string, formData?: ApplicationFormData): Promise<Application> {
+    const body = formData ? { message: JSON.stringify(formData) } : {};
+    const res = await api.post(`/applications/jobs/${jobId}`, body);
+    // Response: { message: string, application: {...} }
+    return (res.data?.application ?? extractOne<Application>(res.data)) as Application;
+  },
+
+  /** Student — upload resume PDF/DOCX for a submitted application */
+  async uploadResume(applicationId: string, file: File): Promise<string> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await api.post(`/applications/${applicationId}/resume`, form);
+    return res.data?.resumeUrl ?? '';
   },
 
   /** Employer accept — PUT /applications/:id/status { status: 'ACCEPTED' } */
@@ -67,10 +73,11 @@ export const applicationsApi = {
     return extractOne<Application>(res.data);
   },
 
-  /** Employer reject — PUT /applications/:id/status { status: 'REJECTED' } */
-  async reject(id: string): Promise<Application> {
+  /** Employer reject — PUT /applications/:id/status { status: 'REJECTED', message? } */
+  async reject(id: string, reason?: string): Promise<Application> {
     const res = await api.put(`/applications/${id}/status`, {
       status: "REJECTED",
+      ...(reason?.trim() ? { message: reason.trim() } : {}),
     });
     return extractOne<Application>(res.data);
   },

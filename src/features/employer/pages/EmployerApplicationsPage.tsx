@@ -3,6 +3,7 @@ import {
   AlertCircle,
   Briefcase,
   CheckCircle2,
+  FileText,
   Loader2,
   Mail,
   MoreHorizontal,
@@ -27,6 +28,8 @@ type ApplicationSubmissionData = {
   portfolio?: string;
   coverLetter?: string;
   confirmedSkills?: string[];
+  resumeName?: string;
+  rejectionReason?: string;
 };
 
 function parseApplicationSubmission(
@@ -124,274 +127,251 @@ function Avatar({
   );
 }
 
-// ── Applicant detail slide-over ───────────────────────────────────────────────
+// ── Applicant detail modal ────────────────────────────────────────────────────
 function ApplicantPanel({
-  app,
-  onClose,
-  onDecide,
-  busy,
+  app, onClose, onDecide, busy,
 }: {
   app: Application;
   onClose: () => void;
-  onDecide: (id: string, action: "accept" | "reject") => void;
+  onDecide: (id: string, action: "accept" | "reject", reason?: string) => void;
   busy: boolean;
 }) {
   const name = app.user?.fullName ?? `Applicant #${app.id.slice(0, 6)}`;
   const submission = parseApplicationSubmission(app);
-  const fieldRows = submission
-    ? [
-        ["Date of Birth", submission.dateOfBirth],
-        ["Nationality", submission.nationality],
-        ["ID Type", submission.idType],
-        ["Phone", submission.phone],
-        ["Address", submission.address],
-        ["Location", submission.location],
-        ["LinkedIn", submission.linkedin],
-        ["Portfolio", submission.portfolio],
-      ].filter(([, value]) => value)
-    : [];
+  const [rejectStep, setRejectStep] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+
+  const fieldRows = [
+    ["Date of birth",  submission?.dateOfBirth],
+    ["ID Type",        submission?.idType],
+    ["Phone",          submission?.phone || (app.user as any)?.phone],
+    ["Address",        submission?.address],
+    ["Location",       submission?.location || (app.user as any)?.location],
+    ["Applied on",     app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : undefined],
+  ].filter(([, v]) => v) as [string, string][];
+
+  const ext = submission?.resumeName?.split('.').pop()?.toUpperCase() ?? 'CV';
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-neutral-900">
 
-      {/* Panel */}
-      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl dark:bg-neutral-900 sm:border-l sm:border-neutral-200 sm:dark:border-neutral-800">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-          <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-            Applicant profile
-          </p>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-200 text-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-          >
+        <div className="flex items-center justify-between px-6 py-4">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">Applicant Profile</p>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700">
             <X size={15} />
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 divide-y divide-neutral-100 overflow-y-auto dark:divide-neutral-800">
+
           {/* Identity */}
-          <div className="flex items-center gap-4">
-            <Avatar name={name} avatar={app.user?.avatar} size="lg" />
+          <div className="flex items-center gap-4 px-6 py-5">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-600 text-lg font-black text-white">
+              {app.user?.avatar
+                ? <img src={app.user.avatar} alt={name} className="h-full w-full rounded-full object-cover" />
+                : initials}
+            </div>
             <div>
-              <h2 className="text-xl font-black text-neutral-900 dark:text-white">
-                {name}
-              </h2>
+              <h2 className="text-lg font-black text-neutral-900 dark:text-white">{name}</h2>
               {app.user?.email && (
-                <a
-                  href={`mailto:${app.user.email}`}
-                  className="mt-0.5 flex items-center gap-1.5 text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
-                >
-                  <Mail size={13} /> {app.user.email}
-                </a>
+                <div className="mt-0.5 flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
+                  <Mail size={12} /> {app.user.email}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Application form data */}
-          {submission && (
-            <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-neutral-400">
-                Application Details
-              </p>
-              <div className="overflow-hidden rounded-2xl border border-neutral-100 dark:border-neutral-800">
+          {/* Applied for */}
+          <div className="px-6 py-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">Applied for</p>
+            <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-700 dark:bg-neutral-800">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-neutral-200 dark:bg-neutral-700">
+                <Briefcase size={14} className="text-neutral-500 dark:text-neutral-400" />
+              </div>
+              <p className="font-black text-neutral-900 dark:text-white">{app.job?.title ?? "—"}</p>
+            </div>
+          </div>
+
+          {/* Personal details */}
+          {fieldRows.length > 0 && (
+            <div className="px-6 py-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">Personal Details</p>
+              <div className="space-y-3">
                 {fieldRows.map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex items-start justify-between gap-4 border-b border-neutral-100 px-4 py-2.5 last:border-0 dark:border-neutral-800"
-                  >
-                    <span className="shrink-0 text-xs font-bold text-neutral-400">
-                      {label}
-                    </span>
-                    <span className="break-all text-right text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                      {formatApplicationValue(value)}
-                    </span>
+                  <div key={label} className="flex items-center justify-between gap-4">
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">{label}</span>
+                    <span className="text-right text-sm font-semibold text-neutral-900 dark:text-white">{value}</span>
                   </div>
                 ))}
               </div>
-
-              {submission.coverLetter?.trim() && (
-                <div className="mt-3 rounded-2xl border border-neutral-100 p-4 dark:border-neutral-800">
-                  <p className="mb-2 text-xs font-bold text-neutral-400">
-                    Cover Letter
-                  </p>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-                    {submission.coverLetter}
-                  </p>
-                </div>
-              )}
-
-              {submission.confirmedSkills?.length ? (
-                <div className="mt-3">
-                  <p className="mb-2 text-xs font-bold text-neutral-400">
-                    Confirmed Skills
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {submission.confirmedSkills.map((skill: string) => (
-                      <span
-                        key={skill}
-                        className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </div>
           )}
 
-          {/* Applied for */}
-          <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800">
-            <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-              Applied for
-            </p>
-            <div className="mt-2 flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-200 dark:bg-neutral-700">
-                <Briefcase
-                  size={16}
-                  className="text-neutral-600 dark:text-neutral-400"
-                />
-              </div>
-              <div>
-                <p className="font-black text-neutral-900 dark:text-white">
-                  {app.job?.title ?? "—"}
-                </p>
-                {app.job?.company && (
-                  <p className="text-xs text-neutral-400">{app.job.company}</p>
-                )}
+          {/* Confirmed skills */}
+          {submission?.confirmedSkills?.length ? (
+            <div className="px-6 py-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">Confirmed Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {submission.confirmedSkills.map((s: string) => (
+                  <span key={s} className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">{s}</span>
+                ))}
               </div>
             </div>
-          </div>
+          ) : null}
 
-          {/* Compatibility score */}
-          <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-neutral-400">
-              Compatibility
-            </p>
-            {app.score !== undefined ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                    Match score
-                  </span>
-                  <span
-                    className={`font-black ${app.score >= 70 ? "text-green-600" : app.score >= 40 ? "text-amber-600" : "text-red-500"}`}
-                  >
-                    {app.score}%
-                  </span>
+          {/* Resume */}
+          {(app.resumeUrl || submission?.resumeName) && (
+            <div className="px-6 py-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">Resume</p>
+              <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-50 dark:bg-red-900/30">
+                    <FileText size={16} className="text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-neutral-900 dark:text-white">
+                      {submission?.resumeName || 'Resume'}
+                    </p>
+                    <p className="text-xs text-neutral-400">{ext}</p>
+                  </div>
+                  {app.resumeUrl ? (
+                    <a
+                      href={app.resumeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                      Download
+                    </a>
+                  ) : (
+                    <span className="shrink-0 text-xs text-neutral-400">File pending upload</span>
+                  )}
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
-                  <div
-                    className={`h-full rounded-full transition-all ${app.score >= 70 ? "bg-green-500" : app.score >= 40 ? "bg-amber-400" : "bg-red-400"}`}
-                    style={{ width: `${app.score}%` }}
-                  />
-                </div>
-                <p className="text-xs text-neutral-400">
-                  {app.score >= 70
-                    ? "Strong match — meets most requirements."
-                    : app.score >= 40
-                      ? "Partial match — review missing skills."
-                      : "Low match — significant skill gaps."}
-                </p>
               </div>
-            ) : (
-              <p className="text-sm text-neutral-400">
-                No compatibility score available yet.
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Missing skills */}
-          {app.compatible === false &&
-            app.missing &&
-            app.missing.length > 0 && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-800/40 dark:bg-red-900/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle
-                    size={15}
-                    className="text-red-600 dark:text-red-400"
-                  />
-                  <p className="text-sm font-black text-red-700 dark:text-red-400">
-                    Missing requirements
-                  </p>
+          {app.compatible === false && app.missing && app.missing.length > 0 && (
+            <div className="px-6 py-4">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/40 dark:bg-red-900/20">
+                <div className="mb-2 flex items-center gap-2">
+                  <AlertCircle size={14} className="text-red-600 dark:text-red-400" />
+                  <p className="text-sm font-black text-red-700 dark:text-red-400">Missing requirements</p>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {app.missing.map((m) => (
-                    <span
-                      key={m}
-                      className="rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-red-600 dark:bg-neutral-900 dark:text-red-400"
-                    >
-                      {m}
-                    </span>
+                <div className="flex flex-wrap gap-2">
+                  {app.missing.map(m => (
+                    <span key={m} className="rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-red-600 dark:bg-neutral-800 dark:text-red-400">{m}</span>
                   ))}
                 </div>
               </div>
-            )}
-
-          {/* Current status */}
-          <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-neutral-400">
-              Current status
-            </p>
-            <div className="flex items-center gap-3">
-              <StatusPill status={app.status} />
-              <p className="text-sm text-neutral-500">
-                {app.status === "ACCEPTED"
-                  ? "Acceptance email has been sent to the student."
-                  : app.status === "REJECTED"
-                    ? "Rejection email with feedback has been sent."
-                    : "Awaiting your decision."}
-              </p>
             </div>
+          )}
+
+          {/* Compatibility */}
+          {app.score !== undefined && (
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-neutral-500 dark:text-neutral-400">Match score</span>
+                <span className={`font-black ${app.score >= 70 ? "text-green-600 dark:text-green-400" : app.score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}>{app.score}%</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                <div className={`h-full rounded-full ${app.score >= 70 ? "bg-green-500" : app.score >= 40 ? "bg-amber-400" : "bg-red-500"}`} style={{ width: `${app.score}%` }} />
+              </div>
+            </div>
+          )}
+
+          {/* Status */}
+          <div className="flex items-center gap-3 px-6 py-4">
+            <StatusPill status={app.status} />
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {app.status === "ACCEPTED" ? "Acceptance email sent."
+               : app.status === "REJECTED" ? "Rejection email sent."
+               : "Awaiting your decision"}
+            </p>
           </div>
 
-          {/* Application ID */}
-          <div className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800">
-            <p className="text-xs font-bold text-neutral-400">Application ID</p>
-            <p className="mt-0.5 font-mono text-xs text-neutral-500">
-              {app.id}
-            </p>
+          {/* Rejection reason */}
+          {app.status === "REJECTED" && submission?.rejectionReason && (
+            <div className="px-6 py-4">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-neutral-400 dark:text-neutral-500">
+                Reason for Rejection
+              </p>
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800/40 dark:bg-red-900/10">
+                <p className="text-sm leading-relaxed text-red-700 dark:text-red-400">
+                  {submission.rejectionReason}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* App ID */}
+          <div className="px-6 py-4">
+            <p className="text-xs text-neutral-400 dark:text-neutral-600">Application ID</p>
+            <p className="mt-0.5 font-mono text-xs text-neutral-500">{app.id}</p>
           </div>
         </div>
 
-        {/* Footer — actions */}
+        {/* Footer */}
         {app.status === "PENDING" && (
-          <div className="border-t border-neutral-100 p-5 dark:border-neutral-800">
-            <p className="mb-3 text-xs font-semibold text-neutral-400">
-              Make a decision for this application
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => onDecide(app.id, "accept")}
-                disabled={busy}
-                className="flex items-center justify-center gap-2 rounded-xl bg-neutral-900 py-3 text-sm font-black text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
-              >
-                {busy ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  <CheckCircle2 size={15} />
-                )}
-                Accept
-              </button>
-              <button
-                onClick={() => onDecide(app.id, "reject")}
-                disabled={busy}
-                className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-3 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-60 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400"
-              >
-                <XCircle size={15} /> Reject
-              </button>
-            </div>
+          <div className="border-t border-neutral-100 p-4 dark:border-neutral-800">
+            {!rejectStep ? (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => onDecide(app.id, "accept")}
+                  disabled={busy}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-neutral-900 py-3 text-sm font-black text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+                >
+                  {busy ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                  Accept
+                </button>
+                <button
+                  onClick={() => setRejectStep(true)}
+                  disabled={busy}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60"
+                >
+                  <XCircle size={15} /> Reject
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-black text-neutral-900 dark:text-white">Reason for rejection <span className="font-normal text-red-500">*</span></p>
+                <p className="text-xs text-neutral-400">This will be included in the rejection email.</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={e => setRejectReason(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. Your profile does not meet the required experience level at this time…"
+                  className="input resize-none"
+                  autoFocus
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => { setRejectStep(false); setRejectReason(""); }}
+                    className="rounded-xl border border-neutral-200 py-2.5 text-sm font-bold text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => { onDecide(app.id, "reject", rejectReason); setRejectStep(false); }}
+                    disabled={busy || !rejectReason.trim()}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-black text-white hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {busy ? <Loader2 size={15} className="animate-spin" /> : <XCircle size={15} />}
+                    Confirm rejection
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -413,20 +393,17 @@ export default function EmployerApplicationsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function decide(id: string, action: "accept" | "reject") {
+  async function decide(id: string, action: "accept" | "reject", reason?: string) {
     setBusyId(id);
     setActionMenuId(null);
     try {
       const updated =
         action === "accept"
           ? await applicationsApi.accept(id)
-          : await applicationsApi.reject(id);
+          : await applicationsApi.reject(id, reason);
       setItems((prev) => prev.map((a) => (a.id === id ? updated : a)));
-      // keep panel open but update its data
       setSelected((prev) => (prev?.id === id ? updated : prev));
-      toast.success(
-        action === "accept" ? "Application accepted." : "Application rejected.",
-      );
+      toast.success(action === "accept" ? "Application accepted." : "Application rejected.");
     } catch (err: any) {
       toast.error(err?.message || "Action failed");
     } finally {
@@ -644,7 +621,7 @@ export default function EmployerApplicationsPage() {
         <ApplicantPanel
           app={selected}
           onClose={() => setSelected(null)}
-          onDecide={(id, action) => decide(id, action)}
+          onDecide={(id, action, reason) => decide(id, action, reason)}
           busy={busyId === selected.id}
         />
       )}

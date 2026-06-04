@@ -88,6 +88,7 @@ function ApplicationPanel({
     if (!form.dateOfBirth)     e.push('Date of birth is required.');
     if (!form.phone.trim())    e.push('Mobile number is required.');
     if (!form.email.trim())    e.push('Email is required.');
+    if (!resumeFile)           e.push('Resume is required (PDF or DOCX).');
     if (skills.length > 0 && confirmedSkills.size < skills.length) e.push('Please confirm all required skills.');
     if (!agreed) e.push('Please confirm the agreement.');
     return e;
@@ -110,8 +111,20 @@ function ApplicationPanel({
         portfolio:       '',
         coverLetter:     '',
         confirmedSkills: Array.from(confirmedSkills),
+        resumeName:      resumeFile?.name ?? '',
       };
-      await applicationsApi.apply(job.id, formData);
+      const application = await applicationsApi.apply(job.id, formData);
+
+      // Upload the actual resume file to Cloudinary
+      if (resumeFile && application?.id) {
+        try {
+          await applicationsApi.uploadResume(application.id, resumeFile);
+        } catch {
+          // Application submitted — resume upload failed silently
+          console.warn('[apply] Resume upload failed after application creation');
+        }
+      }
+
       onSuccess(job.id);
       toast.success('Application submitted! The employer will contact you by email.');
       onClose();
@@ -188,7 +201,7 @@ function ApplicationPanel({
 
               {/* ── Resume Upload ── */}
               <div>
-                <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-neutral-400">Resume <span className="text-neutral-300 dark:text-neutral-600 normal-case font-semibold">(optional)</span></h3>
+                <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-neutral-400">Resume <span className="text-red-500">*</span></h3>
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 px-6 py-8 transition hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800">
                   <UploadCloud size={28} className="text-neutral-400" />
                   <p className="mt-2 text-sm font-bold text-neutral-700 dark:text-neutral-300">
