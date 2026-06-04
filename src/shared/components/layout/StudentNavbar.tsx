@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, ChevronDown, Home, LogOut, Moon, Sun, User } from 'lucide-react';
+import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, Home, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useAuth } from '../../../features/auth/context/AuthContext';
 import { useConfirm } from '../ui/ConfirmDialog';
 import { useTheme } from '../../lib/themeContext';
@@ -79,16 +79,12 @@ export default function StudentNavbar() {
             <Bell size={17} />
           </NavLink>
           <div className="relative" ref={menuRef}>
-            <button onClick={() => setMenuOpen((open) => !open)} className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xs text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">
-                {user?.avatar ? (
-                  <img src={user.avatar} alt={user.fullName || user.email || 'Student'} className="h-full w-full object-cover" />
-                ) : (
-                  (user?.fullName || user?.email || 'S')[0].toUpperCase()
-                )}
-              </div>
-              <span className="hidden max-w-40 truncate sm:inline">{user?.fullName || user?.email || 'Student'}</span>
-              <ChevronDown size={14} />
+            <button onClick={() => setMenuOpen((open) => !open)} className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-xs text-slate-700 transition hover:opacity-80 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.fullName || user.email || 'Student'} className="h-full w-full object-cover" />
+              ) : (
+                (user?.fullName || user?.email || 'S')[0].toUpperCase()
+              )}
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
