@@ -177,7 +177,9 @@ export default function AdminUsersPage() {
             return (
               <div key={u.id} className={`card !p-4 ${active ? '' : 'opacity-60'}`}>
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${meta.avatar}`}>{initialsOf(u)}</div>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-black text-white ${u.avatar ? '' : meta.avatar}`}>
+                    {u.avatar ? <img src={u.avatar} alt={u.fullName || u.email} className="h-full w-full object-cover" /> : initialsOf(u)}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-neutral-900 dark:text-white truncate">{u.fullName || '—'}</p>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">{u.email}</p>
