@@ -52,9 +52,9 @@ export const jobsApi = {
     return extractList<any>(res.data).map(normalizeJob);
   },
 
-  /** GET /jobs — employer's own jobs (no scoped endpoint yet, filters client-side) */
+  /** GET /jobs/mine — returns only the authenticated employer's jobs */
   async getMine(): Promise<Job[]> {
-    const res = await api.get('/jobs');
+    const res = await api.get('/jobs/mine');
     return extractList<any>(res.data).map(normalizeJob);
   },
 

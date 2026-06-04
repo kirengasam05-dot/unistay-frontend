@@ -654,7 +654,6 @@ export default function EmployerApplicationsPage() {
             </table>
           </div>
         )}
-
       </div>
 
       {/* Applicant detail panel */}
