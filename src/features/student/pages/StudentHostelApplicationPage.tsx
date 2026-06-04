@@ -40,7 +40,7 @@ export default function StudentHostelApplicationPage() {
     // fetch application-data for the first room when the form mounts
     (async () => {
       try {
-        const firstRoomId = hostel.rooms?.[0]?.id;
+        const firstRoomId = hostel.firstRoomId ?? hostel.rooms?.[0]?.id;
         if (!firstRoomId) {
           setPrefillError("This hostel does not have a room available for applications yet.");
           return;
@@ -79,7 +79,7 @@ export default function StudentHostelApplicationPage() {
         setSubmitting(false);
         return;
       }
-      const firstRoomId = hostel.rooms?.[0]?.id;
+      const firstRoomId = hostel.firstRoomId ?? hostel.rooms?.[0]?.id;
       if (!firstRoomId) {
         toast.error("This hostel does not have a room available for applications.");
         setSubmitting(false);
