@@ -59,7 +59,7 @@ export default function HomePage() {
           </div>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {housing.slice(0, 6).map(item => (
-              <Link key={item.id} to={`/hostels/${item.id}`} className="group overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+              <Link key={item.id} to={`/hostels/${item.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="relative"><img src={image(item)} alt={item.title} className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" /><span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-black text-white ${item.availability ? 'bg-emerald-600' : 'bg-neutral-500'}`}>{item.availability ? 'Available' : 'Booked'}</span></div>
                 <div className="p-5"><h3 className="text-lg font-black text-neutral-900 dark:text-white">{item.title}</h3><p className="mt-1 flex items-center gap-1 text-sm text-neutral-500"><MapPin size={14} />{item.location}</p><div className="mt-4 flex items-center justify-between"><p className="text-xl font-black text-neutral-900 dark:text-white">{money(item.price)}<span className="text-xs font-normal text-neutral-500"> / month</span></p><span className="rounded-lg bg-black px-4 py-2 text-sm font-black text-white dark:bg-white dark:text-black">View</span></div></div>
               </Link>

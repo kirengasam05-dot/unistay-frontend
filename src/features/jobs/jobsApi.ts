@@ -20,6 +20,17 @@ export type Job = {
   createdAt?: string;
 };
 
+/** Map jobSkills (backend join table) → requiredSkills (string[]) */
+function normalizeJob(j: any): Job {
+  return {
+    ...j,
+    requiredSkills:
+      Array.isArray(j.requiredSkills) && j.requiredSkills.length > 0
+        ? j.requiredSkills
+        : (j.jobSkills ?? []).map((js: any) => js.skill?.name).filter(Boolean),
+  };
+}
+
 export type CreateJobPayload = {
   title: string;
   location?: string;
@@ -38,28 +49,25 @@ export const jobsApi = {
   /** GET /jobs — all jobs (public) */
   async getAll(): Promise<Job[]> {
     const res = await api.get('/jobs');
-    return extractList<Job>(res.data);
+    return extractList<any>(res.data).map(normalizeJob);
   },
 
-  /**
-   * GET /jobs — backend has no employer-scoped endpoint yet,
-   * so this returns all jobs (caller can filter by employerId client-side).
-   */
+  /** GET /jobs/mine — returns only the authenticated employer's jobs */
   async getMine(): Promise<Job[]> {
-    const res = await api.get('/jobs');
-    return extractList<Job>(res.data);
+    const res = await api.get('/jobs/mine');
+    return extractList<any>(res.data).map(normalizeJob);
   },
 
   /** POST /jobs — employer creates a job */
   async create(data: CreateJobPayload): Promise<Job> {
     const res = await api.post('/jobs', data);
-    return extractOne<Job>(res.data);
+    return normalizeJob(extractOne<any>(res.data));
   },
 
   /** PUT /jobs/:id — employer updates a job */
   async update(id: string, data: UpdateJobPayload): Promise<Job> {
     const res = await api.put('/jobs/' + id, data);
-    return extractOne<Job>(res.data);
+    return normalizeJob(extractOne<any>(res.data));
   },
 
   /** DELETE /jobs/:id */

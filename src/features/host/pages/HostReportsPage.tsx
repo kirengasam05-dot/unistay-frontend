@@ -112,9 +112,9 @@ export default function HostReportsPage() {
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-2">
-          <Calendar className="text-violet-600" size={24} />
+          <Calendar className="text-neutral-900 dark:text-white" size={24} />
           <h3 className="text-sm font-bold text-slate-500 uppercase">All Allocations</h3>
-          <p className="text-3xl font-black text-violet-600">{metrics.allocationHistory} bookings</p>
+          <p className="text-3xl font-black text-neutral-900 dark:text-white">{metrics.allocationHistory} bookings</p>
         </div>
       </div>
 

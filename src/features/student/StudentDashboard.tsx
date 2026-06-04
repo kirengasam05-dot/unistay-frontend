@@ -92,10 +92,10 @@ export default function StudentDashboard() {
         <UpdateHeading title="New courses to explore" description="Build useful skills and add achievements to your profile." to="/student/learning" icon={BookOpen} />
         <div className="grid gap-4 md:grid-cols-3">
           {courses.map((course: Course) => (
-            <Link key={course.id} to={`/student/learning/${course.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+            <Link key={course.id} to={`/student/learning/${course.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
               <img src={course.thumbnail || fallbackCourse} alt={course.title} className="h-40 w-full object-cover transition duration-500 group-hover:scale-105" />
               <div className="p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-violet-600">{course.category || 'New course'}</p>
+                <p className="text-xs font-black uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{course.category || 'New course'}</p>
                 <h3 className="mt-1 font-black text-slate-950 dark:text-white">{course.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{course.description || 'Start learning practical skills at your own pace.'}</p>
               </div>

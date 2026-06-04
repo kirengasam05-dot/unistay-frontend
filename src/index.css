@@ -2,17 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Keyframes must be top-level — not inside @layer ── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @layer base {
-  @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(24px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-24px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
   html {
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -24,7 +30,6 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    /* single source of truth — no competing @apply + explicit */
     letter-spacing: -0.02em;
   }
 }
@@ -55,7 +60,6 @@
 
   /* ── Card ────────────────────────────────────────────────── */
   .card {
-    /* rounded-2xl matches the rest of the app's card style */
     @apply rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm
            dark:border-neutral-800 dark:bg-neutral-900;
   }
@@ -95,7 +99,6 @@
     @apply w-full rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl
            dark:border-neutral-800 dark:bg-neutral-900;
   }
-  /* auth-input now matches .input (rounded-xl, not rounded-lg) */
   .auth-input {
     @apply w-full rounded-xl border border-neutral-200 bg-white px-4 py-3
            text-sm text-neutral-900 outline-none transition

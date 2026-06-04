@@ -181,18 +181,16 @@ export default function EmployerDashboard() {
   const [loading, setLoading]             = useState(true);
 
   useEffect(() => {
-    jobsApi.getMine().then(async fetchedJobs => {
-      setJobs(fetchedJobs);
-      if (fetchedJobs.length === 0) { setLoading(false); return; }
-      const nested = await Promise.all(
-        fetchedJobs.map(j =>
-          applicationsApi.getForJob(j.id)
-            .then(apps => apps.map(a => ({ ...a, job: { id: j.id, title: j.title, company: j.company } })))
-            .catch(() => [] as Application[])
-        )
-      );
-      setApplications(nested.flat());
-    }).catch(() => {}).finally(() => setLoading(false));
+    Promise.all([
+      jobsApi.getMine(),
+      applicationsApi.getForEmployer(),
+    ])
+      .then(([fetchedJobs, fetchedApps]) => {
+        setJobs(fetchedJobs);
+        setApplications(fetchedApps);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const totalApps  = applications.length;
