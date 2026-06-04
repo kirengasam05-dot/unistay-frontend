@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, ChevronDown, Home, LogOut, User } from 'lucide-react';
+import { Bell, BookOpen, Briefcase, Building2, CalendarCheck, Home, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useAuth } from '../../../features/auth/context/AuthContext';
 import { useConfirm } from '../ui/ConfirmDialog';
+import { useTheme } from '../../lib/themeContext';
 import BrandLogo from '../BrandLogo';
 
 const links = [
@@ -15,6 +16,7 @@ const links = [
 
 export default function StudentNavbar() {
   const { user, logout } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const confirm = useConfirm();
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,19 +68,28 @@ export default function StudentNavbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className={`grid h-10 w-10 place-items-center rounded-full transition ${overHero ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-neutral-800'}`}
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
           <NavLink to="/student/notifications" className={`grid h-10 w-10 place-items-center rounded-full transition ${overHero ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-neutral-800'}`} aria-label="Notifications">
             <Bell size={17} />
           </NavLink>
           <div className="relative" ref={menuRef}>
-            <button onClick={() => setMenuOpen((open) => !open)} className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-xs text-slate-700 dark:bg-neutral-800 dark:text-neutral-200">{(user?.fullName || user?.email || 'S')[0].toUpperCase()}</span>
-              <span className="hidden max-w-40 truncate sm:inline">{user?.fullName || user?.email || 'Student'}</span>
-              <ChevronDown size={14} />
+            <button onClick={() => setMenuOpen((open) => !open)} className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-xs text-slate-700 transition hover:opacity-80 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.fullName || user.email || 'Student'} className="h-full w-full object-cover" />
+              ) : (
+                (user?.fullName || user?.email || 'S')[0].toUpperCase()
+              )}
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                 <p className="truncate border-b border-slate-100 px-3 pb-3 pt-1 text-sm font-black text-slate-900 dark:border-neutral-800 dark:text-white">{user?.fullName || user?.email || 'Student'}</p>
-                <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-neutral-800"><User size={16} /> Account center</NavLink>
+                <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-neutral-800"><User size={16} /> Profile</NavLink>
                 <button onClick={signOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"><LogOut size={16} /> Log out</button>
               </div>
             )}

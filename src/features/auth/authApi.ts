@@ -49,8 +49,8 @@ function normalizeUser(raw: any): AuthUser {
   return {
     ...u,
     id: u.id ?? u._id ?? "",
-    // profilePicture remains as a rollout fallback for older API deployments.
-    avatar: u.avatar ?? u.profilePicture ?? undefined,
+    // Backend uses "Avatar" (capital A) as the Prisma field name — normalise to lowercase.
+    avatar: u.avatar ?? u.Avatar ?? u.profilePicture ?? undefined,
   };
 }
 
@@ -91,6 +91,28 @@ export const authApi = {
   /** Update name / phone / location (requires Bearer token). */
   async updateProfile(payload: UpdateProfilePayload): Promise<AuthUser> {
     const res = await api.put("/auth/me", payload);
+    return normalizeUser(res.data);
+  },
+
+  /** Upload or update a profile avatar image for the current user. */
+  async uploadAvatar(file: File): Promise<AuthUser> {
+    const data = new FormData();
+    data.append("file", file);
+    const res = await api.post("/avatar", data);
+    return normalizeUser(res.data);
+  },
+
+  /** Update (edit) the current user's avatar. */
+  async updateAvatar(file: File): Promise<AuthUser> {
+    const data = new FormData();
+    data.append("file", file);
+    const res = await api.put("/avatar", data);
+    return normalizeUser(res.data);
+  },
+
+  /** Remove the current user's avatar. */
+  async deleteAvatar(): Promise<AuthUser> {
+    const res = await api.delete("/avatar");
     return normalizeUser(res.data);
   },
 

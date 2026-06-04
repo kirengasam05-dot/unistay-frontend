@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, LogOut, Menu, UserCog } from 'lucide-react';
+import { Loader2, LogOut, Menu, Moon, Sun, UserCog } from 'lucide-react';
 import Sidebar from './Sidebar';
 import StudentNavbar from './StudentNavbar';
 import { useAuth } from '../../../features/auth/context/AuthContext';
 import { useConfirm } from '../ui/ConfirmDialog';
+import { useTheme } from '../../lib/themeContext';
 
 export default function DashboardLayout() {
   const { user, loading, logout: signOut } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -74,13 +76,25 @@ export default function DashboardLayout() {
           </button>
           <div className="hidden lg:block" />
 
-          {/* Right: profile dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Right: theme toggle + profile dropdown */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              aria-label="Toggle dark mode"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(v => !v)}
-              className="grid h-9 w-9 place-items-center rounded-full bg-neutral-900 text-xs font-black text-white transition hover:opacity-80 dark:bg-white dark:text-neutral-900"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-xs font-black text-white transition hover:opacity-80 dark:bg-white dark:text-neutral-900"
             >
-              {initials}
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.fullName || user.email} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </button>
 
             {dropdownOpen && (
@@ -113,6 +127,7 @@ export default function DashboardLayout() {
                 </div>
               </>
             )}
+            </div>
           </div>
         </header>
 

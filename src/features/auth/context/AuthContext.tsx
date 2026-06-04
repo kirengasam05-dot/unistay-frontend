@@ -29,6 +29,8 @@ interface AuthContextValue {
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
+  uploadAvatar: (file: File) => Promise<AuthUser>;
+  deleteAvatar: () => Promise<AuthUser>;
   changePassword: (payload: ChangePasswordPayload) => Promise<void>;
 }
 
@@ -140,6 +142,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return merged;
   }, []);
 
+  const uploadAvatar = useCallback(async (file: File) => {
+    const currentUser = getUser();
+    // Use PUT if avatar already exists, POST for initial upload
+    const updated = currentUser?.avatar 
+      ? await authApi.updateAvatar(file)
+      : await authApi.uploadAvatar(file);
+    const merged = { ...(getUser() || {}), ...updated } as AuthUser;
+    saveUser(merged);
+    setUser(merged);
+    return merged;
+  }, []);
+
+  const deleteAvatar = useCallback(async () => {
+    const updated = await authApi.deleteAvatar();
+    const merged = { ...(getUser() || {}), ...updated } as AuthUser;
+    saveUser(merged);
+    setUser(merged);
+    return merged;
+  }, []);
+
   const changePassword = useCallback(async (payload: ChangePasswordPayload) => {
     await authApi.changePassword(payload);
   }, []);
@@ -155,6 +177,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshUser,
       updateProfile,
+      uploadAvatar,
+      deleteAvatar,
       changePassword,
     }),
     [user, token, loading, login, register, logout, refreshUser, updateProfile, changePassword]

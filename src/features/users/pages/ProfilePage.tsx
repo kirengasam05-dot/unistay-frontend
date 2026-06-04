@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Award, Briefcase, Download, Eye, Loader2, Lock, Mail, MapPin, Pencil, Phone, Save, Sparkles, User } from 'lucide-react';
+import { Award, Briefcase, Camera, Download, Eye, Loader2, Lock, Mail, MapPin, Pencil, Phone, Save, Sparkles, Trash2, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../auth/context/AuthContext';
+import { useConfirm } from '../../../shared/components/ui/ConfirmDialog';
 import { applicationsApi } from '../../applications/applicationsApi';
 import type { Application } from '../../applications/applicationsApi';
 import CertificatePreview, { downloadCertificatePdf, type CertificateData } from '../../student/components/CertificatePreview';
@@ -15,9 +16,12 @@ function fmt(date?: string) {
 }
 
 export default function ProfilePage() {
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, updateProfile, uploadAvatar, deleteAvatar, changePassword } = useAuth();
   const [tab, setTab]           = useState<Tab>('activity');
   const [form, setForm]         = useState({ fullName: user?.fullName || '', phone: user?.phone || '', location: user?.location || '' });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
+  const confirm = useConfirm();
   const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
   const [applications, setApplications] = useState<Application[]>([]);
   const [saving, setSaving]     = useState(false);
@@ -53,6 +57,39 @@ export default function ProfilePage() {
       toast.error(err instanceof Error ? err.message : 'Could not update profile');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAvatarUpload(file?: File) {
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+      toast.success('Avatar updated');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function handleAvatarDelete() {
+    const ok = await confirm({
+      title: 'Delete avatar?',
+      description: 'This will remove your current profile photo.',
+      confirmText: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+
+    setDeletingAvatar(true);
+    try {
+      await deleteAvatar();
+      toast.success('Avatar removed');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not remove avatar');
+    } finally {
+      setDeletingAvatar(false);
     }
   }
 
@@ -100,8 +137,47 @@ export default function ProfilePage() {
 
         {/* Avatar + name */}
         <div className="flex flex-col items-center text-center">
-          <div className="grid h-24 w-24 place-items-center rounded-full border-4 border-white bg-neutral-900 text-2xl font-black text-white shadow-md dark:border-neutral-800 dark:bg-white dark:text-neutral-900">
-            {initials}
+          <div className="relative">
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.fullName || user.email}
+                className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md dark:border-neutral-800"
+              />
+            ) : (
+              <div className="grid h-24 w-24 place-items-center rounded-full border-4 border-white bg-neutral-900 text-2xl font-black text-white shadow-md dark:border-neutral-800 dark:bg-white dark:text-neutral-900">
+                {initials}
+              </div>
+            )}
+          </div>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-900">
+              {uploadingAvatar ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+              {user.avatar ? 'Change avatar' : 'Upload avatar'}
+            </label>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                handleAvatarUpload(file);
+              }}
+              disabled={uploadingAvatar || deletingAvatar}
+            />
+            {user.avatar && (
+              <button
+                type="button"
+                onClick={handleAvatarDelete}
+                disabled={uploadingAvatar || deletingAvatar}
+                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100 disabled:opacity-60 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900"
+              >
+                {deletingAvatar ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                Remove
+              </button>
+            )}
           </div>
           <h1 className="mt-4 text-xl font-black text-neutral-900 dark:text-white">
             {user.fullName || user.email}
