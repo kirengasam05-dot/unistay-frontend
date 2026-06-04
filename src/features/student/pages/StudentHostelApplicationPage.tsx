@@ -40,7 +40,11 @@ export default function StudentHostelApplicationPage() {
     // fetch application-data for the first room when the form mounts
     (async () => {
       try {
-        const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
+        const firstRoomId = hostel.rooms?.[0]?.id;
+        if (!firstRoomId) {
+          setPrefillError("This hostel does not have a room available for applications yet.");
+          return;
+        }
         const data = await bookingsApi.getApplicationData(firstRoomId);
         // backend returns student, hostel and room info — autofill fields when provided
         if (data?.student) {
@@ -75,7 +79,12 @@ export default function StudentHostelApplicationPage() {
         setSubmitting(false);
         return;
       }
-      const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
+      const firstRoomId = hostel.rooms?.[0]?.id;
+      if (!firstRoomId) {
+        toast.error("This hostel does not have a room available for applications.");
+        setSubmitting(false);
+        return;
+      }
       const booking = await bookingsApi.create({
         roomId: firstRoomId,
         checkIn,
@@ -103,7 +112,7 @@ export default function StudentHostelApplicationPage() {
             <p className="mt-2 text-slate-600">Complete your application for {hostel.name ?? hostel.title} and continue to secure your stay.</p>
           </div>
           <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">
-            Monthly price: <strong>{(hostel.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
+            Monthly price: <strong>{(hostel.price ?? hostel.rooms?.[0]?.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
           </div>
         </div>
       </div>

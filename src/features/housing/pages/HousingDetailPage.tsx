@@ -46,7 +46,9 @@ export default function HousingDetailPage() {
     return list.length ? list : [FALLBACK_IMG];
   }, [housing]);
 
-  const canApply = !!housing && housing.verificationStatus === "VERIFIED" && housing.availability;
+  const verificationStatus = housing?.verificationStatus ?? "PENDING";
+  const effectivePrice = housing?.price ?? housing?.rooms?.[0]?.price;
+  const canApply = !!housing && verificationStatus === "VERIFIED" && housing.availability === true;
 
   async function requestApplication() {
     if (!housing) return;
@@ -70,9 +72,14 @@ export default function HousingDetailPage() {
     });
     if (!ok) return;
     try {
+      const roomId = housing.rooms?.[0]?.id;
+      if (!roomId) {
+        toast.error("This hostel does not expose a room yet. Contact the host or try another listing.");
+        return;
+      }
       setBooking(true);
       await bookingsApi.create({
-        roomId: housing.id,
+        roomId,
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
       });
@@ -121,8 +128,8 @@ export default function HousingDetailPage() {
 
           <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-emerald-600" : "bg-red-600"}`}>{housing.availability ? "Available" : "Occupied"}</span>
-              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : housing.verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>{housing.verificationStatus === "PENDING" ? "Pending Verification" : housing.verificationStatus}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability === true ? "bg-emerald-600" : housing.availability === false ? "bg-red-600" : "bg-amber-500"}`}>{housing.availability === true ? "Available" : housing.availability === false ? "Occupied" : "Availability unknown"}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>{verificationStatus === "PENDING" ? "Pending Verification" : verificationStatus}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black text-neutral-900 dark:text-white">{housing.name ?? housing.title}</h1>
             <p className="mt-2 flex items-center gap-2 text-neutral-500 dark:text-neutral-400"><MapPin size={16} />{housing.location}</p>
@@ -148,7 +155,7 @@ export default function HousingDetailPage() {
         <div className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">Monthly price</p>
-            <p className="mt-1 text-4xl font-black text-neutral-900 dark:text-white">{money(housing.price)}</p>
+            <p className="mt-1 text-4xl font-black text-neutral-900 dark:text-white">{effectivePrice != null ? money(effectivePrice) : "Contact host"}</p>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <div>
