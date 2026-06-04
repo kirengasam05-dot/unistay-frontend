@@ -35,10 +35,13 @@ export const applicationsApi = {
     return extractList<Application>(res.data);
   },
 
-  /**
-   * Employer — applications for a specific job. GET /applications/jobs/:jobId
-   * No bulk "all applications" endpoint exists server-side yet.
-   */
+  /** Employer — all applications across all their jobs. GET /applications/employer */
+  async getForEmployer(): Promise<Application[]> {
+    const res = await api.get('/applications/employer');
+    return extractList<Application>(res.data);
+  },
+
+  /** Employer — applications for a specific job. GET /applications/jobs/:jobId */
   async getForJob(jobId: string): Promise<Application[]> {
     const res = await api.get(`/applications/jobs/${jobId}`);
     return extractList<Application>(res.data);

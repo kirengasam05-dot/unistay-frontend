@@ -11,7 +11,6 @@ import {
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { jobsApi } from "../../jobs/jobsApi";
 import { applicationsApi } from "../../applications/applicationsApi";
 import type { Application } from "../../applications/applicationsApi";
 
@@ -407,26 +406,10 @@ export default function EmployerApplicationsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    jobsApi
-      .getMine()
-      .then(async (jobs) => {
-        if (jobs.length === 0) return;
-        const nested = await Promise.all(
-          jobs.map((j) =>
-            applicationsApi
-              .getForJob(j.id)
-              .then((apps) =>
-                apps.map((a) => ({
-                  ...a,
-                  job: { id: j.id, title: j.title, company: j.company },
-                })),
-              )
-              .catch(() => [] as Application[]),
-          ),
-        );
-        setItems(nested.flat());
-      })
-      .catch(() => toast.error("Failed to load applications"))
+    applicationsApi
+      .getForEmployer()
+      .then(setItems)
+      .catch(() => toast.error('Failed to load applications'))
       .finally(() => setLoading(false));
   }, []);
 
