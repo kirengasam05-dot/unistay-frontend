@@ -10,8 +10,8 @@ const steps = [
   },
   {
     icon: Building2,
-    title: 'Find & book verified hostels',
-    description: 'Students browse verified listings, send booking requests, and wait for host confirmation. Payment is only processed after the host approves.',
+    title: 'Find & apply for verified hostels',
+    description: 'Students browse verified listings, submit hostel applications, and wait for host confirmation. Payment is only processed after the host approves.',
     tag: 'Hostels',
   },
   {

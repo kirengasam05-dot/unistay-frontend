@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
 import type { Housing } from "../../../shared/types/api";
+import { hostelName } from "../../../shared/types/api";
 
 const money = (value: number) => `RWF ${Number(value || 0).toLocaleString()}`;
 const firstImage = (h: Housing) =>
@@ -135,7 +136,7 @@ export default function HousingPage() {
         <section className="grid gap-6 lg:grid-cols-3">
           {filtered.map((housing) => {
             const isVerified = housing.verificationStatus === "VERIFIED";
-            const canBook = isVerified && housing.availability;
+            const canApply = isVerified && housing.availability;
 
             return (
               <Link
@@ -144,19 +145,19 @@ export default function HousingPage() {
                 className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="relative">
-                  <img src={firstImage(housing)} alt={housing.title} className="h-56 w-full object-cover" />
+                  <img src={firstImage(housing)} alt={hostelName(housing)} className="h-56 w-full object-cover" />
                   <div className="absolute left-4 top-4 flex gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-green-600" : "bg-red-600"}`}>
-                      {housing.availability ? "Available" : "Booked"}
+                      {housing.availability ? "Available" : "Occupied"}
                     </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isVerified ? "bg-black" : "bg-neutral-500"}`}>
-                      {housing.verificationStatus}
+                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isVerified ? "bg-black" : housing.verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>
+                      {housing.verificationStatus === "PENDING" ? "Pending Verification" : housing.verificationStatus}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">{housing.title}</h3>
+                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">{hostelName(housing)}</h3>
                   <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                     <MapPin size={15} />{housing.location}
                   </p>
@@ -172,14 +173,14 @@ export default function HousingPage() {
                       View details
                     </span>
                   </div>
-                  {canBook && (
+                  {canApply && (
                     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-green-700 dark:text-green-400">
-                      <CheckCircle2 size={15} />Payment appears after host confirmation
+                      <CheckCircle2 size={15} />Apply to reserve your spot
                     </p>
                   )}
                   {!isVerified && (
                     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-neutral-500 dark:text-neutral-400">
-                      <ShieldCheck size={15} />Waiting for verification
+                      <ShieldCheck size={15} />Pending admin verification
                     </p>
                   )}
                 </div>

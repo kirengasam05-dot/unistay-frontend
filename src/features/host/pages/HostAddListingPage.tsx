@@ -100,6 +100,7 @@ export default function HostAddListingPage() {
       bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
       capacity: form.capacity ? Number(form.capacity) : undefined,
       amenities: amenities.length ? amenities : undefined,
+      availability: true,
     };
 
     setSubmitting(true);

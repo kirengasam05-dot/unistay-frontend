@@ -51,13 +51,13 @@ export default function HostListingsPage() {
   }, []);
 
   async function toggleAvailability(h: Housing) {
-    const goingToBooked = h.availability;
+    const goingToOccupied = h.availability;
     const ok = await confirm({
-      title: goingToBooked ? "Mark as booked?" : "Mark as available?",
-      description: goingToBooked
-        ? `"${h.name ?? h.title}" will be hidden from new student bookings until you mark it available again.`
-        : `"${h.name ?? h.title}" will become bookable by students again.`,
-      confirmText: goingToBooked ? "Mark booked" : "Mark available",
+      title: goingToOccupied ? "Mark as occupied?" : "Mark as available?",
+      description: goingToOccupied
+        ? `"${h.name ?? h.title}" will be hidden from new student applications until you mark it available again.`
+        : `"${h.name ?? h.title}" will become available for applications again.`,
+      confirmText: goingToOccupied ? "Mark occupied" : "Mark available",
     });
     if (!ok) return;
     try {
@@ -69,7 +69,7 @@ export default function HostListingsPage() {
         prev.map((x) => (x.id === h.id ? { ...x, ...updated } : x)),
       );
       toast.success(
-        updated.availability ? "Marked as available" : "Marked as booked",
+        updated.availability ? "Marked as available" : "Marked as occupied",
       );
     } catch (err) {
       toast.error(
@@ -112,7 +112,7 @@ export default function HostListingsPage() {
             </h1>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
               Manage your hostel listings. Keep availability accurate so
-              students can book.
+              students can apply.
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -171,7 +171,7 @@ export default function HostListingsPage() {
                 <span
                   className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold text-white ${h.availability ? "bg-emerald-500" : "bg-neutral-500"}`}
                 >
-                  {h.availability ? "Available" : "Booked"}
+                  {h.availability ? "Available" : "Occupied"}
                 </span>
                 <span
                   className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold text-white ${verifyPill(h.verificationStatus)}`}
@@ -205,7 +205,7 @@ export default function HostListingsPage() {
                   </div>
                 )}
                 <p className="mt-3 text-2xl font-black text-neutral-900 dark:text-white">
-                  RWF {Number(h.price).toLocaleString()}
+                  RWF {Number(h.price ?? 0).toLocaleString()}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   per month
@@ -220,7 +220,7 @@ export default function HostListingsPage() {
                       <Loader2 size={16} className="animate-spin" />
                     ) : h.availability ? (
                       <>
-                        <ToggleRight size={16} /> Mark as booked
+                        <ToggleRight size={16} /> Mark as occupied
                       </>
                     ) : (
                       <>

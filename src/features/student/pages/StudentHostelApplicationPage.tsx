@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useHousingDetailQuery } from "../../housing/hooks/useHousingQueries";
@@ -12,7 +12,9 @@ export default function StudentHostelApplicationPage() {
   const { data: hostel, isLoading, isError } = useHousingDetailQuery(id ?? "");
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [roomInfo, setRoomInfo] = useState<any | null>(null);
+  const [prefillError, setPrefillError] = useState<string | null>(null);
   const [checkIn, setCheckIn] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -34,6 +36,30 @@ export default function StudentHostelApplicationPage() {
     return <div className="p-6 bg-white rounded-lg shadow-sm">Hostel not found.</div>;
   }
 
+  useEffect(() => {
+    // fetch application-data for the first room when the form mounts
+    (async () => {
+      try {
+        const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
+        const data = await bookingsApi.getApplicationData(firstRoomId);
+        // backend returns student, hostel and room info — autofill fields when provided
+        if (data?.student) {
+          setFullName(data.student.fullName ?? fullName);
+          setEmail(data.student.email ?? email);
+          setPhone(data.student.phone ?? phone);
+        }
+        if (data?.room) setRoomInfo(data.room);
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || (err instanceof Error ? err.message : String(err));
+        // If hostel is not verified, backend will return a helpful message — show it and disable form
+        if (msg && /verified/i.test(msg)) {
+          setPrefillError(msg);
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hostel]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -45,15 +71,22 @@ export default function StudentHostelApplicationPage() {
     setSubmitting(true);
 
     try {
+      if (prefillError) {
+        setSubmitting(false);
+        return;
+      }
       const firstRoomId = hostel.rooms?.[0]?.id || hostel.id;
       const booking = await bookingsApi.create({
         roomId: firstRoomId,
         checkIn,
         checkOut,
+        fullName,
+        email,
+        phone,
       });
 
       toast.success("Application submitted successfully.");
-      navigate(`/student/booking/${booking.id}/payment`);
+      navigate(`/student/booking/${booking.id}/confirmation`);
     } catch (error) {
       toast.error("Unable to submit your application. Please try again.");
     } finally {
@@ -74,6 +107,14 @@ export default function StudentHostelApplicationPage() {
           </div>
         </div>
       </div>
+
+      {prefillError && (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
+          <div className="font-bold">Application blocked</div>
+          <div className="mt-1 text-sm">{prefillError}</div>
+          <div className="mt-2 text-sm">If you believe this is an error contact student services or the hostel owner for verification.</div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -127,9 +168,12 @@ export default function StudentHostelApplicationPage() {
             <div className="mt-4 text-slate-600">
               <div className="mb-3 text-sm">{hostel.name ?? hostel.title}</div>
               <div className="grid gap-2 text-sm leading-6">
-                <div>Location: {hostel.location}</div>
+                    <div>Location: {hostel.location}</div>
                 <div>Price: {(hostel.price ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} / month</div>
-                <div>Rooms: {hostel.bedrooms ?? "N/A"}</div>
+                    <div>Rooms: {hostel.bedrooms ?? "N/A"}</div>
+                    {roomInfo && (
+                      <div className="mt-2 text-sm text-slate-700">Room: {roomInfo.name ?? roomInfo.id} — {roomInfo.category ?? ""} — {roomInfo.price ? (roomInfo.price).toLocaleString() : ""}</div>
+                    )}
               </div>
             </div>
           </div>
