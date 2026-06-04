@@ -90,7 +90,14 @@ export function extractList<T>(payload: any): T[] {
   if (Array.isArray(payload?.data)) return payload.data;
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.users)) return payload.users;
   if (Array.isArray(payload?.data?.data)) return payload.data.data;
+  // fallback: first array value found in the object
+  if (payload && typeof payload === 'object') {
+    for (const val of Object.values(payload)) {
+      if (Array.isArray(val)) return val as T[];
+    }
+  }
   return [];
 }
 
