@@ -81,6 +81,8 @@ export type Booking = {
   moveInDate?: string | null;
   bookingReference?: string | null;
   paymentMethod?: string | null;
+  /** Optional backend-provided deadline for completing payment (ISO string) */
+  paymentDeadline?: string | null;
 };
 
 export function extractList<T>(payload: any): T[] {

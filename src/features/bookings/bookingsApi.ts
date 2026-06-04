@@ -26,12 +26,24 @@ export const bookingsApi = {
     return extractOne<Booking>(res.data);
   },
 
+  /** GET /hostel-bookings/application-data?roomId=... — returns autofill data for application form */
+  async getApplicationData(roomId: string): Promise<any> {
+    const res = await api.get(`/hostel-bookings/application-data`, { params: { roomId } });
+    return extractOne<any>(res.data);
+  },
+
   /**
    * Submit payment. In backend, this calls pay booking which creates Stripe Checkout.
    */
   async submitPaymentProof(id: string, paymentProof: string): Promise<Booking> {
     const res = await api.post(`/hostel-bookings/${id}/pay`, { paymentProof, paymentRef: paymentProof });
     return extractOne<Booking>(res.data);
+  },
+
+  /** POST /hostel-bookings/:id/pay — request a checkout url for this booking */
+  async pay(id: string): Promise<any> {
+    const res = await api.post(`/hostel-bookings/${id}/pay`);
+    return res.data;
   },
 
   /** POST /hostel-bookings/:id/cancel — student/staff cancels booking */

@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { bookingsApi as bookingsApiClient } from "../../bookings/bookingsApi";
 import { useBookingQuery } from "../../bookings/hooks/useBookingQuery";
 import { paymentsApi } from "../../bookings/paymentsApi";
 
@@ -31,8 +32,29 @@ export default function StudentHostelPaymentPage() {
   const amount = booking.totalAmount ?? booking.housing?.price ?? booking.hotel?.price ?? 0;
   const canPay = booking.paymentStatus !== "PAID" && booking.status !== "COMPLETED";
 
+  // payment deadline (24 hours after booking creation)
+  const createdTs = booking.createdAt ? new Date(booking.createdAt).getTime() : Date.now();
+  const deadlineTs = createdTs + 24 * 60 * 60 * 1000;
+  const [timeLeft, setTimeLeft] = useState(Math.max(0, deadlineTs - Date.now()));
+  useEffect(() => {
+    const t = window.setInterval(() => setTimeLeft(Math.max(0, deadlineTs - Date.now())), 1000);
+    return () => window.clearInterval(t);
+  }, [deadlineTs]);
+  const paymentExpired = timeLeft <= 0;
+
   const handleCheckout = async () => {
     setIsRedirecting(true);
+    try {
+      // prefer backend pay endpoint which returns a checkoutUrl
+      const res = await bookingsApiClient.pay(booking.id);
+      const checkoutUrl = res?.checkoutUrl || res?.url || res?.data?.checkoutUrl;
+      if (checkoutUrl && typeof checkoutUrl === "string" && checkoutUrl.startsWith("http")) {
+        window.location.href = checkoutUrl;
+        return;
+      }
+    } catch (e) {
+      // ignore and fallback
+    }
     try {
       const session = await paymentsApi.createStripeCheckoutSession(booking.id);
       if (session?.url && session.url.startsWith("http")) {
@@ -108,14 +130,19 @@ export default function StudentHostelPaymentPage() {
               <span>Total amount</span>
               <span>{amount.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</span>
             </div>
+            <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-slate-600">
+              <div>Payment deadline: <strong>{new Date(deadlineTs).toLocaleString()}</strong></div>
+              <div className="mt-1">Time left: <span className="font-mono">{Math.floor(timeLeft/1000/3600)}h {Math.floor((timeLeft/1000%3600)/60)}m {Math.floor((timeLeft/1000)%60)}s</span></div>
+              {paymentExpired && <div className="mt-2 text-sm text-rose-600">Payment deadline has passed — contact student services.</div>}
+            </div>
           </div>
 
           <button
             onClick={handleCheckout}
-            disabled={!canPay || isRedirecting}
+            disabled={!canPay || isRedirecting || paymentExpired}
             className="inline-flex w-full items-center justify-center rounded-3xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isRedirecting ? "Redirecting to Stripe…" : canPay ? "Pay with Stripe" : "Payment already complete"}
+            {isRedirecting ? "Redirecting to Stripe…" : paymentExpired ? "Payment deadline passed" : canPay ? "Pay with Stripe" : "Payment already complete"}
           </button>
 
           <button

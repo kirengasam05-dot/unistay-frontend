@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useBookingQuery } from "../../bookings/hooks/useBookingQuery";
 
 export default function StudentHostelConfirmationPage() {
@@ -27,6 +28,24 @@ export default function StudentHostelConfirmationPage() {
     URL.revokeObjectURL(url);
   };
 
+  // payment deadline: prefer backend-provided `paymentDeadline`, otherwise fallback to createdAt + 24h
+  const deadlineTs = booking.paymentDeadline ? new Date(booking.paymentDeadline).getTime() : ((booking.createdAt ? new Date(booking.createdAt).getTime() : Date.now()) + 24 * 60 * 60 * 1000);
+  const [remainingMs, setRemainingMs] = useState(Math.max(0, deadlineTs - Date.now()));
+
+  useEffect(() => {
+    const id = window.setInterval(() => setRemainingMs(Math.max(0, deadlineTs - Date.now())), 1000);
+    return () => window.clearInterval(id);
+  }, [deadlineTs]);
+
+  function formatRemaining(ms: number) {
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h}h ${m}m ${sec}s`;
+  }
+  const expired = remainingMs <= 0;
+
   return (
     <div className="space-y-6">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -35,6 +54,20 @@ export default function StudentHostelConfirmationPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+        {/* Payment deadline countdown */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          {(() => {
+            const created = booking.createdAt ? new Date(booking.createdAt).getTime() : Date.now();
+            const deadline = new Date(created + 24 * 60 * 60 * 1000);
+            return (
+              <div className="mb-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+                <div className="font-semibold">Payment deadline</div>
+                <div className="mt-1">Please complete your payment within 24 hours of application.</div>
+                <div className="mt-2 font-mono text-sm">Due: {deadline.toLocaleString()}</div>
+              </div>
+            );
+          })()}
+        </div>
         {/* Premium Voucher Display */}
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm print:border-none print:shadow-none space-y-6">
           <div className="border-b border-dashed border-slate-200 pb-6 flex justify-between items-start">
@@ -94,6 +127,13 @@ export default function StudentHostelConfirmationPage() {
               className="inline-flex min-w-[180px] items-center justify-center rounded-3xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
             >
               Print Document
+            </button>
+            <button
+              onClick={() => navigate(`/student/booking/${booking.id}/payment`)}
+              disabled={expired}
+              className="inline-flex min-w-[180px] items-center justify-center rounded-3xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:opacity-60"
+            >
+              {expired ? "Payment deadline passed" : "Proceed to payment"}
             </button>
           </div>
         </div>

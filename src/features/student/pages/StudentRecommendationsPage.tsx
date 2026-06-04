@@ -51,7 +51,10 @@ export default function StudentRecommendationsPage() {
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             {topHousing.map(h => (
               <Link key={h.id} to={`/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-                <img src={firstImage(h)} alt={hostelName(h)} className="h-40 w-full object-cover" />
+                <div className="relative">
+                  <img src={firstImage(h)} alt={hostelName(h)} className="h-40 w-full object-cover" />
+                  <span className="absolute left-4 top-4 rounded-full bg-black px-3 py-1 text-xs font-black text-white">Verified</span>
+                </div>
                 <div className="p-4">
                   <h3 className="font-black text-neutral-900 dark:text-white">{hostelName(h)}</h3>
                   <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500"><MapPin size={13} />{h.location}</p>

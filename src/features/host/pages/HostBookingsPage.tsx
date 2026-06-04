@@ -21,6 +21,7 @@ export default function HostBookingsPage() {
   /** ID of booking whose rejection form is open */
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  // backend now returns bookings in prioritized order (farthest students first)
 
   async function fetchBookings(showSpinner = false) {
     if (showSpinner) setLoading(true);
@@ -30,7 +31,9 @@ export default function HostBookingsPage() {
       const results = await Promise.all(
         listings.map(l => bookingsApi.getByListing(l.id).catch(() => [] as Booking[]))
       );
-      setItems(results.flat().sort((a, b) => new Date(b.checkIn).getTime() - new Date(a.checkIn).getTime()));
+      const flat = results.flat();
+      // assume backend ordering is already prioritized for hosts
+      setItems(flat);
     } catch (err) {
       if (showSpinner) toast.error(err instanceof Error ? err.message : "Failed to load applications");
     } finally {
@@ -50,6 +53,8 @@ export default function HostBookingsPage() {
     completed: items.filter(i => i.status === "COMPLETED").length,
     cancelled: items.filter(i => i.status === "CANCELLED").length,
   }), [items]);
+
+  // display items as returned by backend
 
   async function confirm(id: string) {
     setBusyId(id);
@@ -117,9 +122,11 @@ export default function HostBookingsPage() {
       <div className="card">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-black text-neutral-900 dark:text-white">All applications</h2>
-          <button onClick={() => fetchBookings(false)} className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-bold text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
-            <RefreshCcw size={13} /> Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => fetchBookings(false)} className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-bold text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
+              <RefreshCcw size={13} /> Refresh
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -154,9 +161,9 @@ export default function HostBookingsPage() {
                               </p>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status === "CONFIRMED" ? "APPROVED" : booking.status}</span>
-                          </div>
+                                        <div className="flex flex-wrap gap-1.5 items-center">
+                                          <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status === "CONFIRMED" ? "APPROVED" : booking.status}</span>
+                                        </div>
                         </div>
                         <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
                           <div>
