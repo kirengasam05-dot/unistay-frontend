@@ -46,17 +46,17 @@ export default function HousingDetailPage() {
     return list.length ? list : [FALLBACK_IMG];
   }, [housing]);
 
-  const canBook = !!housing && housing.verificationStatus === "VERIFIED" && housing.availability;
+  const canApply = !!housing && housing.verificationStatus === "VERIFIED" && housing.availability;
 
-  async function requestBooking() {
+  async function requestApplication() {
     if (!housing) return;
     if (!isAuthenticated) {
-      toast.error("Please sign in to book.");
+      toast.error("Please sign in to apply.");
       navigate("/login", { state: { from: `/hostels/${id}` } });
       return;
     }
     if (user?.role !== "STUDENT") {
-      toast.error("Only students can book a hostel.");
+      toast.error("Only students can apply for a hostel.");
       return;
     }
     if (new Date(checkOut) <= new Date(checkIn)) {
@@ -64,9 +64,9 @@ export default function HousingDetailPage() {
       return;
     }
     const ok = await confirm({
-      title: "Send booking request?",
-      description: `We'll request "${housing.name ?? housing.title}" from ${new Date(checkIn).toLocaleDateString()} to ${new Date(checkOut).toLocaleDateString()}. You'll only pay after the host confirms.`,
-      confirmText: "Send request",
+      title: "Submit hostel application?",
+      description: `We'll submit your application for "${housing.name ?? housing.title}" from ${new Date(checkIn).toLocaleDateString()} to ${new Date(checkOut).toLocaleDateString()}. You'll only pay after the host approves.`,
+      confirmText: "Submit application",
     });
     if (!ok) return;
     try {
@@ -76,10 +76,10 @@ export default function HousingDetailPage() {
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
       });
-      toast.success("Booking request sent. Track it in your dashboard.");
+      toast.success("Application submitted! Track it in your dashboard.");
       navigate("/student/booking");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not request booking");
+      toast.error(err instanceof Error ? err.message : "Could not submit application");
     } finally {
       setBooking(false);
     }
@@ -121,8 +121,8 @@ export default function HousingDetailPage() {
 
           <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-emerald-600" : "bg-red-600"}`}>{housing.availability ? "Available" : "Booked"}</span>
-              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : "bg-neutral-500"}`}>{housing.verificationStatus}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-emerald-600" : "bg-red-600"}`}>{housing.availability ? "Available" : "Occupied"}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : housing.verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>{housing.verificationStatus === "PENDING" ? "Pending Verification" : housing.verificationStatus}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black text-neutral-900 dark:text-white">{housing.name ?? housing.title}</h1>
             <p className="mt-2 flex items-center gap-2 text-neutral-500 dark:text-neutral-400"><MapPin size={16} />{housing.location}</p>
@@ -168,16 +168,16 @@ export default function HousingDetailPage() {
             </div>
 
             <button
-              disabled={!canBook || booking}
-              onClick={requestBooking}
+              disabled={!canApply || booking}
+              onClick={requestApplication}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-5 py-4 font-black text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 dark:bg-white dark:text-black dark:disabled:bg-neutral-700"
             >
-              {booking ? <><Loader2 size={18} className="animate-spin" /> Sending…</> : canBook ? "Request booking" : housing.availability ? "Awaiting verification" : "Currently booked"}
+              {booking ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : canApply ? "Apply for hostel" : housing.availability ? "Awaiting verification" : "Currently occupied"}
             </button>
 
             <p className="mt-4 flex items-start gap-2 text-xs text-neutral-500">
               <ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-500" />
-              You only pay after the host confirms availability. Payment proof is tracked securely in your dashboard.
+              You only pay after the host approves your application. Payment is tracked securely in your dashboard.
             </p>
           </div>
         </div>

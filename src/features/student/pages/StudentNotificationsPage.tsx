@@ -21,16 +21,16 @@ const toneClass: Record<Notice["tone"], string> = {
 };
 
 function noticesFor(b: Booking): Notice {
-  const where = b.housing?.title || "your booking";
+  const where = b.housing?.title || "your application";
   if (b.status === "REJECTED" || b.status === "CANCELLED")
-    return { id: b.id, title: `Booking ${b.status.toLowerCase()}`, body: `${where} can no longer continue to payment.`, tone: "danger", icon: XCircle };
+    return { id: b.id, title: `Application ${b.status.toLowerCase()}`, body: `${where} can no longer continue to payment.`, tone: "danger", icon: XCircle };
   if (b.status === "COMPLETED")
-    return { id: b.id, title: "Booking completed", body: `${where} is confirmed and paid. You're all set!`, tone: "success", icon: CheckCircle2 };
+    return { id: b.id, title: "Application completed", body: `${where} is confirmed and paid. You're all set!`, tone: "success", icon: CheckCircle2 };
   if (b.paymentStatus === "PENDING_VERIFICATION")
     return { id: b.id, title: "Payment under review", body: `Your payment proof for ${where} is being verified.`, tone: "warning", icon: CreditCard };
   if (b.status === "CONFIRMED")
     return { id: b.id, title: "Host confirmed — payment unlocked", body: `Submit payment proof for ${where} to secure it.`, tone: "success", icon: CheckCircle2 };
-  return { id: b.id, title: "Booking request sent", body: `Waiting for the host to confirm ${where}.`, tone: "info", icon: Clock3 };
+  return { id: b.id, title: "Hostel application sent", body: `Waiting for the host to confirm ${where}.`, tone: "info", icon: Clock3 };
 }
 
 export default function StudentNotificationsPage() {
@@ -55,7 +55,7 @@ export default function StudentNotificationsPage() {
     <div className="space-y-6">
       <div className="card">
         <h1 className="flex items-center gap-2 text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl"><Bell size={24} /> Notifications</h1>
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">Live updates on your booking and payment activity.</p>
+        <p className="mt-2 text-neutral-600 dark:text-neutral-400">Live updates on your hostel applications and payment activity.</p>
       </div>
 
       {loading ? (
@@ -64,7 +64,7 @@ export default function StudentNotificationsPage() {
         <div className="card py-12 text-center">
           <Bell size={40} className="mx-auto text-neutral-400" />
           <p className="mt-4 font-black text-neutral-900 dark:text-white">You're all caught up</p>
-          <p className="mt-1 text-sm text-neutral-500">Book a verified room and updates will show up here.</p>
+          <p className="mt-1 text-sm text-neutral-500">Apply for a verified hostel and updates will show up here.</p>
           <Link to="/hostels" className="btn-black mt-5 inline-block rounded-xl">Browse hostels</Link>
         </div>
       ) : (

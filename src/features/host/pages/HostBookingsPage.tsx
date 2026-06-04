@@ -32,7 +32,7 @@ export default function HostBookingsPage() {
       );
       setItems(results.flat().sort((a, b) => new Date(b.checkIn).getTime() - new Date(a.checkIn).getTime()));
     } catch (err) {
-      if (showSpinner) toast.error(err instanceof Error ? err.message : "Failed to load bookings");
+      if (showSpinner) toast.error(err instanceof Error ? err.message : "Failed to load applications");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function HostBookingsPage() {
     setBusyId(id);
     try {
       await bookingsApi.confirm(id);
-      toast.success("Booking confirmed — the student can now pay.");
+      toast.success("Application approved — the student can now pay.");
       await fetchBookings(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Action failed");
@@ -70,7 +70,7 @@ export default function HostBookingsPage() {
     setBusyId(id);
     try {
       await bookingsApi.reject(id, reason);
-      toast.success("Booking rejected. Student has been notified.");
+      toast.success("Application rejected. Student has been notified.");
       setRejectingId(null);
       setRejectReason("");
       await fetchBookings(false);
@@ -83,7 +83,7 @@ export default function HostBookingsPage() {
 
   const statRows: [string, number, LucideIcon, string][] = [
     ["Pending",   stats.pending,   Clock3,        "text-yellow-600 dark:text-yellow-400"],
-    ["Confirmed", stats.confirmed, ShieldCheck,   "text-blue-600 dark:text-blue-400"],
+    ["Approved",  stats.confirmed, ShieldCheck,   "text-blue-600 dark:text-blue-400"],
     ["Completed", stats.completed, CheckCircle2,  "text-green-600 dark:text-green-400"],
     ["Cancelled", stats.cancelled, XCircle,       "text-red-600 dark:text-red-400"],
   ];
@@ -92,9 +92,9 @@ export default function HostBookingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="card">
-        <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">Booking Requests</h1>
+        <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">Hostel Applications</h1>
         <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-          Confirm available rooms. Students pay automatically once you confirm — no manual verification needed.
+          Approve available rooms. Students pay automatically once you approve your application.
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default function HostBookingsPage() {
       {/* List */}
       <div className="card">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-black text-neutral-900 dark:text-white">All bookings</h2>
+          <h2 className="text-lg font-black text-neutral-900 dark:text-white">All applications</h2>
           <button onClick={() => fetchBookings(false)} className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-bold text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
             <RefreshCcw size={13} /> Refresh
           </button>
@@ -127,8 +127,8 @@ export default function HostBookingsPage() {
         ) : items.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 p-12 text-center dark:border-neutral-700">
             <Home size={32} className="mx-auto text-neutral-300 dark:text-neutral-600" />
-            <p className="mt-4 font-black text-neutral-900 dark:text-white">No booking requests yet</p>
-            <p className="mt-1 text-sm text-neutral-500">Student requests will appear here.</p>
+            <p className="mt-4 font-black text-neutral-900 dark:text-white">No application requests yet</p>
+            <p className="mt-1 text-sm text-neutral-500">Student applications will appear here.</p>
           </div>
         ) : (
           <div className="mt-5 space-y-4">
@@ -155,7 +155,7 @@ export default function HostBookingsPage() {
                             )}
                           </div>
                           <div className="flex flex-wrap gap-1.5">
-                            <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status}</span>
+                            <span className={`rounded-full px-3 py-1 text-xs font-black ${pill(booking.status)}`}>{booking.status === "CONFIRMED" ? "APPROVED" : booking.status}</span>
                           </div>
                         </div>
                         <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
@@ -185,7 +185,7 @@ export default function HostBookingsPage() {
                             className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:bg-green-700 disabled:opacity-60"
                           >
                             {busyId === booking.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
-                            Confirm
+                            Approve
                           </button>
                           <button
                             disabled={busyId === booking.id}

@@ -124,7 +124,7 @@ export default function AdminPaymentsPage() {
               <tr className="border-b border-slate-100 text-slate-400 font-bold">
                 <th className="py-3 px-4">Transaction Reference</th>
                 <th className="py-3 px-4">Student</th>
-                <th className="py-3 px-4">Hostel Booking</th>
+                <th className="py-3 px-4">Hostel Application</th>
                 <th className="py-3 px-4 text-right">Amount</th>
                 <th className="py-3 px-4 text-right">Payment Status</th>
                 <th className="py-3 px-4 text-right">Refund Controls</th>

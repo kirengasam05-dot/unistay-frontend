@@ -7,20 +7,20 @@ export default function StudentHostelConfirmationPage() {
   const { data: booking, isLoading, isError } = useBookingQuery(id ?? "");
 
   if (isLoading) {
-    return <div className="p-6 bg-white rounded-lg shadow-sm">Loading booking confirmation…</div>;
+    return <div className="p-6 bg-white rounded-lg shadow-sm">Loading application confirmation…</div>;
   }
 
   if (isError || !booking) {
-    return <div className="p-6 bg-white rounded-lg shadow-sm">Unable to find your booking confirmation.</div>;
+    return <div className="p-6 bg-white rounded-lg shadow-sm">Unable to find your application confirmation.</div>;
   }
 
   const downloadConfirmation = () => {
-    const text = `UniStay Booking Confirmation\n\nBooking ID: ${booking.id}\nStatus: ${booking.status}\nHostel: ${booking.housing?.title ?? booking.hotel?.title ?? booking.housingId}\nCheck-in: ${booking.checkIn}\nCheck-out: ${booking.checkOut}\nAmount: ${booking.totalAmount ?? 0}\nMove-in Date: ${booking.moveInDate ?? booking.checkIn}\nBed Assignment: ${booking.bedAssignment ?? "Auto-assigned on Check-in"}`;
+    const text = `UniStay Accommodation Confirmation\n\nApplication ID: ${booking.id}\nStatus: ${booking.status}\nHostel: ${booking.housing?.title ?? booking.hotel?.title ?? booking.housingId}\nCheck-in: ${booking.checkIn}\nCheck-out: ${booking.checkOut}\nAmount: ${booking.totalAmount ?? 0}\nMove-in Date: ${booking.moveInDate ?? booking.checkIn}\nBed Assignment: ${booking.bedAssignment ?? "Auto-assigned on Check-in"}`;
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `booking-confirmation-${booking.id}.txt`;
+    link.download = `application-confirmation-${booking.id}.txt`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -30,8 +30,8 @@ export default function StudentHostelConfirmationPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-semibold text-slate-900 font-sans tracking-tight">Booking Confirmation</h1>
-        <p className="mt-2 text-slate-600">Your accommodation booking is now confirmed. Keep this voucher for check-in.</p>
+        <h1 className="text-3xl font-semibold text-slate-900 font-sans tracking-tight">Application Confirmation</h1>
+        <p className="mt-2 text-slate-600">Your accommodation application is now confirmed. Keep this voucher for check-in.</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
@@ -51,7 +51,7 @@ export default function StudentHostelConfirmationPage() {
 
           <div className="grid gap-6 sm:grid-cols-2 text-slate-700 text-sm">
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase">Booking Reference</div>
+              <div className="text-xs font-bold text-slate-400 uppercase">Application Reference</div>
               <div className="text-base font-semibold text-slate-900 mt-1">{booking.bookingReference ?? booking.id}</div>
             </div>
             <div>

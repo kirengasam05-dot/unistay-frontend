@@ -54,7 +54,7 @@ export default function StudentDashboard() {
       {loading && <div className="card text-sm font-bold text-slate-500">Loading your latest updates...</div>}
 
       <section>
-        <UpdateHeading title="New hostels available" description="Verified student rooms ready for booking." to="/student/hostels" icon={Building2} />
+        <UpdateHeading title="New hostels available" description="Verified student rooms ready for application." to="/student/hostels" icon={Building2} />
         <div className="grid gap-4 md:grid-cols-3">
           {housing.map((item: Housing) => (
             <Link key={item.id} to={`/hostels/${item.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">

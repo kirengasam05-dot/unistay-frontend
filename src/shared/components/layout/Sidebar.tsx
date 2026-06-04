@@ -21,7 +21,7 @@ const links: Record<Role, { label: string; to: string; icon: any }[]> = {
   HOST: [
     { label: 'Dashboard', to: '/dashboard', icon: Home },
     { label: 'My Hostel Listings', to: '/host/listings', icon: Building2 },
-    { label: 'Bookings & Availability', to: '/host/bookings', icon: CheckCircle2 },
+    { label: 'Applications & Availability', to: '/host/bookings', icon: CheckCircle2 },
     { label: 'Browse Jobs', to: '/host/jobs', icon: Briefcase },
     { label: 'Emails', to: '/emails', icon: Inbox },
     { label: 'Verification', to: '/host/verification', icon: ShieldCheck },

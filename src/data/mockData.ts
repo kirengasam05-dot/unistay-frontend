@@ -90,7 +90,7 @@ export const notifications = [
 ];
 
 export const emails = [
-  { id:'e1', subject:'Booking request received', from:'bookings@unistay.com', body:'Your booking request is pending host confirmation before payment.' },
+  { id:'e1', subject:'Application received', from:'applications@unistay.com', body:'Your hostel application is pending host approval before payment.' },
   { id:'e2', subject:'Application review pending', from:'jobs@unistay.com', body:'Your job application is waiting for employer compatibility review.' },
 ];
 

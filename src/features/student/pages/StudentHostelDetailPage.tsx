@@ -39,7 +39,7 @@ export default function StudentHostelDetailPage() {
   }
 
   const availableBeds = hostel.availableBeds ?? Math.max(0, hostel.bedrooms ?? 1);
-  const isFullyBooked = availableBeds <= 0 || hostel.availability === false;
+  const isFullyOccupied = availableBeds <= 0 || hostel.availability === false;
 
   return (
     <div className="space-y-6">
@@ -93,18 +93,18 @@ export default function StudentHostelDetailPage() {
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-slate-500">Application</div>
-            <div className="mt-3 text-3xl font-semibold text-slate-900">{isFullyBooked ? "Waitlist only" : "Apply now"}</div>
+            <div className="mt-3 text-3xl font-semibold text-slate-900">{isFullyOccupied ? "Waitlist only" : "Apply now"}</div>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              {isFullyBooked
-                ? "This hostel is fully booked. You may still join the waitlist and we will notify you if a room opens up."
-                : "Complete your application to reserve your spot. Payment will be requested once the booking is approved."}
+              {isFullyOccupied
+                ? "This hostel is fully occupied. You may still join the waitlist and we will notify you if a room opens up."
+                : "Complete your application to reserve your spot. Payment will be requested once the application is approved."}
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <button
                 onClick={() => navigate(`/student/hostels/${id}/apply`)}
                 className="inline-flex w-full items-center justify-center rounded-3xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
               >
-                {isFullyBooked ? "Join waitlist" : "Apply for accommodation"}
+                {isFullyOccupied ? "Join waitlist" : "Apply for accommodation"}
               </button>
               <button
                 onClick={() => navigate("/student/hostels")}

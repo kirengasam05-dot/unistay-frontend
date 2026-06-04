@@ -75,7 +75,7 @@ function PaymentPanel({ booking, onSubmit }: {
         <div>
           <p className="text-sm font-black uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">Payment center</p>
           <h2 className="mt-2 text-3xl font-black text-neutral-900 dark:text-white">Secure payment</h2>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Payment unlocks after host confirmation.</p>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Payment unlocks after host approval.</p>
         </div>
         <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-black text-white dark:bg-white dark:text-neutral-900">
           <CreditCard size={24} />
@@ -102,8 +102,8 @@ function PaymentPanel({ booking, onSubmit }: {
       {/* Pending */}
       {booking.status === "PENDING" && (
         <div className="mt-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800/40 dark:bg-yellow-900/20">
-          <h4 className="font-black text-yellow-800 dark:text-yellow-400">Waiting for host confirmation</h4>
-          <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-500">The payment form will appear once the host confirms your request.</p>
+          <h4 className="font-black text-yellow-800 dark:text-yellow-400">Waiting for host approval</h4>
+          <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-500">The payment form will appear once the host approves your application.</p>
         </div>
       )}
 
@@ -193,8 +193,8 @@ function PaymentPanel({ booking, onSubmit }: {
           <div className="flex gap-3">
             <CheckCircle2 className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" size={20} />
             <div>
-              <h4 className="font-black text-green-800 dark:text-green-400">Booking confirmed — You're all set!</h4>
-              <p className="mt-1 text-sm text-green-700 dark:text-green-500">Your payment was received and the booking is confirmed. The host has been notified.</p>
+              <h4 className="font-black text-green-800 dark:text-green-400">Application approved & payment confirmed!</h4>
+              <p className="mt-1 text-sm text-green-700 dark:text-green-500">Your payment was received and your application is approved. The host has been notified.</p>
             </div>
           </div>
         </div>
@@ -212,8 +212,8 @@ function BookingTimeline({ booking }: { booking: Booking }) {
         <div className="flex gap-3">
           <XCircle className="mt-0.5 shrink-0 text-red-600 dark:text-red-400" />
           <div>
-            <h3 className="font-black text-red-800 dark:text-red-400">Booking {booking.status.toLowerCase()}</h3>
-            <p className="mt-1 text-sm text-red-700 dark:text-red-500">This booking cannot continue to payment.</p>
+            <h3 className="font-black text-red-800 dark:text-red-400">Application {booking.status.toLowerCase()}</h3>
+            <p className="mt-1 text-sm text-red-700 dark:text-red-500">This application cannot continue to payment.</p>
           </div>
         </div>
       </div>
@@ -228,16 +228,16 @@ function BookingTimeline({ booking }: { booking: Booking }) {
 
   const steps: [string, boolean, boolean, string][] = [
     [
-      "Request sent",
+      "Application submitted",
       true,
       false,
-      "Your booking request was sent to the host.",
+      "Your application was submitted to the host.",
     ],
     [
-      "Host confirmation",
+      "Host approval",
       isConfirmed,
       isPending,
-      isPending ? "Waiting for host confirmation." : "The host confirmed room availability.",
+      isPending ? "Waiting for host approval." : "The host approved your application.",
     ],
     [
       "Payment",
@@ -247,21 +247,21 @@ function BookingTimeline({ booking }: { booking: Booking }) {
         ? "Payment is unlocked — enter your card details on the right."
         : paymentMade
           ? "Payment received and confirmed."
-          : "Payment will be unlocked once the host confirms.",
+          : "Payment will be unlocked once the host approves.",
     ],
     [
-      "Booking confirmed",
+      "Application approved",
       isCompleted,
       paymentMade && !isCompleted,
       isCompleted
         ? "All done — your housing is secured. Move in!"
-        : "Your booking will be confirmed once payment is processed.",
+        : "Your application will be completed once payment is processed.",
     ],
   ];
 
   return (
     <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Booking progress</h2>
+      <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Application progress</h2>
       <div className="mt-6 space-y-5">
         {steps.map(([title, done, active, description], index) => {
           const nextDone = index < steps.length - 1 && steps[index + 1][1];
@@ -312,7 +312,7 @@ export default function StudentBookingPage() {
       const data = await bookingsApi.getMyBookings();
       setBookings(data);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load bookings");
+      toast.error(error instanceof Error ? error.message : "Failed to load applications");
     } finally {
       setRefreshing(false);
     }
@@ -322,7 +322,7 @@ export default function StudentBookingPage() {
     // Initial load — shows spinner only this once
     bookingsApi.getMyBookings()
       .then(setBookings)
-      .catch(() => toast.error("Failed to load bookings"))
+      .catch(() => toast.error("Failed to load applications"))
       .finally(() => setInitialLoading(false));
 
     // Background poll — silent, never resets loading state → no page jump
@@ -333,13 +333,13 @@ export default function StudentBookingPage() {
   async function submitPayment(booking: Booking, txRef: string) {
     const ok = await confirm({
       title: "Confirm payment?",
-      description: `You're about to pay ${money(booking.totalAmount)} for "${booking.housing?.name || booking.housing?.title || "this listing"}". The host will verify and confirm your booking.`,
+      description: `You're about to pay ${money(booking.totalAmount)} for "${booking.housing?.name || booking.housing?.title || "this listing"}". The host will verify and approve your application.`,
       confirmText: "Confirm payment",
     });
     if (!ok) return;
     try {
       await bookingsApi.submitPaymentProof(booking.id, txRef);
-      toast.success("Payment successful! Your booking is now confirmed.");
+      toast.success("Payment successful! Your application is now confirmed.");
       await fetchBookings(); // silent update after submit — no spinner
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not submit payment");
@@ -356,8 +356,8 @@ export default function StudentBookingPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">My Bookings</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Track your housing requests and submit payment after host confirmation.</p>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">My Applications</h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Track your housing requests and submit payment after host approval.</p>
         </div>
         <button
           onClick={refresh}
@@ -378,8 +378,8 @@ export default function StudentBookingPage() {
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
             <CreditCard size={24} className="text-neutral-400" />
           </div>
-          <h2 className="text-xl font-black text-neutral-900 dark:text-white">No bookings yet</h2>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Browse housing and send a booking request to get started.</p>
+          <h2 className="text-xl font-black text-neutral-900 dark:text-white">No applications yet</h2>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Browse housing and submit an application to get started.</p>
         </div>
       ) : (
         <>
@@ -394,7 +394,7 @@ export default function StudentBookingPage() {
           {/* Booking history — all bookings with image and full details */}
           {bookings.length > 0 && (
             <div className="card">
-              <h2 className="text-lg font-black text-neutral-900 dark:text-white">All bookings</h2>
+              <h2 className="text-lg font-black text-neutral-900 dark:text-white">All applications</h2>
               <div className="mt-4 space-y-4">
                 {bookings.map(booking => {
                   const img = booking.housing?.images?.[0] ?? booking.housing?.image ?? "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=400&q=70";

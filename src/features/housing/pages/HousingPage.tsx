@@ -136,7 +136,7 @@ export default function HousingPage() {
         <section className="grid gap-6 lg:grid-cols-3">
           {filtered.map((housing) => {
             const isVerified = housing.verificationStatus === "VERIFIED";
-            const canBook = isVerified && housing.availability;
+            const canApply = isVerified && housing.availability;
 
             return (
               <Link
@@ -148,10 +148,10 @@ export default function HousingPage() {
                   <img src={firstImage(housing)} alt={hostelName(housing)} className="h-56 w-full object-cover" />
                   <div className="absolute left-4 top-4 flex gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-green-600" : "bg-red-600"}`}>
-                      {housing.availability ? "Available" : "Booked"}
+                      {housing.availability ? "Available" : "Occupied"}
                     </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isVerified ? "bg-black" : "bg-neutral-500"}`}>
-                      {housing.verificationStatus}
+                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isVerified ? "bg-black" : housing.verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>
+                      {housing.verificationStatus === "PENDING" ? "Pending Verification" : housing.verificationStatus}
                     </span>
                   </div>
                 </div>
@@ -173,14 +173,14 @@ export default function HousingPage() {
                       View details
                     </span>
                   </div>
-                  {canBook && (
+                  {canApply && (
                     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-green-700 dark:text-green-400">
-                      <CheckCircle2 size={15} />Payment appears after host confirmation
+                      <CheckCircle2 size={15} />Apply to reserve your spot
                     </p>
                   )}
                   {!isVerified && (
                     <p className="mt-4 flex items-center gap-2 text-xs font-bold text-neutral-500 dark:text-neutral-400">
-                      <ShieldCheck size={15} />Waiting for verification
+                      <ShieldCheck size={15} />Pending admin verification
                     </p>
                   )}
                 </div>

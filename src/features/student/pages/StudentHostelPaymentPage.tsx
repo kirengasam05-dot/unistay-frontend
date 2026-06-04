@@ -25,7 +25,7 @@ export default function StudentHostelPaymentPage() {
   }
 
   if (isError || !booking) {
-    return <div className="p-6 bg-white rounded-lg shadow-sm">Unable to load booking information.</div>;
+    return <div className="p-6 bg-white rounded-lg shadow-sm">Unable to load application information.</div>;
   }
 
   const amount = booking.totalAmount ?? booking.housing?.price ?? booking.hotel?.price ?? 0;
@@ -78,9 +78,9 @@ export default function StudentHostelPaymentPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Secure your hostel accommodation</h1>
-            <p className="mt-2 text-slate-600">Complete the booking payment to confirm your room.</p>
+            <p className="mt-2 text-slate-600">Complete the application payment to confirm your room.</p>
           </div>
-          <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">Booking ID: {booking.id}</div>
+          <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">Application ID: {booking.id}</div>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ export default function StudentHostelPaymentPage() {
         <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Payment summary</h2>
-            <p className="mt-2 text-slate-600">Pay with Stripe to confirm your hostel booking and lock in your room reservation.</p>
+            <p className="mt-2 text-slate-600">Pay with Stripe to confirm your hostel application and lock in your room reservation.</p>
           </div>
 
           <div className="grid gap-4 rounded-3xl bg-slate-50 p-6 text-slate-700">
@@ -140,7 +140,7 @@ export default function StudentHostelPaymentPage() {
             <div className="text-center space-y-2">
               <span className="inline-block bg-indigo-600 text-white font-black px-4 py-1.5 rounded-lg text-lg tracking-wider">stripe</span>
               <h3 className="text-2xl font-black text-slate-900 pt-2">Simulated Checkout</h3>
-              <p className="text-sm text-slate-500">You are booking {booking.housing?.title ?? booking.hotel?.title ?? "accommodation"}</p>
+              <p className="text-sm text-slate-500">You are confirming your hostel application for {booking.housing?.title ?? booking.hotel?.title ?? "accommodation"}</p>
             </div>
 
             <div className="bg-slate-50 rounded-2xl p-4 text-sm text-slate-700 space-y-2">
@@ -149,7 +149,7 @@ export default function StudentHostelPaymentPage() {
                 <span className="font-bold">{amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
               </div>
               <div className="flex justify-between">
-                <span>Booking ID:</span>
+                <span>Application ID:</span>
                 <span className="font-mono text-xs">{booking.id}</span>
               </div>
             </div>
