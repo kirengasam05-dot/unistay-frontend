@@ -47,8 +47,10 @@ export default function HousingDetailPage() {
   }, [housing]);
 
   const verificationStatus = housing?.verificationStatus ?? "PENDING";
-  const effectivePrice = housing?.price ?? housing?.rooms?.[0]?.price;
-  const canApply = !!housing && verificationStatus === "VERIFIED" && housing.availability === true;
+  const selectedRoomId = housing?.firstRoomId ?? housing?.rooms?.[0]?.id;
+  const selectedRoom = housing?.rooms?.find((room) => room.id === selectedRoomId) ?? housing?.rooms?.[0];
+  const effectivePrice = housing?.price ?? selectedRoom?.price;
+  const canApply = !!housing && verificationStatus === "VERIFIED" && housing.availability === true && !!selectedRoomId;
 
   async function requestApplication() {
     if (!housing) return;
@@ -72,9 +74,9 @@ export default function HousingDetailPage() {
     });
     if (!ok) return;
     try {
-      const roomId = housing.rooms?.[0]?.id;
+      const roomId = selectedRoomId;
       if (!roomId) {
-        toast.error("This hostel does not expose a room yet. Contact the host or try another listing.");
+        toast.error("No room is available for this hostel yet. Please choose another listing or contact the host.");
         return;
       }
       setBooking(true);
@@ -156,6 +158,11 @@ export default function HousingDetailPage() {
           <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">Monthly price</p>
             <p className="mt-1 text-4xl font-black text-neutral-900 dark:text-white">{effectivePrice != null ? money(effectivePrice) : "Contact host"}</p>
+            {selectedRoom && (
+              <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
+                Selected room: <span className="font-semibold text-neutral-900 dark:text-white">{selectedRoom.name ?? selectedRoom.id}</span>{selectedRoom.category ? ` • ${selectedRoom.category}` : ""}
+              </p>
+            )}
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <div>
@@ -179,7 +186,7 @@ export default function HousingDetailPage() {
               onClick={requestApplication}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-5 py-4 font-black text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 dark:bg-white dark:text-black dark:disabled:bg-neutral-700"
             >
-              {booking ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : canApply ? "Apply for hostel" : housing.availability ? "Awaiting verification" : "Currently occupied"}
+              {booking ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : canApply ? "Apply for hostel" : !selectedRoomId ? "Room unavailable" : housing.availability ? "Awaiting verification" : "Currently occupied"}
             </button>
 
             <p className="mt-4 flex items-start gap-2 text-xs text-neutral-500">

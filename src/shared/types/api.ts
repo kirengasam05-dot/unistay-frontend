@@ -35,6 +35,7 @@ export type Housing = {
   images?: string[];
   image?: string;
   price?: number | null;
+  firstRoomId?: string | null;
   availability?: boolean;
   verificationStatus: VerificationStatus;
   hostId: string;
