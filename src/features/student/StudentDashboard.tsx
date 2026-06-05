@@ -4,7 +4,7 @@ import { useHousingQuery } from '../housing/hooks/useHousingQueries';
 import { useJobsQuery } from '../jobs/hooks/useJobsQuery';
 import { useCoursesQuery } from '../courses/hooks/useCoursesQueries';
 import type { Housing } from '../../shared/types/api';
-import { hostelName } from '../../shared/types/api';
+import { hostelHasOpenBeds, hostelName } from '../../shared/types/api';
 import type { Course } from '../courses/coursesApi';
 import type { Job } from '../jobs/jobsApi';
 
@@ -30,7 +30,7 @@ export default function StudentDashboard() {
   const housingQuery = useHousingQuery();
   const jobsQuery = useJobsQuery();
   const coursesQuery = useCoursesQuery();
-  const housing = (housingQuery.data ?? []).filter(item => item.availability && item.verificationStatus === 'VERIFIED').slice(0, 3);
+  const housing = (housingQuery.data ?? []).filter(item => hostelHasOpenBeds(item) && item.verificationStatus === 'VERIFIED').slice(0, 3);
   const jobs = (jobsQuery.data ?? []).slice(0, 3);
   const courses = (coursesQuery.data ?? []).slice(0, 3);
   const loading = housingQuery.isPending || jobsQuery.isPending || coursesQuery.isPending;
@@ -57,7 +57,7 @@ export default function StudentDashboard() {
         <UpdateHeading title="New hostels available" description="Verified student rooms ready for application." to="/student/hostels" icon={Building2} />
         <div className="grid gap-4 md:grid-cols-3">
           {housing.map((item: Housing) => (
-            <Link key={item.id} to={`/hostels/${item.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+            <Link key={item.id} to={`/student/hostels/${item.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
               <img src={item.images?.[0] || item.image || fallbackHousing} alt={hostelName(item)} className="h-44 w-full object-cover transition duration-500 group-hover:scale-105" />
               <div className="p-4">
                 <p className="text-xs font-black uppercase tracking-wide text-emerald-600">Available now</p>

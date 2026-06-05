@@ -5,6 +5,7 @@ import {
   Search, Trash2, UploadCloud, Wallet, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import { jobsApi } from '../jobsApi';
 import { applicationsApi } from '../../applications/applicationsApi';
 import type { ApplicationFormData } from '../../applications/applicationsApi';
@@ -23,6 +24,18 @@ const SCHEDULE_COLOR: Record<string, string> = {
   INTERNSHIP: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
   PART_TIME:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   FULL_TIME:  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+};
+
+const APPLICATION_STATUS_COLOR: Record<string, string> = {
+  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
+  ACCEPTED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
+  REJECTED: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+};
+
+const APPLICATION_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'CONFIRMED',
+  REJECTED: 'REJECTED',
 };
 
 function money(v?: number | null) {
@@ -262,6 +275,7 @@ function ApplicationPanel({
 // ── Main shared page ──────────────────────────────────────────────────────────
 
 export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
+  const { user } = useAuth();
   const [jobs, setJobs]           = useState<Job[]>([]);
   const [loading, setLoading]     = useState(true);
   const [keyword, setKeyword]     = useState('');
@@ -276,6 +290,7 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
 
   // Student state
   const [applied, setApplied]   = useState<Set<string>>(new Set());
+  const [applicationStatus, setApplicationStatus] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Job | null>(null);
 
   // Admin state
@@ -284,6 +299,23 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
   useEffect(() => {
     jobsApi.getAll().then(setJobs).catch(() => setJobs([])).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (role !== 'STUDENT' || !user) return;
+    applicationsApi.getMine()
+      .then(apps => {
+        const statuses: Record<string, string> = {};
+        apps.forEach(app => {
+          if (app.jobId) statuses[app.jobId] = app.status;
+        });
+        setApplicationStatus(statuses);
+        setApplied(new Set(Object.keys(statuses)));
+      })
+      .catch(() => {
+        setApplicationStatus({});
+        setApplied(new Set());
+      });
+  }, [role, user]);
 
   async function deleteJob(id: string) {
     setDeletingId(id);
@@ -344,10 +376,15 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
     <div className="space-y-6">
 
       {/* ── Page header ── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-slate-950 px-4 py-14 text-white sm:px-6 lg:py-16">
+        <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1800&q=85" alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-black/70" />
+        <div className="relative mx-auto max-w-7xl">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white sm:text-3xl">{pageTitle}</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-300">{role === 'ADMIN' ? 'Jobs control' : 'Student jobs'}</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-white sm:text-5xl">{pageTitle}</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
             {role === 'ADMIN'
               ? 'View and manage all published job listings.'
               : 'Discover opportunities matched to your profile.'}
@@ -355,57 +392,67 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
         </div>
         {role === 'ADMIN' && (
           <a href="/employer/jobs"
-            className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-black text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">
+            className="rounded-xl bg-white px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-slate-100">
             + Post a Job
           </a>
         )}
       </div>
 
       {/* ── Search bar ── */}
-      <div className="flex flex-col gap-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900 sm:flex-row">
-        <div className="flex flex-1 items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800">
+      <div className="mt-8 flex max-w-5xl flex-col gap-2 rounded-2xl bg-white/95 p-2 shadow-2xl backdrop-blur sm:flex-row">
+        <div className="flex flex-1 items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 text-neutral-900">
           <Search size={16} className="shrink-0 text-neutral-400" />
           <input value={keyword} onChange={e => setKeyword(e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400 dark:text-white"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
             placeholder="Job title, keyword, or company" />
         </div>
-        <div className="flex flex-1 items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800">
+        <div className="flex flex-1 items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 text-neutral-900">
           <MapPin size={16} className="shrink-0 text-neutral-400" />
           <input value={locationSearch} onChange={e => setLS(e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400 dark:text-white"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
             placeholder="Location" />
         </div>
       </div>
+        </div>
+      </section>
 
       {loading ? (
         <div className="flex justify-center py-20">
           <Loader2 className="animate-spin text-neutral-400" size={32} />
         </div>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-[200px_1fr_240px]">
+        <div className="grid gap-8 lg:grid-cols-[220px_1fr_260px]">
 
           {/* ── Left: Filters ── */}
-          <aside className="space-y-7">
-            <div className="flex items-center justify-between">
-              <h2 className="font-black text-neutral-900 dark:text-white">Filters</h2>
-              <button onClick={clearAll} className="text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:underline">Clear All</button>
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Filter jobs</p>
+                  <h2 className="mt-1 text-lg font-black text-neutral-900 dark:text-white">Refine results</h2>
+                </div>
+                <button onClick={() => { setKeyword(''); setLS(''); clearAll(); }} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-black text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">Reset</button>
+              </div>
+              <p className="mt-3 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+                {filtered.length} of {jobs.length} jobs match your search.
+              </p>
             </div>
 
             {/* Job Type */}
-            <div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Job Type</p>
                 <button onClick={() => setSF('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
               </div>
-              <ul className="space-y-2.5">
+              <ul className="flex flex-wrap gap-2">
                 <li>
-                  <button onClick={() => setSF('ALL')} className={`text-sm ${scheduleFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
+                  <button onClick={() => setSF('ALL')} className={`rounded-xl px-3 py-2 text-xs font-black transition ${scheduleFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
                     All ({jobs.length})
                   </button>
                 </li>
                 {Object.entries(SCHEDULE_LABELS).map(([key, label]) => (
                   <li key={key}>
-                    <button onClick={() => setSF(key)} className={`text-sm ${scheduleFilter === key ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
+                    <button onClick={() => setSF(key)} className={`rounded-xl px-3 py-2 text-xs font-black transition ${scheduleFilter === key ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
                       {label} ({scheduleCounts[key] ?? 0})
                     </button>
                   </li>
@@ -415,21 +462,21 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
 
             {/* Location */}
             {locations.length > 0 && (
-              <div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Location</p>
                   <button onClick={() => setLF('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
                 </div>
                 <ul className="space-y-2.5">
                   <li>
-                    <button onClick={() => setLF('ALL')} className={`text-sm ${locationFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
-                      All ({jobs.length})
+                    <button onClick={() => setLF('ALL')} className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-black transition ${locationFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
+                      <span>All locations</span><span>{jobs.length}</span>
                     </button>
                   </li>
                   {visibleLoc.map(([loc, count]) => (
                     <li key={loc}>
-                      <button onClick={() => setLF(loc)} className={`text-sm ${locationFilter === loc ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
-                        {loc} ({count})
+                      <button onClick={() => setLF(loc)} className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-xs font-black transition ${locationFilter === loc ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
+                        <span className="truncate">{loc}</span><span>{count}</span>
                       </button>
                     </li>
                   ))}
@@ -447,21 +494,21 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
 
             {/* Company */}
             {companies.length > 0 && (
-              <div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Company</p>
                   <button onClick={() => setCF('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
                 </div>
                 <ul className="space-y-2.5">
                   <li>
-                    <button onClick={() => setCF('ALL')} className={`text-sm ${companyFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
-                      All ({jobs.length})
+                    <button onClick={() => setCF('ALL')} className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-black transition ${companyFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
+                      <span>All companies</span><span>{jobs.length}</span>
                     </button>
                   </li>
                   {visibleCo.map(([co, count]) => (
                     <li key={co}>
-                      <button onClick={() => setCF(co)} className={`text-sm ${companyFilter === co ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
-                        {co} ({count})
+                      <button onClick={() => setCF(co)} className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-xs font-black transition ${companyFilter === co ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}>
+                        <span className="truncate">{co}</span><span>{count}</span>
                       </button>
                     </li>
                   ))}
@@ -479,10 +526,34 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
           </aside>
 
           {/* ── Center: Cards ── */}
-          <main className="min-w-0 space-y-3">
-            <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-              {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
-            </p>
+          <main className="min-w-0 space-y-4">
+            {role === 'STUDENT' && (
+              <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-100 px-5 py-4 dark:border-neutral-700 dark:bg-neutral-800/50">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-900 text-white">
+                  <Briefcase size={18} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-neutral-900 dark:text-white">Complete your profile</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Earn skills and certificates so employers can see your verified UniStay profile.
+                  </p>
+                </div>
+                <Link to="/student/learning" className="shrink-0 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-black text-white transition hover:bg-neutral-800">
+                  Explore skills
+                </Link>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+                {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
+              </p>
+              <div className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
+                Sort By:
+                <span className="font-bold text-neutral-900 dark:text-white"> Date Posted</span>
+                <ChevronDown size={14} />
+              </div>
+            </div>
 
             {filtered.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-neutral-200 bg-white py-16 text-center dark:border-neutral-800 dark:bg-neutral-900">
@@ -493,15 +564,18 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
                   Clear filters
                 </button>
               </div>
-            ) : filtered.map(j => (
+            ) : filtered.map(j => {
+              const currentStatus = applicationStatus[j.id];
+              const hasApplied = Boolean(currentStatus) || applied.has(j.id);
+              return (
               <div
                 key={j.id}
-                className={`rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition dark:border-neutral-800 dark:bg-neutral-900 ${role === 'STUDENT' ? 'cursor-pointer hover:border-neutral-300 hover:shadow-md' : 'hover:border-neutral-300'} ${selected?.id === j.id ? 'ring-2 ring-neutral-900 dark:ring-white' : ''}`}
-                onClick={role === 'STUDENT' ? () => setSelected(j) : undefined}
+                className={`rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition dark:border-neutral-800 dark:bg-neutral-900 ${role === 'STUDENT' && !hasApplied ? 'cursor-pointer hover:border-neutral-300 hover:shadow-md' : 'hover:border-neutral-300'} ${selected?.id === j.id ? 'ring-2 ring-neutral-900 dark:ring-white' : ''}`}
+                onClick={role === 'STUDENT' && !hasApplied ? () => setSelected(j) : undefined}
               >
                 <div className="flex gap-4">
                   {/* Company avatar */}
-                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 text-lg font-black text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 text-lg font-black text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400">
                     {j.companyLogo
                       ? <img src={j.companyLogo} alt={j.company} className="h-full w-full object-contain p-1.5" />
                       : (j.company?.[0]?.toUpperCase() ?? <Briefcase size={18} />)
@@ -525,9 +599,9 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
                       {/* Role-specific action */}
                       <div onClick={e => e.stopPropagation()}>
                         {role === 'STUDENT' && (
-                          applied.has(j.id) ? (
-                            <span className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
-                              <CheckCircle2 size={13} /> Applied
+                          hasApplied ? (
+                            <span className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black ${APPLICATION_STATUS_COLOR[currentStatus || 'PENDING'] ?? APPLICATION_STATUS_COLOR.PENDING}`}>
+                              <CheckCircle2 size={13} /> {APPLICATION_STATUS_LABEL[currentStatus || 'PENDING'] ?? currentStatus ?? 'PENDING'}
                             </span>
                           ) : (
                             <button onClick={() => setSelected(j)}
@@ -587,7 +661,7 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </main>
 
           {/* ── Right: Subscribe + Companies ── */}
@@ -635,9 +709,12 @@ export default function JobsBrowsePage({ role }: { role: JobsBrowseRole }) {
       {role === 'STUDENT' && selected && (
         <ApplicationPanel
           job={selected}
-          applied={applied.has(selected.id)}
+          applied={Boolean(applicationStatus[selected.id]) || applied.has(selected.id)}
           onClose={() => setSelected(null)}
-          onSuccess={id => setApplied(prev => new Set(prev).add(id))}
+          onSuccess={id => {
+            setApplied(prev => new Set(prev).add(id));
+            setApplicationStatus(prev => ({ ...prev, [id]: 'PENDING' }));
+          }}
         />
       )}
     </div>

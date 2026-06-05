@@ -14,6 +14,8 @@ interface FormState {
   category: '' | 'VIP' | 'Standard' | 'Budget';
   bedrooms: string;
   capacity: string;
+  roomNumberStart: string;
+  roomNumberEnd: string;
 }
 
 const COMMON_AMENITIES = [
@@ -35,7 +37,7 @@ export default function HostEditListingPage() {
   const [amenityInput, setAmenityInput] = useState('');
   const [form, setForm] = useState<FormState>({
     name: "", location: "", description: "",
-    price: "", category: "", bedrooms: "", capacity: "",
+    price: "", category: "", bedrooms: "", capacity: "", roomNumberStart: "", roomNumberEnd: "",
   });
 
   useEffect(() => {
@@ -48,8 +50,10 @@ export default function HostEditListingPage() {
           description: h.description || "",
           price: h.price != null ? String(h.price) : "",
           category: (h.category as FormState['category']) || "",
-          bedrooms: h.bedrooms != null ? String(h.bedrooms) : "",
+          bedrooms: h.rooms?.[0]?.name ?? "",
           capacity: h.capacity != null ? String(h.capacity) : "",
+          roomNumberStart: h.rooms?.[0]?.roomNumberStart != null ? String(h.rooms[0].roomNumberStart) : "",
+          roomNumberEnd: h.rooms?.[0]?.roomNumberEnd != null ? String(h.rooms[0].roomNumberEnd) : "",
         });
         setImages(h.images || []);
         setAmenities(h.amenities || []);
@@ -86,6 +90,22 @@ export default function HostEditListingPage() {
       toast.error("Enter a valid price.");
       return;
     }
+    if (form.capacity && (isNaN(Number(form.capacity)) || Number(form.capacity) <= 0)) {
+      toast.error("Enter a valid bed count.");
+      return;
+    }
+    if (form.roomNumberStart && isNaN(Number(form.roomNumberStart))) {
+      toast.error("Enter a valid first room number.");
+      return;
+    }
+    if (form.roomNumberEnd && isNaN(Number(form.roomNumberEnd))) {
+      toast.error("Enter a valid last room number.");
+      return;
+    }
+    if (form.roomNumberStart && form.roomNumberEnd && Number(form.roomNumberEnd) < Number(form.roomNumberStart)) {
+      toast.error("Last room number must be after the first room number.");
+      return;
+    }
     setSaving(true);
     try {
       await housingApi.update(id, {
@@ -94,8 +114,10 @@ export default function HostEditListingPage() {
         description: form.description.trim() || undefined,
         price: form.price ? Number(form.price) : undefined,
         category: form.category || undefined,
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+        roomName: form.bedrooms.trim() || undefined,
         capacity: form.capacity ? Number(form.capacity) : undefined,
+        roomNumberStart: form.roomNumberStart ? Number(form.roomNumberStart) : undefined,
+        roomNumberEnd: form.roomNumberEnd ? Number(form.roomNumberEnd) : undefined,
         amenities: amenities.length ? amenities : undefined,
       });
       toast.success("Hostel updated");
@@ -286,29 +308,56 @@ export default function HostEditListingPage() {
 
         {/* Capacity */}
         <div className="card space-y-4">
-          <h2 className="font-black text-neutral-900 dark:text-white">Capacity</h2>
+          <h2 className="font-black text-neutral-900 dark:text-white">Room capacity</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Set the beds for this room. The category does not limit the bed count.
+          </p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Number of rooms</label>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Room name</label>
               <input
-                type="number"
-                min="1"
                 value={form.bedrooms}
                 onChange={e => set('bedrooms', e.target.value)}
-                placeholder="e.g. 20"
+                placeholder="e.g. Room 1 or Regular Room"
                 className="input"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Total bed capacity</label>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Beds in this room</label>
               <input
                 type="number"
                 min="1"
                 value={form.capacity}
                 onChange={e => set('capacity', e.target.value)}
-                placeholder="e.g. 80"
+                placeholder="e.g. 2"
+                className="input"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">First room number</label>
+              <input
+                type="number"
+                min="1"
+                value={form.roomNumberStart}
+                onChange={e => set('roomNumberStart', e.target.value)}
+                placeholder="e.g. 15"
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">Last room number</label>
+              <input
+                type="number"
+                min="1"
+                value={form.roomNumberEnd}
+                onChange={e => set('roomNumberEnd', e.target.value)}
+                placeholder="e.g. 40"
                 className="input"
               />
             </div>

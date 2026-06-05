@@ -4,12 +4,24 @@ import { extractList, extractOne } from "../../shared/types/api";
 
 export type CreateBookingPayload = {
   roomId: string;
-  checkIn: string;
-  checkOut: string;
+  checkIn?: string;
+  checkOut?: string;
   fullName?: string;
   email?: string;
   phone?: string;
 };
+
+function normalizeBooking(booking: Booking): Booking {
+  return {
+    ...booking,
+    housing: booking.housing ?? booking.room?.hostel,
+    housingId: booking.housingId ?? booking.room?.hostel?.id ?? booking.room?.hostelId ?? "",
+  };
+}
+
+function normalizeBookings(bookings: Booking[]) {
+  return bookings.map(normalizeBooking);
+}
 
 export const bookingsApi = {
   // ─── STUDENT ───────────────────────────────────────────────────────────────
@@ -17,13 +29,13 @@ export const bookingsApi = {
   /** GET /hostel-bookings — student's own booking list */
   async getMyBookings(): Promise<Booking[]> {
     const res = await api.get("/hostel-bookings");
-    return extractList<Booking>(res.data);
+    return normalizeBookings(extractList<Booking>(res.data));
   },
 
   /** POST /hostel-bookings — create a new booking request */
   async create(data: CreateBookingPayload): Promise<Booking> {
     const res = await api.post("/hostel-bookings", data);
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   /** GET /hostel-bookings/application-data?roomId=... — returns autofill data for application form */
@@ -37,7 +49,7 @@ export const bookingsApi = {
    */
   async submitPaymentProof(id: string, paymentProof: string): Promise<Booking> {
     const res = await api.post(`/hostel-bookings/${id}/pay`, { paymentProof, paymentRef: paymentProof });
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   /** POST /hostel-bookings/:id/pay — request a checkout url for this booking */
@@ -49,7 +61,7 @@ export const bookingsApi = {
   /** POST /hostel-bookings/:id/cancel — student/staff cancels booking */
   async cancel(id: string): Promise<Booking> {
     const res = await api.post(`/hostel-bookings/${id}/cancel`);
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   // ─── HOST ──────────────────────────────────────────────────────────────────
@@ -59,25 +71,25 @@ export const bookingsApi = {
    */
   async getByListing(hostelId: string): Promise<Booking[]> {
     const res = await api.get(`/hostel-bookings`, { params: { hostelId } });
-    return extractList<Booking>(res.data);
+    return normalizeBookings(extractList<Booking>(res.data));
   },
 
   /** PATCH /hostel-bookings/:id/status — host confirms status */
   async confirm(id: string): Promise<Booking> {
-    const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "CONFIRMED" });
-    return extractOne<Booking>(res.data);
+    const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "PAYMENT_PENDING" });
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   /** PATCH /hostel-bookings/:id/status — host rejects status */
   async reject(id: string, reason: string): Promise<Booking> {
     const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "REJECTED", reason });
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   /** PATCH /hostel-bookings/:id/status — host completes status */
   async complete(id: string): Promise<Booking> {
     const res = await api.patch(`/hostel-bookings/${id}/status`, { status: "COMPLETED" });
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 
   // ─── SHARED ────────────────────────────────────────────────────────────────
@@ -85,6 +97,6 @@ export const bookingsApi = {
   /** GET /hostel-bookings/:id — single booking detail */
   async getOne(id: string): Promise<Booking> {
     const res = await api.get(`/hostel-bookings/${id}`);
-    return extractOne<Booking>(res.data);
+    return normalizeBooking(extractOne<Booking>(res.data));
   },
 };

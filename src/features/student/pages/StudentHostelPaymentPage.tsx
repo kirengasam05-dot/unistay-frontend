@@ -30,11 +30,11 @@ export default function StudentHostelPaymentPage() {
   }
 
   const amount = booking.totalAmount ?? booking.housing?.price ?? booking.hotel?.price ?? 0;
-  const canPay = booking.paymentStatus !== "PAID" && booking.status !== "COMPLETED";
+  const canPay = booking.status === "PAYMENT_PENDING" && booking.paymentStatus !== "PAID";
 
-  // payment deadline (24 hours after booking creation)
-  const createdTs = booking.createdAt ? new Date(booking.createdAt).getTime() : Date.now();
-  const deadlineTs = createdTs + 24 * 60 * 60 * 1000;
+  const deadlineTs = booking.paymentDeadline
+    ? new Date(booking.paymentDeadline).getTime()
+    : booking.createdAt ? new Date(booking.createdAt).getTime() + 24 * 60 * 60 * 1000 : Date.now();
   const [timeLeft, setTimeLeft] = useState(Math.max(0, deadlineTs - Date.now()));
   useEffect(() => {
     const t = window.setInterval(() => setTimeLeft(Math.max(0, deadlineTs - Date.now())), 1000);
@@ -74,7 +74,7 @@ export default function StudentHostelPaymentPage() {
     setSimulating(true);
     try {
       if (status === "SUCCESS") {
-        await paymentsApi.confirmStripePayment(booking.id);
+        await bookingsApiClient.submitPaymentProof(booking.id, `STRIPE-MOCK-${Date.now()}`);
         toast.success("Stripe payment simulated successfully!");
         refetch();
       } else if (status === "FAIL") {
@@ -86,7 +86,7 @@ export default function StudentHostelPaymentPage() {
       toast.error("Error updating payment simulation. Mocking offline success state.");
       // Offline fallback
       booking.paymentStatus = "PAID";
-      booking.status = "CONFIRMED";
+      booking.status = "COMPLETED";
       refetch();
     } finally {
       setSimulating(false);
@@ -99,8 +99,8 @@ export default function StudentHostelPaymentPage() {
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Secure your hostel accommodation</h1>
-            <p className="mt-2 text-slate-600">Complete the application payment to confirm your room.</p>
+            <h1 className="text-3xl font-semibold text-slate-900">Secure your hostel bed</h1>
+            <p className="mt-2 text-slate-600">Complete the application payment to confirm your one-bed allocation.</p>
           </div>
           <div className="rounded-3xl bg-slate-50 p-4 text-slate-700">Application ID: {booking.id}</div>
         </div>
@@ -114,13 +114,17 @@ export default function StudentHostelPaymentPage() {
         <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Payment summary</h2>
-            <p className="mt-2 text-slate-600">Pay with Stripe to confirm your hostel application and lock in your room reservation.</p>
+            <p className="mt-2 text-slate-600">Pay with Stripe to confirm your hostel application and lock in one bed.</p>
           </div>
 
           <div className="grid gap-4 rounded-3xl bg-slate-50 p-6 text-slate-700">
             <div className="flex items-center justify-between">
               <span>Hostel</span>
               <span>{booking.housing?.title ?? booking.hotel?.title ?? booking.housingId ?? "Unknown"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Bed category</span>
+              <span>{booking.room?.category || booking.room?.name || "Selected bed"}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Payment status</span>

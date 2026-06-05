@@ -7,8 +7,6 @@ import {
   Plus,
   RefreshCcw,
   Trash2,
-  ToggleLeft,
-  ToggleRight,
   ImageOff,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -25,6 +23,7 @@ const verifyPill = (s: Housing["verificationStatus"]) =>
     : s === "REJECTED"
       ? "bg-red-500"
       : "bg-amber-500";
+const hasOpenBeds = (h: Housing) => h.occupancyStatus ? h.occupancyStatus === "AVAILABLE" : (h.available ?? h.availability ?? false);
 
 export default function HostListingsPage() {
   const navigate = useNavigate();
@@ -49,36 +48,6 @@ export default function HostListingsPage() {
   useEffect(() => {
     load();
   }, []);
-
-  async function toggleAvailability(h: Housing) {
-    const goingToOccupied = h.availability;
-    const ok = await confirm({
-      title: goingToOccupied ? "Mark as occupied?" : "Mark as available?",
-      description: goingToOccupied
-        ? `"${h.name ?? h.title}" will be hidden from new student applications until you mark it available again.`
-        : `"${h.name ?? h.title}" will become available for applications again.`,
-      confirmText: goingToOccupied ? "Mark occupied" : "Mark available",
-    });
-    if (!ok) return;
-    try {
-      setBusyId(h.id);
-      const updated = await housingApi.update(h.id, {
-        availability: !h.availability,
-      } as any);
-      setItems((prev) =>
-        prev.map((x) => (x.id === h.id ? { ...x, ...updated } : x)),
-      );
-      toast.success(
-        updated.availability ? "Marked as available" : "Marked as occupied",
-      );
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Could not update availability",
-      );
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   async function remove(h: Housing) {
     const ok = await confirm({
@@ -111,8 +80,8 @@ export default function HostListingsPage() {
               My Listings
             </h1>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-              Manage your hostel listings. Keep availability accurate so
-              students can apply.
+              Manage your hostel listings. Availability is updated automatically
+              from room beds and paid applications.
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -157,7 +126,9 @@ export default function HostListingsPage() {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          {items.map((h) => (
+          {items.map((h) => {
+            const isAvailable = hasOpenBeds(h);
+            return (
             <div
               key={h.id}
               className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-card dark:border-neutral-800 dark:bg-neutral-900 max-w-[23rem]"
@@ -169,9 +140,9 @@ export default function HostListingsPage() {
                   className="h-44 w-full object-cover"
                 />
                 <span
-                  className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold text-white ${h.availability ? "bg-emerald-500" : "bg-neutral-500"}`}
+                  className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold text-white ${isAvailable ? "bg-emerald-500" : "bg-red-600"}`}
                 >
-                  {h.availability ? "Available" : "Occupied"}
+                  {isAvailable ? "Available" : "Occupied all"}
                 </span>
                 <span
                   className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold text-white ${verifyPill(h.verificationStatus)}`}
@@ -210,31 +181,17 @@ export default function HostListingsPage() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   per month
                 </p>
+                <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                  Status updates automatically from available beds.
+                </p>
                 <div className="mt-4 flex gap-2">
-                  <button
-                    disabled={busyId === h.id}
-                    onClick={() => toggleAvailability(h)}
-                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors disabled:opacity-50 ${h.availability ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400"}`}
-                  >
-                    {busyId === h.id ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : h.availability ? (
-                      <>
-                        <ToggleRight size={16} /> Mark as occupied
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft size={16} /> Mark as available
-                      </>
-                    )}
-                  </button>
                   <button
                     disabled={busyId === h.id}
                     onClick={() => navigate(`/host/listings/${h.id}/edit`)}
                     title="Edit listing"
-                    className="flex items-center justify-center rounded-xl bg-neutral-100 px-4 text-neutral-700 hover:bg-neutral-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-300 transition-colors"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-neutral-100 px-4 py-2.5 text-sm font-bold text-neutral-700 transition-colors hover:bg-neutral-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-300"
                   >
-                    <Pencil size={16} />
+                    <Pencil size={16} /> Edit listing
                   </button>
                   <button
                     disabled={busyId === h.id}
@@ -247,7 +204,7 @@ export default function HostListingsPage() {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

@@ -28,8 +28,8 @@ function PaymentPanel({ booking, onSubmit }: {
   const [processing, setProcessing] = useState(false);
   const [errors, setErrors]         = useState<Record<string, string>>({});
 
-  const canPay = booking.status === "CONFIRMED" &&
-    (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null);
+  const canPay = booking.status === "PAYMENT_PENDING" &&
+    (booking.paymentStatus === "PENDING" || booking.paymentStatus === "UNPAID" || booking.paymentStatus == null);
 
   function formatCardNumber(v: string) {
     return v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
@@ -87,7 +87,7 @@ function PaymentPanel({ booking, onSubmit }: {
         <p className="text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Selected housing</p>
         <h3 className="mt-1 text-lg font-black text-neutral-900 dark:text-white">{booking.housing?.name || booking.housing?.title || booking.housingId}</h3>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {booking.housing?.location} • {new Date(booking.checkIn).toLocaleDateString()} → {new Date(booking.checkOut).toLocaleDateString()}
+          {booking.housing?.location || booking.room?.hostel?.location} - {booking.room?.category || booking.room?.name || "Selected bed"}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {([["Rent", money(Math.max(0, Number(booking.totalAmount || 0) - 5000))], ["Service fee", "RWF 5,000"], ["Total due", money(booking.totalAmount)]] as [string, string][]).map(([label, val]) => (
@@ -221,10 +221,10 @@ function BookingTimeline({ booking }: { booking: Booking }) {
   }
 
   const isCompleted  = booking.status === "COMPLETED";
-  const isConfirmed  = booking.status === "CONFIRMED" || isCompleted;
+  const isConfirmed  = booking.status === "PAYMENT_PENDING" || booking.status === "CONFIRMED" || isCompleted;
   const isPending    = booking.status === "PENDING";
   const paymentMade  = isCompleted || booking.paymentStatus === "PAID";
-  const awaitingPay  = isConfirmed && !isCompleted && (booking.paymentStatus === "UNPAID" || booking.paymentStatus == null);
+  const awaitingPay  = booking.status === "PAYMENT_PENDING" && !isCompleted && (booking.paymentStatus === "PENDING" || booking.paymentStatus === "UNPAID" || booking.paymentStatus == null);
 
   const steps: [string, boolean, boolean, string][] = [
     [
@@ -422,12 +422,12 @@ export default function StudentBookingPage() {
                           </div>
                           <div className="grid grid-cols-3 gap-2 text-xs">
                             <div>
-                              <p className="font-bold text-neutral-400">Check-in</p>
-                              <p className="font-semibold text-neutral-900 dark:text-white">{new Date(booking.checkIn).toLocaleDateString()}</p>
+                              <p className="font-bold text-neutral-400">Room</p>
+                              <p className="font-semibold text-neutral-900 dark:text-white">{booking.room?.category || booking.room?.name || "Selected"}</p>
                             </div>
                             <div>
-                              <p className="font-bold text-neutral-400">Check-out</p>
-                              <p className="font-semibold text-neutral-900 dark:text-white">{new Date(booking.checkOut).toLocaleDateString()}</p>
+                              <p className="font-bold text-neutral-400">Payment deadline</p>
+                              <p className="font-semibold text-neutral-900 dark:text-white">{booking.paymentDeadline ? new Date(booking.paymentDeadline).toLocaleString() : "After approval"}</p>
                             </div>
                             <div>
                               <p className="font-bold text-neutral-400">Total</p>
@@ -447,3 +447,4 @@ export default function StudentBookingPage() {
     </div>
   );
 }
+

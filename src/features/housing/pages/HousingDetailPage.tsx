@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BedDouble, CalendarDays, CheckCircle2, Loader2, MapPin, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BedDouble, CheckCircle2, Loader2, MapPin, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
 import { bookingsApi } from "../../bookings/bookingsApi";
 import { useAuth } from "../../../features/auth/context/AuthContext";
 import { useConfirm } from "../../../shared/components/ui/ConfirmDialog";
 import type { Housing } from "../../../shared/types/api";
+import { hostelHasOpenBeds } from "../../../shared/types/api";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80";
-
-function todayPlus(days: number) {
-  return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
-}
 
 export default function HousingDetailPage() {
   const { id = "" } = useParams();
@@ -24,8 +21,6 @@ export default function HousingDetailPage() {
   const [housing, setHousing] = useState<Housing | null>(null);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
-  const [checkIn, setCheckIn] = useState(todayPlus(1));
-  const [checkOut, setCheckOut] = useState(todayPlus(31));
   const [booking, setBooking] = useState(false);
 
   useEffect(() => {
@@ -50,7 +45,9 @@ export default function HousingDetailPage() {
   const selectedRoomId = housing?.firstRoomId ?? housing?.rooms?.[0]?.id;
   const selectedRoom = housing?.rooms?.find((room) => room.id === selectedRoomId) ?? housing?.rooms?.[0];
   const effectivePrice = housing?.price ?? selectedRoom?.price;
-  const canApply = !!housing && verificationStatus === "VERIFIED" && housing.availability === true && !!selectedRoomId;
+  const isAvailable = housing ? hostelHasOpenBeds(housing) : false;
+  const isOccupiedAll = !isAvailable;
+  const canApply = !!housing && verificationStatus === "VERIFIED" && !!selectedRoomId;
 
   async function requestApplication() {
     if (!housing) return;
@@ -63,13 +60,9 @@ export default function HousingDetailPage() {
       toast.error("Only students can apply for a hostel.");
       return;
     }
-    if (new Date(checkOut) <= new Date(checkIn)) {
-      toast.error("Check-out must be after check-in.");
-      return;
-    }
     const ok = await confirm({
       title: "Submit hostel application?",
-      description: `We'll submit your application for "${housing.name ?? housing.title}" from ${new Date(checkIn).toLocaleDateString()} to ${new Date(checkOut).toLocaleDateString()}. You'll only pay after the host approves.`,
+      description: `We'll submit your application for one bed at "${housing.name ?? housing.title}". You'll only pay after the host approves it, and the payment deadline is 24 hours.`,
       confirmText: "Submit application",
     });
     if (!ok) return;
@@ -80,11 +73,7 @@ export default function HousingDetailPage() {
         return;
       }
       setBooking(true);
-      await bookingsApi.create({
-        roomId,
-        checkIn: new Date(checkIn).toISOString(),
-        checkOut: new Date(checkOut).toISOString(),
-      });
+      await bookingsApi.create({ roomId });
       toast.success("Application submitted! Track it in your dashboard.");
       navigate("/student/booking");
     } catch (err) {
@@ -130,7 +119,7 @@ export default function HousingDetailPage() {
 
           <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability === true ? "bg-emerald-600" : housing.availability === false ? "bg-red-600" : "bg-amber-500"}`}>{housing.availability === true ? "Available" : housing.availability === false ? "Occupied" : "Availability unknown"}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isAvailable ? "bg-emerald-600" : "bg-red-600"}`}>{isAvailable ? "Available" : "Occupied all"}</span>
               <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${verificationStatus === "VERIFIED" ? "bg-black dark:bg-white dark:text-black" : verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>{verificationStatus === "PENDING" ? "Pending Verification" : verificationStatus}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black text-neutral-900 dark:text-white">{housing.name ?? housing.title}</h1>
@@ -160,25 +149,14 @@ export default function HousingDetailPage() {
             <p className="mt-1 text-4xl font-black text-neutral-900 dark:text-white">{effectivePrice != null ? money(effectivePrice) : "Contact host"}</p>
             {selectedRoom && (
               <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
-                Selected room: <span className="font-semibold text-neutral-900 dark:text-white">{selectedRoom.name ?? selectedRoom.id}</span>{selectedRoom.category ? ` • ${selectedRoom.category}` : ""}
+                Bed category: <span className="font-semibold text-neutral-900 dark:text-white">{selectedRoom.category ?? selectedRoom.name ?? selectedRoom.id}</span>
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Check-in</label>
-                <div className="relative">
-                  <CalendarDays size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input type="date" value={checkIn} min={todayPlus(0)} onChange={(e) => setCheckIn(e.target.value)} className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-9 pr-2 text-sm outline-none focus:border-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white" />
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Check-out</label>
-                <div className="relative">
-                  <CalendarDays size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input type="date" value={checkOut} min={checkIn} onChange={(e) => setCheckOut(e.target.value)} className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-9 pr-2 text-sm outline-none focus:border-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white" />
-                </div>
-              </div>
+            <div className="mt-6 rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-600 dark:bg-neutral-800/60 dark:text-neutral-300">
+              {isOccupiedAll
+                ? "All beds are currently occupied. You can still submit an application and wait for the next available slot."
+                : "Submit your application for one bed. The host will approve students according to available beds and application order."}
             </div>
 
             <button
@@ -186,7 +164,7 @@ export default function HousingDetailPage() {
               onClick={requestApplication}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-5 py-4 font-black text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 dark:bg-white dark:text-black dark:disabled:bg-neutral-700"
             >
-              {booking ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : canApply ? "Apply for hostel" : !selectedRoomId ? "Room unavailable" : housing.availability ? "Awaiting verification" : "Currently occupied"}
+              {booking ? <><Loader2 size={18} className="animate-spin" /> Submitting...</> : canApply ? (isOccupiedAll ? "Join waiting applications" : "Apply for one bed") : !selectedRoomId ? "Bed unavailable" : "Awaiting verification"}
             </button>
 
             <p className="mt-4 flex items-start gap-2 text-xs text-neutral-500">

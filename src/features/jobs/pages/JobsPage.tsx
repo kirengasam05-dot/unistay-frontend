@@ -93,13 +93,20 @@ export default function JobsPage() {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="bg-neutral-950 px-4 py-16 text-white sm:px-6">
-        <div className="mx-auto max-w-5xl text-center">
-          <h1 className="text-4xl font-black sm:text-5xl">Find your dream job</h1>
-          <p className="mt-3 text-neutral-400">
-            Discover internships and jobs matched to your skills and UniStay learning certificates.
+<section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-slate-950 px-4 py-16 text-white sm:px-6 lg:py-20">
+        <img
+          src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1800&q=85"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/70" />
+        <div className="relative mx-auto max-w-7xl">
+          <p className="text-sm font-black uppercase tracking-[0.35em] text-blue-300">Student opportunities</p>
+          <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">Find jobs and internships that match your skills.</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
+            Search verified opportunities, save roles, and apply with the profile and certificates you build on UniStay+.
           </p>
-          <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-2 overflow-hidden rounded-2xl bg-white p-2 sm:flex-row">
+          <div className="mt-8 flex max-w-5xl flex-col gap-2 rounded-2xl bg-white/95 p-2 shadow-2xl backdrop-blur sm:flex-row">
             <div className="flex flex-1 items-center gap-3 rounded-xl bg-neutral-50 px-4 py-3 text-neutral-900">
               <Search size={16} className="shrink-0 text-neutral-400" />
               <input
@@ -135,25 +142,33 @@ export default function JobsPage() {
           <div className="grid gap-8 lg:grid-cols-[220px_1fr_260px]">
 
             {/* ── Left: Filters ────────────────────────────────────── */}
-            <aside className="space-y-8">
-              <div className="flex items-center justify-between">
-                <h2 className="font-black text-neutral-900 dark:text-white">Filters</h2>
-                <button onClick={clearAll} className="text-xs font-bold text-neutral-900 dark:text-white hover:underline">
-                  Clear All
-                </button>
+            <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Filter jobs</p>
+                    <h2 className="mt-1 text-lg font-black text-neutral-900 dark:text-white">Refine results</h2>
+                  </div>
+                  <button onClick={() => { setKeyword(''); setLocationSearch(''); clearAll(); }} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-black text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
+                    Reset
+                  </button>
+                </div>
+                <p className="mt-3 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+                  {filtered.length} of {jobs.length} jobs match your search.
+                </p>
               </div>
 
               {/* Job Type */}
-              <div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Job Type</p>
                   <button onClick={() => setScheduleFilter('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
                 </div>
-                <ul className="space-y-2.5">
+                <ul className="flex flex-wrap gap-2">
                   <li>
                     <button
                       onClick={() => setScheduleFilter('ALL')}
-                      className={`text-sm ${scheduleFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                      className={`rounded-xl px-3 py-2 text-xs font-black transition ${scheduleFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                     >
                       All ({jobs.length})
                     </button>
@@ -162,7 +177,7 @@ export default function JobsPage() {
                     <li key={key}>
                       <button
                         onClick={() => setScheduleFilter(key)}
-                        className={`text-sm ${scheduleFilter === key ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                        className={`rounded-xl px-3 py-2 text-xs font-black transition ${scheduleFilter === key ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                       >
                         {label} ({scheduleCounts[key] ?? 0})
                       </button>
@@ -173,7 +188,7 @@ export default function JobsPage() {
 
               {/* Location */}
               {locations.length > 0 && (
-                <div>
+                <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Location</p>
                     <button onClick={() => setLocationFilter('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
@@ -182,18 +197,18 @@ export default function JobsPage() {
                     <li>
                       <button
                         onClick={() => setLocationFilter('ALL')}
-                        className={`text-sm ${locationFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-black transition ${locationFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                       >
-                        All ({jobs.length})
+                        <span>All locations</span><span>{jobs.length}</span>
                       </button>
                     </li>
                     {visibleLocations.map(([loc, count]) => (
                       <li key={loc}>
                         <button
                           onClick={() => setLocationFilter(loc)}
-                          className={`text-sm ${locationFilter === loc ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                          className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-xs font-black transition ${locationFilter === loc ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                         >
-                          {loc} ({count})
+                          <span className="truncate">{loc}</span><span>{count}</span>
                         </button>
                       </li>
                     ))}
@@ -214,7 +229,7 @@ export default function JobsPage() {
 
               {/* Company */}
               {companies.length > 0 && (
-                <div>
+                <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Company</p>
                     <button onClick={() => setCompanyFilter('ALL')} className="text-xs text-neutral-400 hover:text-neutral-600">Clear</button>
@@ -223,18 +238,18 @@ export default function JobsPage() {
                     <li>
                       <button
                         onClick={() => setCompanyFilter('ALL')}
-                        className={`text-sm ${companyFilter === 'ALL' ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-black transition ${companyFilter === 'ALL' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                       >
-                        All ({jobs.length})
+                        <span>All companies</span><span>{jobs.length}</span>
                       </button>
                     </li>
                     {visibleCompanies.map(([company, count]) => (
                       <li key={company}>
                         <button
                           onClick={() => setCompanyFilter(company)}
-                          className={`text-sm ${companyFilter === company ? 'font-black text-neutral-900 dark:text-white' : 'font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900'}`}
+                          className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-xs font-black transition ${companyFilter === company ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                         >
-                          {company} ({count})
+                          <span className="truncate">{company}</span><span>{count}</span>
                         </button>
                       </li>
                     ))}
