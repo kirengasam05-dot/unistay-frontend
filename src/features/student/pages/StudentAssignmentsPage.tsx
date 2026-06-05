@@ -1,20 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, FileQuestion, Loader2, RotateCcw, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { queryKeys } from '../../../shared/lib/queryKeys';
 import { skillsApi } from '../../skills/skillsApi';
 import type { Assignment, ExamAttempt, ExamQuestion, ExamResult } from '../../skills/skillsApi';
-import LearningLayout from '../components/LearningLayout';
+import { courseCertificate, courseEnrollment } from '../learningProfileApi';
+import { useLearningProfileQuery } from '../hooks/useLearningProfileQuery';
 
 const formatTime = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
 export default function StudentAssignmentsPage() {
   const { assignmentId } = useParams();
   const queryClient = useQueryClient();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState<ExamAttempt | null>(null);
   const [activeAssignment, setActiveAssignment] = useState<Assignment | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -24,24 +23,46 @@ export default function StudentAssignmentsPage() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const submitRef = useRef<() => void>(() => undefined);
+  const autoStartedAssignmentId = useRef<string | null>(null);
+  const { data: learningProfile, isPending: profileLoading } = useLearningProfileQuery(Boolean(assignmentId));
+  const assignmentsQuery = useQuery({
+    queryKey: assignmentId ? queryKeys.assignmentDetail(assignmentId) : queryKeys.standaloneAssignments,
+    queryFn: async () => assignmentId ? [await skillsApi.getAssignment(assignmentId)] : skillsApi.getAssignments({ standalone: true }),
+    staleTime: 5 * 60_000,
+  });
+  const assignments = assignmentsQuery.data || [];
+  const loading = assignmentsQuery.isPending;
 
   useEffect(() => {
-    setLoading(true);
-    if (assignmentId) {
-      skillsApi.getAssignment(assignmentId).then((assignment) => {
-        setAssignments([assignment]);
-        void start(assignment);
-      }).catch(() => toast.error('Could not load this exam')).finally(() => setLoading(false));
-      return;
-    }
-    skillsApi.getAssignments().then(setAssignments).catch(() => toast.error('Could not load exams')).finally(() => setLoading(false));
+    autoStartedAssignmentId.current = null;
+    setAttempt(null);
+    setResult(null);
   }, [assignmentId]);
+
+  useEffect(() => {
+    if (assignmentsQuery.isError) toast.error(assignmentId ? 'Could not load this exam' : 'Could not load exams');
+  }, [assignmentId, assignmentsQuery.isError]);
+
+  useEffect(() => {
+    if (!assignmentId || profileLoading || loading || attempt || result) return;
+    const assignment = assignments[0];
+    if (!assignment || autoStartedAssignmentId.current === assignment.id) return;
+    autoStartedAssignmentId.current = assignment.id;
+    void start(assignment);
+  }, [assignmentId, assignments, attempt, loading, profileLoading, result]);
 
   const questions: ExamQuestion[] = attempt?.questions?.map((item) => item.question) || [];
   const currentQuestion = questions[questionIndex];
   const visibleAssignments = assignmentId ? assignments : assignments.filter((assignment) => assignment.isStandalone);
 
   async function start(assignment: Assignment) {
+    if (assignment.courseId) {
+      if (courseCertificate(learningProfile, assignment.courseId) || (courseEnrollment(learningProfile, assignment.courseId)?.progress || 0) >= 100) {
+        setActiveAssignment(assignment);
+        toast.error('You already earned this course certificate. You cannot take this exam again.');
+        return;
+      }
+    }
     try {
       setResult(null);
       setActiveAssignment(assignment);
@@ -97,10 +118,10 @@ export default function StudentAssignmentsPage() {
     setQuestionIndex(index);
   }
 
-  if (loading) return <div className="card grid min-h-72 place-items-center"><Loader2 className="animate-spin text-neutral-400" /></div>;
+  if (loading || (assignmentId && profileLoading)) return <div className="card grid min-h-72 place-items-center"><Loader2 className="animate-spin text-neutral-400" /></div>;
 
   if (attempt && currentQuestion) return (
-    <LearningLayout><div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-5">
       <section className="rounded-xl bg-slate-950 p-6 text-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Exam in progress</p><h1 className="mt-2 text-2xl font-black">{attempt.assignment?.title || 'Course assessment'}</h1></div>
@@ -122,14 +143,17 @@ export default function StudentAssignmentsPage() {
         <div className="flex flex-wrap justify-center gap-1.5">{questions.map((question, index) => <button key={question.id} onClick={() => showQuestion(index)} className={`h-3 w-3 rounded-full transition ${index === questionIndex ? 'bg-violet-600 ring-4 ring-violet-100' : answers[question.id] ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-700'}`} aria-label={`Go to question ${index + 1}`} />)}</div>
         {questionIndex < questions.length - 1 ? <button onClick={() => showQuestion(questionIndex + 1)} className="btn-black rounded-lg">Next <ArrowRight size={16} /></button> : <button onClick={() => submit()} disabled={submitting} className="btn-black rounded-lg disabled:opacity-60">{submitting ? 'Submitting...' : 'Submit exam'}</button>}
       </div>
-    </div></LearningLayout>
+    </div>
   );
 
   return (
-    <LearningLayout><div className="space-y-6">
+    <div className="space-y-6">
       <section className="rounded-xl bg-slate-950 p-7 text-white"><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Assessments</p><h1 className="mt-2 text-3xl font-black">{assignmentId ? 'Course exam' : 'Standalone exams'}</h1><p className="mt-2 text-sm text-slate-300">Answer one question at a time. You can return to earlier questions before submitting.</p></section>
       {result && <div className={`rounded-lg border p-5 ${result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300'}`}><p className="flex items-center gap-2 font-black">{result.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}{result.passed ? 'You passed the exam' : 'You did not pass the exam'}</p><p className="mt-1 text-sm">Your score is {result.score}%. {result.passed ? 'Your course completion and verified skills are now updated.' : `You need at least ${activeAssignment?.passingScore || 70}% to pass.`}</p>{!result.passed && activeAssignment && <button onClick={() => start(activeAssignment)} className="btn-black mt-4 rounded-lg"><RotateCcw size={15} /> Redo exam</button>}</div>}
-      {visibleAssignments.length === 0 ? <div className="card py-12 text-center"><FileQuestion className="mx-auto text-neutral-300" size={36} /><p className="mt-3 font-black">No exams available yet</p></div> : visibleAssignments.map((assignment) => <article key={assignment.id} className="card flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-lg font-black">{assignment.title}</h2><p className="mt-1 flex items-center gap-3 text-sm text-neutral-500"><span className="flex items-center gap-1"><Clock3 size={14} />{assignment.timeLimit || 45} minutes</span><span>Pass mark {assignment.passingScore || 70}%</span></p></div><button onClick={() => start(assignment)} className="btn-black rounded-xl">Take exam</button></article>)}
-    </div></LearningLayout>
+      {visibleAssignments.length === 0 ? <div className="card py-12 text-center"><FileQuestion className="mx-auto text-neutral-300" size={36} /><p className="mt-3 font-black">No exams available yet</p></div> : visibleAssignments.map((assignment) => {
+        const locked = Boolean(assignment.courseId && (courseCertificate(learningProfile, assignment.courseId) || (courseEnrollment(learningProfile, assignment.courseId)?.progress || 0) >= 100));
+        return <article key={assignment.id} className="card flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-lg font-black">{assignment.title}</h2><p className="mt-1 flex items-center gap-3 text-sm text-neutral-500"><span className="flex items-center gap-1"><Clock3 size={14} />{assignment.timeLimit || 45} minutes</span><span>Pass mark {assignment.passingScore || 70}%</span></p>{locked && <p className="mt-2 text-xs font-black text-emerald-600">Certificate already earned. Retake is not allowed.</p>}</div><button onClick={() => start(assignment)} disabled={locked} className="btn-black rounded-xl disabled:cursor-not-allowed disabled:opacity-50">{locked ? 'Completed' : 'Take exam'}</button></article>;
+      })}
+    </div>
   );
 }

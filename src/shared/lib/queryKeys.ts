@@ -6,5 +6,8 @@ export const queryKeys = {
   jobs: ['jobs'] as const,
   courses: ['courses'] as const,
   courseDetail: (id: string) => ['courses', id] as const,
+  assignments: ['assignments'] as const,
+  standaloneAssignments: ['assignments', 'standalone'] as const,
+  assignmentDetail: (id: string) => ['assignments', id] as const,
   learningProfile: ['learning-profile', 'mine'] as const,
 };

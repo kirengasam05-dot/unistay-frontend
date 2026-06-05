@@ -42,6 +42,9 @@ export default function StudentNavbar() {
   const overHero = location.pathname === '/dashboard' && !scrolled;
   const text = overHero ? 'text-white' : 'text-slate-900 dark:text-white';
   const muted = overHero ? 'text-white/75 hover:text-white' : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white';
+  const learningRoute = location.pathname.startsWith('/student/learning')
+    || location.pathname.startsWith('/student/assignments')
+    || location.pathname === '/student/certificates';
 
   async function signOut() {
     setMenuOpen(false);
@@ -60,7 +63,7 @@ export default function StudentNavbar() {
             <NavLink
               key={to}
               to={to}
-              className={({ isActive }) => `rounded-full px-4 py-2 text-sm font-bold transition ${isActive ? text : muted}`}
+              className={({ isActive }) => `rounded-full px-4 py-2 text-sm font-bold transition ${isActive || (to === '/student/learning' && learningRoute) ? text : muted}`}
             >
               {label}
             </NavLink>
@@ -98,7 +101,7 @@ export default function StudentNavbar() {
       </nav>
 
       <div className={`flex items-center justify-around border-t px-2 py-1 md:hidden ${overHero ? 'border-white/10 bg-slate-950/15' : 'border-slate-100 bg-white dark:border-neutral-800 dark:bg-neutral-950'}`}>
-        {links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => `flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-bold ${isActive ? overHero ? 'text-white' : 'text-emerald-600' : overHero ? 'text-white/65' : 'text-slate-500'}`}><Icon size={16} />{label}</NavLink>)}
+        {links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => `flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-bold ${isActive || (to === '/student/learning' && learningRoute) ? overHero ? 'text-white' : 'text-emerald-600' : overHero ? 'text-white/65' : 'text-slate-500'}`}><Icon size={16} />{label}</NavLink>)}
       </div>
     </header>
   );

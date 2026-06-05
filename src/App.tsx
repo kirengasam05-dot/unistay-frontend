@@ -37,6 +37,7 @@ import StudentCertificatesPage from "./features/student/pages/StudentCertificate
 import StudentRecommendationsPage from "./features/student/pages/StudentRecommendationsPage";
 import StudentNotificationsPage from "./features/student/pages/StudentNotificationsPage";
 import StudentCoursePage from "./features/student/pages/StudentCoursePage";
+import LearningLayout from "./features/student/components/LearningLayout";
 
 import HostListingsPage from "./features/host/pages/HostListingsPage";
 import HostAddListingPage from "./features/host/pages/HostAddListingPage";
@@ -102,11 +103,13 @@ export default function App() {
           <Route path="/student/housing" element={<Navigate to="/student/hostels" replace />} />
           <Route path="/student/booking" element={<StudentBookingPage />} />
           <Route path="/student/jobs" element={<StudentJobsPage />} />
-          <Route path="/student/learning" element={<StudentLearningPage />} />
-          <Route path="/student/learning/:id" element={<StudentCoursePage />} />
-          <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
-          <Route path="/student/assignments/:assignmentId" element={<StudentAssignmentsPage />} />
-          <Route path="/student/certificates" element={<StudentCertificatesPage />} />
+          <Route element={<LearningLayout />}>
+            <Route path="/student/learning" element={<StudentLearningPage />} />
+            <Route path="/student/learning/:id" element={<StudentCoursePage />} />
+            <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
+            <Route path="/student/assignments/:assignmentId" element={<StudentAssignmentsPage />} />
+            <Route path="/student/certificates" element={<StudentCertificatesPage />} />
+          </Route>
           <Route path="/student/recommendations" element={<StudentRecommendationsPage />} />
           <Route path="/student/notifications" element={<StudentNotificationsPage />} />
         </Route>
