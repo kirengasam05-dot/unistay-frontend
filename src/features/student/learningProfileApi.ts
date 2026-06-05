@@ -3,9 +3,25 @@ import { extractList, extractOne } from '../../shared/types/api';
 
 export type LearningProfile = {
   userSkills: { completionStatus: boolean; skill: { id: string; name: string; category: string; level: string } }[];
-  certificates: { id: string; issuedAt: string; certificateUrl?: string; course: { id: string; title: string }; skills?: { skill: { id: string; name: string } }[] }[];
-  enrollments: { id: string; progress: number; completedMaterials: number; course: { id: string; title: string } }[];
+  certificates: { id: string; issuedAt: string; certificateUrl?: string; courseId?: string; course?: { id: string; title: string }; skills?: { skill: { id: string; name: string } }[] }[];
+  enrollments: { id: string; progress: number; completedMaterials: number; courseId?: string; course?: { id: string; title: string } }[];
 };
+
+export function enrollmentCourseId(enrollment: LearningProfile['enrollments'][number]) {
+  return enrollment.course?.id || enrollment.courseId || '';
+}
+
+export function certificateCourseId(certificate: LearningProfile['certificates'][number]) {
+  return certificate.course?.id || certificate.courseId || '';
+}
+
+export function courseEnrollment(profile: LearningProfile | undefined | null, courseId: string) {
+  return profile?.enrollments.find((enrollment) => enrollmentCourseId(enrollment) === courseId);
+}
+
+export function courseCertificate(profile: LearningProfile | undefined | null, courseId: string) {
+  return profile?.certificates.find((certificate) => certificateCourseId(certificate) === courseId);
+}
 
 export type InstructorEnrollment = {
   id: string;

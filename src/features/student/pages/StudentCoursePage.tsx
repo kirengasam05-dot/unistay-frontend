@@ -4,8 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, CheckCircle2, Download, FileText, Loader2, PlayCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCourseDetailQuery } from '../../courses/hooks/useCoursesQueries';
-import { learningProfileApi } from '../learningProfileApi';
-import LearningLayout from '../components/LearningLayout';
+import { courseCertificate, courseEnrollment, learningProfileApi } from '../learningProfileApi';
 import { queryKeys } from '../../../shared/lib/queryKeys';
 import { useLearningProfileQuery } from '../hooks/useLearningProfileQuery';
 
@@ -16,11 +15,16 @@ export default function StudentCoursePage() {
   const queryClient = useQueryClient();
   const { data: course, isPending: loading, error } = useCourseDetailQuery(id);
   const { data: learningProfile } = useLearningProfileQuery();
-  const enrollment = learningProfile?.enrollments.find((item) => item.course.id === id);
+  const enrollment = courseEnrollment(learningProfile, id);
+  const certificate = courseCertificate(learningProfile, id);
   const enrolled = Boolean(enrollment);
-  const completed = (enrollment?.progress || 0) >= 100;
+  const completed = Boolean(certificate) || (enrollment?.progress || 0) >= 100;
   const enrollMutation = useMutation({
-    mutationFn: () => learningProfileApi.enroll(id),
+    mutationFn: () => {
+      if (enrolled) throw new Error('You are already enrolled in this course.');
+      if (certificate) throw new Error('You already completed this course and earned its certificate.');
+      return learningProfileApi.enroll(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.learningProfile });
       toast.success('Course added to your learning profile');
@@ -59,7 +63,7 @@ export default function StudentCoursePage() {
   if (!course) return <div className="card">Course not found.</div>;
 
   return (
-    <LearningLayout><div className="space-y-6">
+    <div className="space-y-6">
       <Link to="/student/learning" className="inline-flex items-center gap-2 text-sm font-bold text-neutral-500"><ArrowLeft size={16} /> Back to courses</Link>
       <section className="grid overflow-hidden rounded-xl bg-slate-950 text-white lg:grid-cols-[1fr_340px]">
         <div className="min-h-72 bg-black">
@@ -70,9 +74,9 @@ export default function StudentCoursePage() {
           <h1 className="mt-3 text-3xl font-black">{course.title}</h1>
           <p className="mt-3 text-sm leading-6 text-slate-300">{course.description || 'Complete the lessons and pass the assessment to earn verified skills.'}</p>
           {activeVideo && <p className="mt-5 text-sm font-bold text-violet-200">Lesson {activeVideoIndex + 1} of {videos.length}: {activeVideo.materialTitle}</p>}
-          {!enrolled && <button onClick={() => enrollMutation.mutate()} disabled={enrollMutation.isPending} className="mt-6 w-full rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 disabled:opacity-60">{enrollMutation.isPending ? 'Enrolling...' : 'Enroll in course'}</button>}
+          {!enrolled && !certificate && <button onClick={() => enrollMutation.mutate()} disabled={enrollMutation.isPending} className="mt-6 w-full rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 disabled:opacity-60">{enrollMutation.isPending ? 'Enrolling...' : 'Enroll in course'}</button>}
           {completed ? <p className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-3 text-sm font-black text-emerald-300"><CheckCircle2 size={17} /> Course completed</p> : enrolled && <p className="mt-6 flex items-center gap-2 text-sm font-black text-emerald-300"><CheckCircle2 size={17} /> Enrolled in this course</p>}
-          {courseExam ? <Link to={`/student/assignments/${courseExam.id}`} className="mt-3 block rounded-xl border border-white/20 px-4 py-3 text-center text-sm font-black">Take course exam</Link> : <p className="mt-3 text-center text-xs font-bold text-slate-400">The instructor has not added a course exam yet.</p>}
+          {courseExam && !completed ? <Link to={`/student/assignments/${courseExam.id}`} className="mt-3 block rounded-xl border border-white/20 px-4 py-3 text-center text-sm font-black">Take course exam</Link> : courseExam ? <p className="mt-3 rounded-xl border border-emerald-400/30 px-4 py-3 text-center text-sm font-black text-emerald-200">Certificate already earned. Exam retakes are closed.</p> : <p className="mt-3 text-center text-xs font-bold text-slate-400">The instructor has not added a course exam yet.</p>}
         </div>
       </section>
       <section className="card">
@@ -98,6 +102,6 @@ export default function StudentCoursePage() {
         </div>
       </section>
       <p className="flex items-center gap-2 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> {completed ? 'You completed this course. Its verified skills are now on your profile.' : 'Finish the assessment to add the course skills to your profile.'}</p>
-    </div></LearningLayout>
+    </div>
   );
 }

@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { BookOpen, GraduationCap, Star } from 'lucide-react';
 
 const links = [
   { label: 'Courses', to: '/student/learning', icon: BookOpen },
-  { label: 'Assignments', to: '/student/assignments', icon: GraduationCap },
+  { label: 'Exams', to: '/student/assignments', icon: GraduationCap },
   { label: 'Certificates', to: '/student/certificates', icon: Star },
 ];
 
-export default function LearningLayout({ children }: { children: ReactNode }) {
+export default function LearningLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="grid lg:grid-cols-[240px_1fr]">
       <aside className="bg-white px-4 py-4 dark:bg-neutral-900 lg:sticky lg:top-[82px] lg:h-[calc(100vh-82px)] lg:border-r lg:border-neutral-200 lg:px-5 lg:py-6 dark:lg:border-neutral-800">
@@ -21,7 +21,7 @@ export default function LearningLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
       </aside>
-      <div className="min-w-0 p-4 sm:p-6">{children}</div>
+      <div className="min-w-0 p-4 sm:p-6">{children ?? <Outlet />}</div>
     </div>
   );
 }

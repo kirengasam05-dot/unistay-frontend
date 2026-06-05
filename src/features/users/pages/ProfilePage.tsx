@@ -122,7 +122,7 @@ export default function ProfilePage() {
     }))),
     ...(learning?.certificates.map(c => ({
       icon: Award,
-      title: `Certificate earned — "${c.course.title}"`,
+      title: `Certificate earned — "${c.course?.title || 'Course certificate'}"`,
       sub: 'Course completion certificate',
       date: fmt(c.issuedAt),
     })) ?? []),
@@ -340,7 +340,7 @@ export default function ProfilePage() {
               {!learning?.certificates.length ? (
                 <p className="py-10 text-center text-sm text-neutral-400">Pass a course exam to earn your first certificate.</p>
               ) : learning.certificates.map(cert => {
-                const data: CertificateData = { id: cert.id, studentName: user.fullName, courseTitle: cert.course.title, issuedAt: cert.issuedAt, skills: cert.skills?.map(({ skill }) => skill.name) };
+                const data: CertificateData = { id: cert.id, studentName: user.fullName, courseTitle: cert.course?.title || 'Course certificate', issuedAt: cert.issuedAt, skills: cert.skills?.map(({ skill }) => skill.name) };
                 return (
                   <div key={cert.id} className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-100 py-4 dark:border-neutral-800">
                     <div className="flex items-center gap-3">
@@ -348,7 +348,7 @@ export default function ProfilePage() {
                         <Award size={18} className="text-neutral-600 dark:text-neutral-400" />
                       </div>
                       <div>
-                        <p className="font-black text-neutral-900 dark:text-white">{cert.course.title}</p>
+                        <p className="font-black text-neutral-900 dark:text-white">{cert.course?.title || 'Course certificate'}</p>
                         <p className="text-xs text-neutral-400">Issued {fmt(cert.issuedAt)}</p>
                       </div>
                     </div>

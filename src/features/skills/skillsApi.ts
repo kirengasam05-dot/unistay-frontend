@@ -36,6 +36,7 @@ export type Assignment = {
   passingScore?: number;
   status?: string;
   questions?: ExamQuestion[];
+  course?: { id: string; title: string };
 };
 
 export type ExamOption = { id: string; text: string };
@@ -74,8 +75,8 @@ export const skillsApi = {
   },
 
   /** GET /assignments — student exam/assignment list */
-  async getAssignments(): Promise<Assignment[]> {
-    const res = await api.get('/assignments');
+  async getAssignments(options?: { standalone?: boolean }): Promise<Assignment[]> {
+    const res = await api.get('/assignments', { params: options });
     return extractList<Assignment>(res.data);
   },
 
