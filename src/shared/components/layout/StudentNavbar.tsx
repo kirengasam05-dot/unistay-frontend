@@ -11,7 +11,7 @@ const links = [
   { to: '/student/hostels', label: 'Hostels', icon: Building2 },
   { to: '/student/jobs', label: 'Jobs', icon: Briefcase },
   { to: '/student/learning', label: 'Learning', icon: BookOpen },
-  { to: '/student/booking', label: 'Applications', icon: CalendarCheck },
+  { to: '/student/booking', label: 'My Hostel', icon: CalendarCheck },
 ];
 
 export default function StudentNavbar() {

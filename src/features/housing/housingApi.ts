@@ -23,8 +23,11 @@ export type ListingPayload = {
   description?: string;
   price?: number;
   category?: "VIP" | "Standard" | "Budget";
+  roomName?: string;
   bedrooms?: number;
   capacity?: number;
+  roomNumberStart?: number;
+  roomNumberEnd?: number;
   amenities?: string[];
   availability?: boolean;
 };

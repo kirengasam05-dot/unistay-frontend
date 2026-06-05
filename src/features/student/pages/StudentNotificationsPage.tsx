@@ -65,7 +65,7 @@ export default function StudentNotificationsPage() {
           <Bell size={40} className="mx-auto text-neutral-400" />
           <p className="mt-4 font-black text-neutral-900 dark:text-white">You're all caught up</p>
           <p className="mt-1 text-sm text-neutral-500">Apply for a verified hostel and updates will show up here.</p>
-          <Link to="/hostels" className="btn-black mt-5 inline-block rounded-xl">Browse hostels</Link>
+          <Link to="/student/hostels" className="btn-black mt-5 inline-block rounded-xl">Browse hostels</Link>
         </div>
       ) : (
         <div className="space-y-3">

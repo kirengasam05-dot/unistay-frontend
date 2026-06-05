@@ -21,7 +21,7 @@ export default function MyAccommodationPage() {
     <div className="space-y-6">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-3xl font-semibold text-slate-900">My accommodation</h1>
-        <p className="mt-2 text-slate-600">Track your current hostel application, see your stay dates, and manage your reservations.</p>
+        <p className="mt-2 text-slate-600">Track your current hostel bed application, payment status, and allocation.</p>
       </div>
 
       {activeBooking ? (
@@ -60,14 +60,14 @@ export default function MyAccommodationPage() {
             <div className="mt-4 space-y-3 text-slate-600">
               <p>Review your move-in instructions from the host and ensure your documents are ready.</p>
               <p>Check the application status regularly for any updates or payment confirmation.</p>
-              <p>If you are on the waitlist, we will notify you as soon as a room becomes available.</p>
+              <p>If you are on the waitlist, we will notify you as soon as a bed becomes available.</p>
             </div>
           </aside>
         </div>
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-900">No active accommodation</h2>
-          <p className="mt-2 text-slate-600">You do not have an active hostel application. Browse available hostels and apply to reserve a room.</p>
+          <p className="mt-2 text-slate-600">You do not have an active hostel application. Browse available hostels and apply for one bed.</p>
         </div>
       )}
 

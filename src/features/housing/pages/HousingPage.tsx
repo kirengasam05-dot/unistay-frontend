@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { housingApi } from "../housingApi";
 import type { Housing } from "../../../shared/types/api";
-import { hostelName } from "../../../shared/types/api";
+import { hostelHasOpenBeds, hostelName } from "../../../shared/types/api";
 
 const money = (value: number) => `RWF ${Number(value || 0).toLocaleString()}`;
 const firstImage = (h: Housing) =>
   h.images?.[0] || h.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80";
 
 export default function HousingPage() {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const initialQuery = [searchParams.get("q"), searchParams.get("loc")].filter(Boolean).join(" ");
   const [items, setItems]   = useState<Housing[]>([]);
@@ -19,6 +20,8 @@ export default function HousingPage() {
   const [category, setCategory] = useState<string>("ALL");
   const [maxPrice, setMaxPrice] = useState<number>(300000);
   const [onlyAvailable, setOnlyAvailable] = useState<boolean>(false);
+  const isStudentArea = location.pathname.startsWith("/student/");
+  const hostelBasePath = isStudentArea ? "/student/hostels" : "/hostels";
 
   useEffect(() => {
     housingApi.getAll()
@@ -35,7 +38,8 @@ export default function HousingPage() {
       const hCategory = h.category ?? (price >= 80000 ? "VIP" : price >= 35000 ? "Standard" : "Budget");
       const matchCategory = category === "ALL" || hCategory === category;
       const matchPrice = price <= maxPrice;
-      const matchAvailability = !onlyAvailable || h.availability;
+      const isAvailable = hostelHasOpenBeds(h);
+      const matchAvailability = !onlyAvailable || isAvailable;
       return matchSearch && matchCategory && matchPrice && matchAvailability;
     });
   }, [items, query, category, maxPrice, onlyAvailable]);
@@ -43,48 +47,76 @@ export default function HousingPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
       {/* hero */}
-      <section className="rounded-[2rem] bg-black p-8 text-white">
-        <p className="text-sm font-black uppercase tracking-[0.35em] text-neutral-400">Verified hostels</p>
-        <h1 className="mt-4 text-4xl font-black md:text-5xl">Find a safe student hostel and pay only after host confirmation.</h1>
-        <p className="mt-4 max-w-2xl text-neutral-300">Live backend listings, host confirmation, and secure payment proof tracking.</p>
+      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-slate-950 px-4 py-16 text-white sm:px-6 lg:py-20">
+        <img
+          src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1800&q=85"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/65" />
+        <div className="relative mx-auto max-w-7xl">
+          <p className="text-sm font-black uppercase tracking-[0.35em] text-emerald-300">Verified hostels</p>
+          <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight md:text-6xl">Find a safe student hostel with room-first applications.</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
+            Browse verified rooms, apply by category, and pay only after the host approves your application.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold">
+            <span className="rounded-full bg-white/15 px-4 py-2 backdrop-blur">Host verified</span>
+            <span className="rounded-full bg-white/15 px-4 py-2 backdrop-blur">Room number after payment</span>
+            <span className="rounded-full bg-white/15 px-4 py-2 backdrop-blur">24h payment window</span>
+          </div>
+        </div>
       </section>
 
       {/* search and filters */}
-      <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 space-y-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-          <input
-            className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-3 pl-11 pr-4 text-sm text-neutral-900 outline-none transition
-                       placeholder:text-neutral-400 focus:border-neutral-500
-                       dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-neutral-500"
-            placeholder="Search by location or title"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+      <section className="overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="grid gap-4 border-b border-neutral-100 p-4 dark:border-neutral-800 lg:grid-cols-[1fr_auto]">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+            <input
+              className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-4 pl-11 pr-4 text-sm font-semibold text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-neutral-500"
+              placeholder="Search hostel name, location, or description"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => { setQuery(""); setCategory("ALL"); setMaxPrice(300000); setOnlyAvailable(false); }}
+            className="rounded-2xl border border-neutral-200 px-5 py-3 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          >
+            Reset filters
+          </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-6 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-          {/* Category Pill Filters */}
-          <div className="flex flex-wrap gap-2">
-            {["ALL", "Budget", "Standard", "VIP"].map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                  category === cat
-                    ? "bg-black text-white dark:bg-white dark:text-black"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                }`}
-              >
-                {cat === "ALL" ? "All Categories" : cat}
-              </button>
-            ))}
+        <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_1fr_auto]">
+          <div>
+            <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-neutral-400">Room category</p>
+            <div className="flex flex-wrap gap-2">
+              {["ALL", "Budget", "Standard", "VIP"].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={`rounded-xl px-4 py-2 text-xs font-black transition ${
+                    category === cat
+                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                  }`}
+                >
+                  {cat === "ALL" ? "All rooms" : cat}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Price Range Slider */}
-          <div className="flex items-center gap-4 min-w-[200px] flex-1 max-w-sm">
-            <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400 shrink-0">Max Price:</span>
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Monthly budget</p>
+              <span className="rounded-lg bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-900 dark:bg-neutral-800 dark:text-white">
+                RWF {maxPrice.toLocaleString()}
+              </span>
+            </div>
             <input
               type="range"
               min="20000"
@@ -92,22 +124,21 @@ export default function HousingPage() {
               step="5000"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-black dark:accent-white"
+              className="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-neutral-900 dark:bg-neutral-700 dark:accent-white"
             />
-            <span className="text-xs font-black text-neutral-900 dark:text-white shrink-0">
-              RWF {maxPrice.toLocaleString()}
-            </span>
           </div>
 
-          {/* Availability Toggle */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
+          <label className={`flex min-w-48 cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${onlyAvailable ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-900/20" : "border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"}`}>
+            <span>
+              <span className="block text-sm font-black text-neutral-900 dark:text-white">Available only</span>
+              <span className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400">{filtered.length} results</span>
+            </span>
             <input
               type="checkbox"
               checked={onlyAvailable}
               onChange={(e) => setOnlyAvailable(e.target.checked)}
-              className="h-4 w-4 rounded border-neutral-300 text-black focus:ring-black dark:border-neutral-700 dark:bg-neutral-800"
+              className="h-5 w-5 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:focus:ring-white"
             />
-            <span className="text-xs font-bold text-neutral-600 dark:text-neutral-300">Show Available Only</span>
           </label>
         </div>
       </section>
@@ -136,19 +167,20 @@ export default function HousingPage() {
         <section className="grid gap-6 lg:grid-cols-3">
           {filtered.map((housing) => {
             const isVerified = housing.verificationStatus === "VERIFIED";
-            const canApply = isVerified && housing.availability;
+            const isAvailable = hostelHasOpenBeds(housing);
+            const canApply = isVerified && isAvailable;
 
             return (
               <Link
                 key={housing.id}
-                to={`/hostels/${housing.id}`}
+                to={`${hostelBasePath}/${housing.id}`}
                 className="group block overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="relative">
                   <img src={firstImage(housing)} alt={hostelName(housing)} className="h-56 w-full object-cover" />
                   <div className="absolute left-4 top-4 flex gap-2">
-                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${housing.availability ? "bg-green-600" : "bg-red-600"}`}>
-                      {housing.availability ? "Available" : "Occupied"}
+                    <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isAvailable ? "bg-green-600" : "bg-red-600"}`}>
+                      {isAvailable ? "Available" : "Occupied all"}
                     </span>
                     <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isVerified ? "bg-black" : housing.verificationStatus === "REJECTED" ? "bg-red-500" : "bg-amber-500"}`}>
                       {housing.verificationStatus === "PENDING" ? "Pending Verification" : housing.verificationStatus}

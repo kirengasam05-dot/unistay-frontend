@@ -4,6 +4,9 @@ import { Building2, CalendarClock, CheckCircle2, Loader2, XCircle } from 'lucide
 import { housingApi } from '../housing/housingApi';
 import { bookingsApi } from '../bookings/bookingsApi';
 import type { Housing } from '../../shared/types/api';
+import { hostelName } from '../../shared/types/api';
+
+const hasOpenBeds = (h: Housing) => h.occupancyStatus ? h.occupancyStatus === 'AVAILABLE' : (h.available ?? h.availability ?? false);
 
 export default function HostDashboard() {
   const [listings, setListings] = useState<Housing[]>([]);
@@ -15,18 +18,18 @@ export default function HostDashboard() {
       .then(setListings)
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
-    // Load bookings by aggregating across all host's listings
+
     housingApi.getMyListings()
-      .then(ls => Promise.all(ls.map(l => bookingsApi.getByListing(l.id).catch(() => []))))
-      .then(all => setPendingBookings(all.flat().filter((b: { status: string }) => b.status === 'PENDING').length))
+      .then((ls) => Promise.all(ls.map((l) => bookingsApi.getByListing(l.id).catch(() => []))))
+      .then((all) => setPendingBookings(all.flat().filter((b: { status: string }) => b.status === 'PENDING').length))
       .catch(() => setPendingBookings(0));
   }, []);
 
   const stats = useMemo(() => [
     { label: 'Total listings', value: listings.length, color: 'text-neutral-900 dark:text-white', bg: 'bg-neutral-100 dark:bg-neutral-800', icon: Building2 },
-    { label: 'Available', value: listings.filter((h) => h.availability).length, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
-    { label: 'Booked', value: listings.filter((h) => !h.availability).length, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/30', icon: XCircle },
-    { label: 'Pending requests', value: pendingBookings ?? '…', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30', icon: CalendarClock },
+    { label: 'Available', value: listings.filter(hasOpenBeds).length, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30', icon: CheckCircle2 },
+    { label: 'Occupied all', value: listings.filter((h) => !hasOpenBeds(h)).length, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/30', icon: XCircle },
+    { label: 'Pending requests', value: pendingBookings ?? '...', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30', icon: CalendarClock },
   ], [listings, pendingBookings]);
 
   return (
@@ -34,14 +37,14 @@ export default function HostDashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-6 text-white dark:bg-neutral-800 sm:p-8">
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/5" />
         <div className="relative">
-          <h2 className="text-2xl font-black leading-tight sm:text-3xl">Manage hostels, bookings &amp; availability.</h2>
-          <p className="mt-3 max-w-lg text-sm text-neutral-400">Confirm available beds, track occupancy rates, analyze performance reports, and manage waitlists.</p>
+          <h2 className="text-2xl font-black leading-tight sm:text-3xl">Manage hostels, applications, and availability.</h2>
+          <p className="mt-3 max-w-lg text-sm text-neutral-400">Confirm student applications, track occupancy, and review hostel performance from one place.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className="btn-white rounded-xl" to="/host/listings">Manage Hostels</Link>
-            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/bookings">Booking Requests</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/bookings">Applications</Link>
             <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/occupancy">Occupancy</Link>
             <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/waitlist">Waiting Lists</Link>
-            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/reports">Performance Reports</Link>
+            <Link className="btn rounded-xl border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10" to="/host/reports">Reports</Link>
           </div>
         </div>
       </div>
@@ -68,28 +71,46 @@ export default function HostDashboard() {
           <h2 className="text-xl font-black text-neutral-900 dark:text-white">Listing status</h2>
           <Link to="/host/listings" className="text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Manage</Link>
         </div>
+
         {loading ? (
           <div className="grid min-h-32 place-items-center"><Loader2 className="animate-spin text-neutral-400" /></div>
         ) : listings.length === 0 ? (
           <p className="mt-4 text-sm text-neutral-500">No listings yet. <Link to="/host/listings/new" className="font-bold underline">Add your first listing</Link>.</p>
         ) : (
-          <div className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
-            {listings.map((h) => (
-              <div key={h.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                <div>
-                  <p className="font-black text-neutral-900 dark:text-white">{h.title}</p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">{h.location} · RWF {Number(h.price).toLocaleString()}</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${h.availability ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                    {h.availability ? 'AVAILABLE' : 'BOOKED'}
-                  </span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${h.verificationStatus === 'VERIFIED' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : h.verificationStatus === 'REJECTED' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                    {h.verificationStatus}
-                  </span>
-                </div>
-              </div>
-            ))}
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="bg-neutral-50 text-xs font-black uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                <tr>
+                  <th className="px-4 py-3">Hostel</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Monthly price</th>
+                  <th className="px-4 py-3">Availability</th>
+                  <th className="px-4 py-3">Verification</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {listings.map((h) => {
+                  const isAvailable = hasOpenBeds(h);
+                  return (
+                    <tr key={h.id} className="bg-white dark:bg-neutral-950">
+                      <td className="px-4 py-4 font-black text-neutral-900 dark:text-white">{hostelName(h)}</td>
+                      <td className="px-4 py-4 text-neutral-600 dark:text-neutral-300">{h.location}</td>
+                      <td className="px-4 py-4 font-semibold text-neutral-900 dark:text-white">RWF {Number(h.price ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${isAvailable ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                          {isAvailable ? 'AVAILABLE' : 'OCCUPIED ALL'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${h.verificationStatus === 'VERIFIED' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : h.verificationStatus === 'REJECTED' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                          {h.verificationStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

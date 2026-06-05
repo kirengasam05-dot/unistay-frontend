@@ -35,6 +35,8 @@ export default function DashboardLayout() {
   const learningRoute = location.pathname.startsWith('/student/learning')
     || location.pathname.startsWith('/student/assignments')
     || location.pathname === '/student/certificates';
+  const studentHeroRoute = location.pathname === '/student/hostels'
+    || location.pathname === '/student/jobs';
 
   if (loading) {
     return (
@@ -52,7 +54,7 @@ export default function DashboardLayout() {
         <StudentNavbar />
         <main className={learningRoute
           ? 'w-full pt-[128px] md:pt-[82px]'
-          : `mx-auto w-full max-w-7xl px-4 sm:px-6 ${location.pathname === '/dashboard' ? 'pb-8 pt-0' : 'pb-8 pt-32 md:pt-28'}`
+          : `mx-auto w-full max-w-7xl px-4 sm:px-6 ${location.pathname === '/dashboard' ? 'pb-8 pt-0' : studentHeroRoute ? 'pb-8 pt-[128px] md:pt-[82px]' : 'pb-8 pt-32 md:pt-28'}`
         }>
           <Outlet />
         </main>

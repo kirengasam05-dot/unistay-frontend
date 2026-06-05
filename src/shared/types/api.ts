@@ -1,6 +1,6 @@
 export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
-export type BookingStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
-export type PaymentStatus = "UNPAID" | "PAYMENT_PENDING" | "PENDING_VERIFICATION" | "PAID" | "FAILED" | "CANCELLED" | "REFUNDED";
+export type BookingStatus = "PENDING" | "PAYMENT_PENDING" | "CONFIRMED" | "WAITLISTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
+export type PaymentStatus = "UNPAID" | "PENDING" | "PAYMENT_PENDING" | "PENDING_VERIFICATION" | "PAID" | "FAILED" | "CANCELLED" | "REFUNDED";
 export type HotelCategory = "VIP" | "Standard" | "Budget";
 
 export type UserRole = "STUDENT" | "HOST" | "EMPLOYER" | "INSTRUCTOR" | "ADMIN";
@@ -37,6 +37,8 @@ export type Housing = {
   price?: number | null;
   firstRoomId?: string | null;
   availability?: boolean;
+  available?: boolean;
+  occupancyStatus?: "AVAILABLE" | "OCCUPIED_ALL";
   verificationStatus: VerificationStatus;
   hostId: string;
   host?: User;
@@ -48,14 +50,25 @@ export function hostelName(h: Housing): string {
   return h.name ?? h.title ?? 'Unnamed Hostel';
 }
 
+export function hostelHasOpenBeds(h: Housing): boolean {
+  const roomBeds = h.rooms?.reduce((total, room) => total + Number(room.availableBeds ?? 0), 0) ?? 0;
+  if (roomBeds > 0 || Number(h.availableBeds ?? 0) > 0) return true;
+  if (h.occupancyStatus === "OCCUPIED_ALL") return false;
+  if (h.occupancyStatus === "AVAILABLE") return true;
+  return Boolean(h.available ?? h.availability);
+}
+
 /** Minimal room shape returned by hostel responses */
 export type HostelRoom = {
   id: string;
+  hostelId?: string;
   name?: string;
   category?: string;
   price?: number | null;
   availableBeds?: number | null;
   capacity?: number | null;
+  roomNumberStart?: number | null;
+  roomNumberEnd?: number | null;
 };
 
 export type Hotel = Housing;
@@ -77,8 +90,10 @@ export type Booking = {
   user?: User;
   hotel?: Hotel;
   housing?: Housing;
+  room?: HostelRoom & { hostel?: Housing };
   queuePosition?: number | null;
   bedAssignment?: string | null;
+  allocatedRoomNumber?: number | null;
   moveInDate?: string | null;
   bookingReference?: string | null;
   paymentMethod?: string | null;

@@ -6,7 +6,7 @@ import { housingApi } from "../../housing/housingApi";
 import { jobsApi } from "../../jobs/jobsApi";
 import { useAuth } from "../../../features/auth/context/AuthContext";
 import type { Housing } from "../../../shared/types/api";
-import { hostelName } from "../../../shared/types/api";
+import { hostelHasOpenBeds, hostelName } from "../../../shared/types/api";
 import type { Job } from "../../jobs/jobsApi";
 
 const money = (v?: number | null) => `RWF ${Number(v || 0).toLocaleString()}`;
@@ -20,7 +20,7 @@ export default function StudentRecommendationsPage() {
 
   useEffect(() => {
     Promise.all([
-      housingApi.getAll().then(all => all.filter(h => h.verificationStatus === "VERIFIED" && h.availability)).catch(() => [] as Housing[]),
+      housingApi.getAll().then(all => all.filter(h => h.verificationStatus === "VERIFIED" && hostelHasOpenBeds(h))).catch(() => [] as Housing[]),
       jobsApi.getAll().catch(() => [] as Job[]),
     ]).then(([h, j]) => { setHousing(h); setJobs(j); })
       .catch(err => toast.error(err instanceof Error ? err.message : "Failed to load recommendations"))
@@ -41,7 +41,7 @@ export default function StudentRecommendationsPage() {
       <section>
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black text-neutral-900 dark:text-white">Top verified hostels</h2>
-          <Link to="/hostels" className="text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Browse all</Link>
+          <Link to="/student/hostels" className="text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">Browse all</Link>
         </div>
         {loading ? (
           <div className="mt-5 grid min-h-40 place-items-center rounded-2xl border border-neutral-200 dark:border-neutral-800"><Loader2 className="animate-spin text-neutral-400" /></div>
@@ -50,7 +50,7 @@ export default function StudentRecommendationsPage() {
         ) : (
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             {topHousing.map(h => (
-              <Link key={h.id} to={`/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+              <Link key={h.id} to={`/student/hostels/${h.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="relative">
                   <img src={firstImage(h)} alt={hostelName(h)} className="h-40 w-full object-cover" />
                   <span className="absolute left-4 top-4 rounded-full bg-black px-3 py-1 text-xs font-black text-white">Verified</span>
